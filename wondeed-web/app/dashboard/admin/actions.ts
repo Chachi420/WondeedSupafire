@@ -90,7 +90,7 @@ export async function approveSubmission(submissionId: string, rawViewCount: numb
 
   if (subErr || !sub) throw new Error('Submission not found')
 
-  const camp = sub.campaigns as {
+  const camp = (sub as any).campaigns as {
     rate_per_million_inr: number
     per_post_view_cap: number
     budget_remaining_inr: number

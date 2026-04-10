@@ -29,7 +29,7 @@ export default async function CampaignFeedPage() {
       .single(),
   ])
 
-  const campaigns        = (campaignsResult.data ?? []) as FeedCampaign[]
+  const campaigns        = ((campaignsResult.data ?? []) as unknown) as FeedCampaign[]
   const joinedCampaignIds = new Set(
     (submissionsResult.data ?? []).map(s => s.campaign_id)
   )

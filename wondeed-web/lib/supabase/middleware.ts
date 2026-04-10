@@ -1,4 +1,4 @@
-import { createServerClient } from '@supabase/ssr'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextRequest, NextResponse } from 'next/server'
 import { Database } from '@/lib/types/database.types'
 
@@ -10,7 +10,6 @@ const ROLE_HOME: Record<UserRole, string> = {
   admin:   '/dashboard/admin',
 }
 
-// Which role is required for each dashboard prefix
 const DASHBOARD_ROLE: Array<{ prefix: string; role: UserRole }> = [
   { prefix: '/dashboard/client',  role: 'client'  },
   { prefix: '/dashboard/clipper', role: 'clipper' },
@@ -18,6 +17,15 @@ const DASHBOARD_ROLE: Array<{ prefix: string; role: UserRole }> = [
 ]
 
 const PUBLIC_PATHS = ['/', '/login']
+
+async function getRole(supabase: ReturnType<typeof createServerClient<Database>>, userId: string): Promise<UserRole | null> {
+  const { data } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', userId)
+    .single()
+  return (data as { role: UserRole } | null)?.role ?? null
+}
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
@@ -30,79 +38,57 @@ export async function updateSession(request: NextRequest) {
         getAll() {
           return request.cookies.getAll()
         },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          )
+        setAll(cookiesToSet: Array<{ name: string; value: string; options?: CookieOptions }>) {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           supabaseResponse = NextResponse.next({ request })
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, options ?? {})
           )
         },
       },
     }
   )
 
-  // IMPORTANT: Do not add code between createServerClient and getUser()
-  // that reads request cookies. See: https://supabase.com/docs/guides/auth/server-side/nextjs
   const { data: { user } } = await supabase.auth.getUser()
 
   const { pathname } = request.nextUrl
   const isPublic = PUBLIC_PATHS.includes(pathname) || pathname.startsWith('/api/auth')
 
-  // Not authenticated → redirect to login (unless on public path)
+  // Not authenticated → redirect to login
   if (!user && !isPublic) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
-  // Authenticated user on public paths → redirect to their dashboard
+  // Authenticated on public paths → redirect to role dashboard
   if (user && isPublic) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    if (profile?.role) {
+    const role = await getRole(supabase, user.id)
+    if (role) {
       const url = request.nextUrl.clone()
-      url.pathname = ROLE_HOME[profile.role]
+      url.pathname = ROLE_HOME[role]
       return NextResponse.redirect(url)
     }
   }
 
-  // Authenticated user on /dashboard (no suffix) → redirect to role home
+  // /dashboard (bare) → redirect to role dashboard
   if (user && pathname === '/dashboard') {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    if (profile?.role) {
+    const role = await getRole(supabase, user.id)
+    if (role) {
       const url = request.nextUrl.clone()
-      url.pathname = ROLE_HOME[profile.role]
+      url.pathname = ROLE_HOME[role]
       return NextResponse.redirect(url)
     }
   }
 
-  // Authenticated user accessing a wrong-role dashboard → redirect to their dashboard
+  // Wrong-role dashboard → redirect to correct dashboard
   if (user && pathname.startsWith('/dashboard/')) {
-    const matchedDashboard = DASHBOARD_ROLE.find(({ prefix }) =>
-      pathname.startsWith(prefix)
-    )
-
-    if (matchedDashboard) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single()
-
-      if (profile?.role && profile.role !== matchedDashboard.role) {
+    const matched = DASHBOARD_ROLE.find(({ prefix }) => pathname.startsWith(prefix))
+    if (matched) {
+      const role = await getRole(supabase, user.id)
+      if (role && role !== matched.role) {
         const url = request.nextUrl.clone()
-        url.pathname = ROLE_HOME[profile.role]
+        url.pathname = ROLE_HOME[role]
         return NextResponse.redirect(url)
       }
     }

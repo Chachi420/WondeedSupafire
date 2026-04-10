@@ -36,6 +36,7 @@ export type Database = {
           subscription_tier?: Database['public']['Enums']['subscription_tier']
           updated_at?: string
         }
+        Relationships: []
       }
       subscriptions: {
         Row: {
@@ -67,6 +68,7 @@ export type Database = {
           ends_at?: string | null
           payment_ref?: string | null
         }
+        Relationships: []
       }
       campaigns: {
         Row: {
@@ -82,7 +84,6 @@ export type Database = {
           per_post_view_cap: number
           platform: Database['public']['Enums']['campaign_platform']
           status: Database['public']['Enums']['campaign_status']
-          // extended fields
           source_content_url: string | null
           target_platforms: string[]
           clip_length_seconds: number | null
@@ -141,12 +142,23 @@ export type Database = {
           per_post_view_cap?: number
           platform?: Database['public']['Enums']['campaign_platform']
           status?: Database['public']['Enums']['campaign_status']
+          source_content_url?: string | null
+          target_platforms?: string[]
+          clip_length_seconds?: number | null
+          clip_aspect_ratio?: string | null
+          clip_language?: string | null
+          hook_style?: string | null
+          min_views_for_payout?: number | null
+          mandatory_caption?: string | null
+          duration_days?: number | null
+          min_clipper_tier?: Database['public']['Enums']['subscription_tier']
           start_date?: string | null
           end_date?: string | null
           approved_by?: string | null
           approved_at?: string | null
           updated_at?: string
         }
+        Relationships: []
       }
       campaign_submissions: {
         Row: {
@@ -156,9 +168,9 @@ export type Database = {
           clip_url: string
           platform: Database['public']['Enums']['submission_platform']
           status: Database['public']['Enums']['submission_status']
-          raw_view_count: number | null       // admin-entered
-          capped_view_count: number | null    // MIN(raw, per_post_view_cap)
-          earnings_inr: number | null         // calculated on approval
+          raw_view_count: number | null
+          capped_view_count: number | null
+          earnings_inr: number | null
           reviewed_by: string | null
           reviewed_at: string | null
           admin_notes: string | null
@@ -193,6 +205,7 @@ export type Database = {
           admin_notes?: string | null
           updated_at?: string
         }
+        Relationships: []
       }
       earnings: {
         Row: {
@@ -216,6 +229,7 @@ export type Database = {
         Update: {
           status?: Database['public']['Enums']['earning_status']
         }
+        Relationships: []
       }
       wallets: {
         Row: {
@@ -240,6 +254,7 @@ export type Database = {
           total_debited_inr?: number
           updated_at?: string
         }
+        Relationships: []
       }
       payouts: {
         Row: {
@@ -275,6 +290,7 @@ export type Database = {
           processed_by?: string | null
           processed_at?: string | null
         }
+        Relationships: []
       }
       clipper_accounts: {
         Row: {
@@ -307,6 +323,7 @@ export type Database = {
           razorpay_fund_account_id?: string | null
           updated_at?: string
         }
+        Relationships: []
       }
     }
     Views: Record<string, never>
@@ -315,17 +332,33 @@ export type Database = {
         Args: Record<string, never>
         Returns: Database['public']['Enums']['user_role']
       }
+      approve_submission: {
+        Args: { p_submission_id: string; p_raw_view_count: number; p_reviewed_by: string }
+        Returns: Json
+      }
+      reject_campaign_and_refund: {
+        Args: { p_campaign_id: string }
+        Returns: Json
+      }
+      process_payout_failed: {
+        Args: { p_payout_id: string; p_failure_reason: string; p_processed_by: string }
+        Returns: Json
+      }
+      admin_credit_wallet: {
+        Args: { p_user_id: string; p_amount: number }
+        Returns: Json
+      }
     }
     Enums: {
-      user_role:          'client' | 'clipper' | 'admin'
-      campaign_status:    'draft' | 'pending_approval' | 'active' | 'paused' | 'completed' | 'cancelled'
-      campaign_platform:  'instagram' | 'youtube' | 'both'
-      submission_platform:'instagram' | 'youtube'
-      submission_status:  'pending' | 'approved' | 'rejected'
-      earning_status:     'pending' | 'credited' | 'paid_out'
-      payout_status:      'requested' | 'processing' | 'completed' | 'failed'
-      subscription_tier:  'pro' | 'premium' | 'enterprise'
-      subscription_status:'active' | 'cancelled' | 'expired'
+      user_role:           'client' | 'clipper' | 'admin'
+      campaign_status:     'draft' | 'pending_approval' | 'active' | 'paused' | 'completed' | 'cancelled'
+      campaign_platform:   'instagram' | 'youtube' | 'both'
+      submission_platform: 'instagram' | 'youtube'
+      submission_status:   'pending' | 'approved' | 'rejected'
+      earning_status:      'pending' | 'credited' | 'paid_out'
+      payout_status:       'requested' | 'processing' | 'completed' | 'failed'
+      subscription_tier:   'pro' | 'premium' | 'enterprise'
+      subscription_status: 'active' | 'cancelled' | 'expired'
     }
   }
 }

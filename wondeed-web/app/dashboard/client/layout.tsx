@@ -10,7 +10,7 @@ export default async function ClientLayout({ children }: { children: React.React
   const { data: profile } = await supabase
     .from('profiles').select('role').eq('id', user.id).single()
 
-  if (profile?.role !== 'client') redirect('/dashboard')
+  if ((profile as { role: string } | null)?.role !== 'client') redirect('/dashboard')
 
   return (
     <div className="min-h-screen bg-gray-50">

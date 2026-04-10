@@ -10,7 +10,7 @@ export default async function ClipperLayout({ children }: { children: React.Reac
   const { data: profile } = await supabase
     .from('profiles').select('role').eq('id', user.id).single()
 
-  if (profile?.role !== 'clipper') redirect('/dashboard')
+  if ((profile as { role: string } | null)?.role !== 'clipper') redirect('/dashboard')
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -232,38 +232,40 @@ export default function PhoneOTPForm() {
         </form>
       )}
 
-      {/* ── Dev Only ─────────────────────────────────────────── */}
-      <div className="mt-6 pt-6 border-t border-dashed border-amber-300 bg-amber-50 rounded-lg p-4">
-        <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-3">
-          Dev Only — remove before production
-        </p>
-        <form onSubmit={handleDevLogin} className="space-y-3">
-          <input
-            type="email"
-            placeholder="Email"
-            value={devEmail}
-            onChange={(e) => setDevEmail(e.target.value)}
-            required
-            className="w-full px-3 py-2 border border-amber-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={devPassword}
-            onChange={(e) => setDevPassword(e.target.value)}
-            required
-            className="w-full px-3 py-2 border border-amber-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
-          />
-          {devError && <p className="text-xs text-red-600">{devError}</p>}
-          <button
-            type="submit"
-            disabled={devLoading}
-            className="w-full py-2 px-4 bg-amber-400 text-amber-900 rounded-lg text-sm font-medium hover:bg-amber-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {devLoading ? 'Signing in…' : 'Dev Login'}
-          </button>
-        </form>
-      </div>
+      {/* ── Dev Only (hidden in production) ──────────────────── */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mt-6 pt-6 border-t border-dashed border-amber-300 bg-amber-50 rounded-lg p-4">
+          <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-3">
+            Dev Login
+          </p>
+          <form onSubmit={handleDevLogin} className="space-y-3">
+            <input
+              type="email"
+              placeholder="Email"
+              value={devEmail}
+              onChange={(e) => setDevEmail(e.target.value)}
+              required
+              className="w-full px-3 py-2 border border-amber-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              value={devPassword}
+              onChange={(e) => setDevPassword(e.target.value)}
+              required
+              className="w-full px-3 py-2 border border-amber-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
+            />
+            {devError && <p className="text-xs text-red-600">{devError}</p>}
+            <button
+              type="submit"
+              disabled={devLoading}
+              className="w-full py-2 px-4 bg-amber-400 text-amber-900 rounded-lg text-sm font-medium hover:bg-amber-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {devLoading ? 'Signing in…' : 'Dev Login'}
+            </button>
+          </form>
+        </div>
+      )}
     </div>
   )
 }
