@@ -166,6 +166,143 @@ export async function resumeCampaign(campaignId: string) {
   revalidatePath('/dashboard/client/campaigns')
 }
 
+export async function createCampaignAndSubmit(formData: FormData) {
+  const user = await getClientUser()
+  const db   = createAdminClient()
+
+  // ── Validate required fields ──────────────────────────────────
+  const title = (formData.get('title') as string ?? '').trim()
+  if (!title) throw new Error('Campaign name is required')
+
+  const budgetInr = parseFloat(formData.get('budget_inr') as string)
+  if (!budgetInr || budgetInr < MIN_CAMPAIGN_BUDGET_INR)
+    throw new Error(`Minimum campaign budget is ₹${MIN_CAMPAIGN_BUDGET_INR.toLocaleString('en-IN')}`)
+
+  const perPostViewCap = parseInt(formData.get('per_post_view_cap') as string, 10)
+  if (!perPostViewCap || perPostViewCap <= 0) throw new Error('Per-post view cap is required and must be greater than 0')
+
+  const targetPlatforms = formData.getAll('target_platforms') as string[]
+  if (targetPlatforms.length === 0) throw new Error('Select at least one target platform')
+
+  // ── Tier limit check ──────────────────────────────────────────
+  const { data: profile } = await db
+    .from('profiles')
+    .select('subscription_tier')
+    .eq('id', user.id)
+    .single()
+
+  const tier       = ((profile?.subscription_tier as SubscriptionTier | null) ?? 'pro') as SubscriptionTier
+  const tierConfig = TIER_CONFIG[tier]
+
+  if (isFinite(tierConfig.campaign_limit)) {
+    const startOfMonth = new Date()
+    startOfMonth.setDate(1)
+    startOfMonth.setHours(0, 0, 0, 0)
+    const { count } = await db
+      .from('campaigns')
+      .select('id', { count: 'exact', head: true })
+      .eq('client_id', user.id)
+      .gte('created_at', startOfMonth.toISOString())
+      .neq('status', 'cancelled')
+    if ((count ?? 0) >= tierConfig.campaign_limit) {
+      throw new Error(
+        `Your ${tierConfig.name} plan allows ${tierConfig.campaign_limit} campaigns per month. Upgrade to create more.`
+      )
+    }
+  }
+
+  // ── Calculate fees ────────────────────────────────────────────
+  const platformFee  = Math.round(budgetInr * 0.20 * 100) / 100
+  const totalCharged = Math.round((budgetInr + platformFee) * 100) / 100
+
+  // ── Wallet balance check ──────────────────────────────────────
+  const { data: wallet } = await db
+    .from('wallets')
+    .select('balance_inr, total_debited_inr')
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  const walletBalance = Number(wallet?.balance_inr ?? 0)
+  if (walletBalance < totalCharged) {
+    throw new Error(
+      `Insufficient wallet balance. You need ₹${totalCharged.toLocaleString('en-IN')} (budget + 20% platform fee) but your wallet has ₹${walletBalance.toLocaleString('en-IN')}.`
+    )
+  }
+
+  // ── Parse remaining fields ────────────────────────────────────
+  const durationDays      = parseInt(formData.get('duration_days') as string, 10) || null
+  const minViewsForPayout = parseInt(formData.get('min_views_for_payout') as string, 10) || 10000
+  const clipLengthSeconds = parseInt(formData.get('clip_length_seconds') as string, 10) || null
+  const clipAspectRatio   = (formData.get('clip_aspect_ratio') as string) || '9:16'
+  const clipLanguage      = (formData.get('clip_language') as string) || null
+  const hookStyle         = (formData.get('hook_style') as string) || null
+  const minClipperTier    = ((formData.get('min_clipper_tier') as string) || 'pro') as SubscriptionTier
+  const mandatoryCaption  = (formData.get('mandatory_caption') as string ?? '').trim() || null
+  const sourceContentUrl  = (formData.get('source_content_url') as string ?? '').trim() || null
+  const description       = (formData.get('description') as string ?? '').trim() || null
+
+  // Derive platform enum from selected platforms
+  const hasIG = targetPlatforms.includes('instagram')
+  const hasYT = targetPlatforms.includes('youtube')
+  const derivedPlatform: 'instagram' | 'youtube' | 'both' =
+    hasIG && !hasYT ? 'instagram' :
+    hasYT && !hasIG ? 'youtube' :
+    'both'
+
+  let endDate: string | null = null
+  if (durationDays) {
+    const d = new Date()
+    d.setDate(d.getDate() + durationDays)
+    endDate = d.toISOString().split('T')[0]
+  }
+
+  // ── Insert campaign ───────────────────────────────────────────
+  const { data: campaign, error: campaignError } = await db.from('campaigns').insert({
+    client_id:            user.id,
+    title,
+    description,
+    budget_inr:           budgetInr,
+    platform_fee_inr:     platformFee,
+    total_charged_inr:    totalCharged,
+    budget_remaining_inr: budgetInr,
+    rate_per_million_inr: 10000,
+    per_post_view_cap:    perPostViewCap,
+    platform:             derivedPlatform,
+    status:               'pending_approval',
+    source_content_url:   sourceContentUrl,
+    target_platforms:     targetPlatforms,
+    clip_length_seconds:  clipLengthSeconds,
+    clip_aspect_ratio:    clipAspectRatio,
+    clip_language:        clipLanguage,
+    hook_style:           hookStyle,
+    min_views_for_payout: minViewsForPayout,
+    mandatory_caption:    mandatoryCaption,
+    duration_days:        durationDays,
+    min_clipper_tier:     minClipperTier,
+    end_date:             endDate,
+  }).select('id').single()
+
+  if (campaignError) throw new Error(campaignError.message)
+
+  // ── Deduct from wallet ────────────────────────────────────────
+  const { error: walletError } = await db.from('wallets')
+    .update({
+      balance_inr:       walletBalance - totalCharged,
+      total_debited_inr: Number(wallet?.total_debited_inr ?? 0) + totalCharged,
+    })
+    .eq('user_id', user.id)
+
+  if (walletError) {
+    // Rollback campaign if wallet deduction fails
+    await db.from('campaigns').delete().eq('id', campaign.id)
+    throw new Error('Failed to deduct wallet balance. Please try again.')
+  }
+
+  revalidatePath('/dashboard/client')
+  revalidatePath('/dashboard/client/campaigns')
+  redirect('/dashboard/client/campaigns')
+}
+
 export async function updateProfile(formData: FormData) {
   const user = await getClientUser()
   const db   = createAdminClient()
