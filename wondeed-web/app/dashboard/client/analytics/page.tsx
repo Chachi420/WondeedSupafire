@@ -108,7 +108,7 @@ export default async function AnalyticsPage() {
         <div className="bg-white rounded-xl border border-dashed border-gray-300 p-16 text-center">
           <p className="text-sm font-medium text-gray-900 mb-2">No campaign data yet</p>
           <p className="text-sm text-gray-400 mb-6">Submit a campaign and get it approved to start seeing analytics</p>
-          <Link href="/dashboard/client/campaigns/new"
+          <Link href="/dashboard/client/create-campaign"
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-500 text-white text-sm font-semibold rounded-lg hover:bg-brand-600 transition-colors"
           >
             Create Campaign

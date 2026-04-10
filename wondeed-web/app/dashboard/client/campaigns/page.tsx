@@ -72,7 +72,7 @@ export default async function ClientCampaignsPage() {
           <p className="text-sm text-gray-500 mt-0.5">{count ?? 0} total campaigns</p>
         </div>
         <Link
-          href="/dashboard/client/campaigns/new"
+          href="/dashboard/client/create-campaign"
           className="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-500 text-white text-sm font-semibold rounded-lg hover:bg-brand-600 transition-colors"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
@@ -86,7 +86,7 @@ export default async function ClientCampaignsPage() {
         <div className="bg-white rounded-xl border border-dashed border-gray-300 p-20 text-center">
           <p className="text-sm font-medium text-gray-900 mb-2">No campaigns yet</p>
           <p className="text-sm text-gray-400 mb-6">Create your first campaign and start getting views</p>
-          <Link href="/dashboard/client/campaigns/new"
+          <Link href="/dashboard/client/create-campaign"
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-500 text-white text-sm font-semibold rounded-lg hover:bg-brand-600 transition-colors"
           >
             Create Campaign

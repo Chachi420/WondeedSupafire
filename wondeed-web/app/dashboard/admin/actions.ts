@@ -234,6 +234,31 @@ export async function verifyClipperAccount(clipperId: string) {
   revalidatePath('/dashboard/admin/payouts')
 }
 
+// ── Wallets ──────────────────────────────────────────────────
+
+export async function adminCreditWallet(userId: string, amountInr: number, note: string) {
+  await getAdminUser()
+  const db = createAdminClient()
+
+  if (amountInr <= 0) throw new Error('Amount must be positive')
+
+  const { data: wallet, error: fetchErr } = await db
+    .from('wallets')
+    .select('balance_inr, total_credited_inr')
+    .eq('user_id', userId)
+    .single()
+
+  if (fetchErr || !wallet) throw new Error('Wallet not found for this user')
+
+  const { error } = await db.from('wallets').update({
+    balance_inr:        Number(wallet.balance_inr)        + amountInr,
+    total_credited_inr: Number(wallet.total_credited_inr) + amountInr,
+  }).eq('user_id', userId)
+
+  if (error) throw new Error(error.message)
+  revalidatePath('/dashboard/admin/users')
+}
+
 // ── Users ────────────────────────────────────────────────────
 
 export async function updateUserRole(userId: string, role: UserRole) {

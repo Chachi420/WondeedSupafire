@@ -185,7 +185,7 @@ export default async function BillingPage() {
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100">
           <h2 className="text-sm font-semibold text-gray-900">Campaign Spend History</h2>
-          <p className="text-xs text-gray-400 mt-0.5">Wallet is debited when admin approves a campaign</p>
+          <p className="text-xs text-gray-400 mt-0.5">Wallet is debited immediately when you submit a campaign</p>
         </div>
 
         {campaigns.length === 0 ? (

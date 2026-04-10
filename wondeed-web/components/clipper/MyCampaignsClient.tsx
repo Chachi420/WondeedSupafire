@@ -128,7 +128,7 @@ function StatusBadge({ status, isCapped }: { status: string; isCapped?: boolean 
 // ── Rejection Guidance ─────────────────────────────────────────
 
 const REJECTION_TIPS: Record<string, string> = {
-  'wrong platform': 'Make sure you're posting on the platform specified by the campaign.',
+  'wrong platform': "Make sure you're posting on the platform specified by the campaign.",
   'caption':        'Double-check that you included the mandatory caption and all required hashtags.',
   'quality':        'Re-record or re-edit the clip to meet the quality bar — good lighting and clear audio matter.',
   'duration':       'Ensure your clip matches the required length (e.g. 30s, 60s, 90s).',
