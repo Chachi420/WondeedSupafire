@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Security
+ from fastapi import FastAPI, HTTPException, Security
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from contextlib import asynccontextmanager
@@ -70,13 +70,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── Routers (add as they're built) ───────────────────────────────────────────
-# from app.routers import campaigns, submissions, earnings, wallets, payouts
-# app.include_router(campaigns.router,   prefix="/campaigns",   tags=["campaigns"])
-# app.include_router(submissions.router, prefix="/submissions", tags=["submissions"])
-# app.include_router(earnings.router,    prefix="/earnings",    tags=["earnings"])
-# app.include_router(wallets.router,     prefix="/wallets",     tags=["wallets"])
-# app.include_router(payouts.router,     prefix="/payouts",     tags=["payouts"])
+# ── Routers ───────────────────────────────────────────────────────────────────
+from app.routers import campaigns, submissions, earnings, wallets, payouts
+app.include_router(campaigns.router,   prefix="/campaigns",   tags=["campaigns"])
+app.include_router(submissions.router, prefix="/submissions", tags=["submissions"])
+app.include_router(earnings.router,    prefix="/earnings",    tags=["earnings"])
+app.include_router(wallets.router,     prefix="/wallets",     tags=["wallets"])
+app.include_router(payouts.router,     prefix="/payouts",     tags=["payouts"])
 
 
 # ── Routes ───────────────────────────────────────────────────────────────────
