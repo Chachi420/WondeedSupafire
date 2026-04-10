@@ -16,7 +16,7 @@ const NAV = [
     ),
   },
   {
-    href: '/dashboard/client/campaigns/new',
+    href: '/dashboard/client/create-campaign',
     label: 'Create Campaign',
     exact: false,
     icon: (
@@ -81,12 +81,8 @@ export default function ClientSidebar() {
 
   function isActive(item: typeof NAV[number]) {
     if (item.exact) return pathname === item.href
-    // "Create Campaign" should only be active on /campaigns/new, not /campaigns/*
-    if (item.href === '/dashboard/client/campaigns/new') return pathname === item.href
-    // "My Campaigns" should be active on /campaigns/* but not /campaigns/new
-    if (item.href === '/dashboard/client/campaigns') {
-      return pathname.startsWith(item.href) && !pathname.startsWith('/dashboard/client/campaigns/new')
-    }
+    // "Create Campaign" exact match only
+    if (item.href === '/dashboard/client/create-campaign') return pathname === item.href
     return pathname.startsWith(item.href)
   }
 

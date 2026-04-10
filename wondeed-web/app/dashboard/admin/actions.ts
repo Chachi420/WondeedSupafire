@@ -18,31 +18,8 @@ export async function approveCampaign(campaignId: string) {
   const user = await getAdminUser()
   const db   = createAdminClient()
 
-  // Fetch campaign so we know client + total charge
-  const { data: campaign, error: campErr } = await db
-    .from('campaigns')
-    .select('client_id, total_charged_inr')
-    .eq('id', campaignId).single()
-  if (campErr || !campaign) throw new Error('Campaign not found')
-
-  // Check + debit client wallet
-  const { data: wallet } = await db
-    .from('wallets')
-    .select('balance_inr, total_debited_inr')
-    .eq('user_id', campaign.client_id).single()
-
-  if (!wallet || Number(wallet.balance_inr) < Number(campaign.total_charged_inr)) {
-    throw new Error(
-      `Insufficient client wallet balance. Required: ₹${campaign.total_charged_inr}, Available: ₹${wallet?.balance_inr ?? 0}`
-    )
-  }
-
-  await db.from('wallets').update({
-    balance_inr:      Number(wallet.balance_inr)      - Number(campaign.total_charged_inr),
-    total_debited_inr: Number(wallet.total_debited_inr) + Number(campaign.total_charged_inr),
-  }).eq('user_id', campaign.client_id)
-
-  // Activate campaign
+  // Budget was already deducted from client wallet at submission time.
+  // Admin approval simply activates the campaign — no wallet mutation needed.
   const { error } = await db.from('campaigns').update({
     status:      'active',
     approved_by: user.id,
@@ -53,16 +30,46 @@ export async function approveCampaign(campaignId: string) {
   revalidatePath('/dashboard/admin')
   revalidatePath('/dashboard/admin/campaigns')
   revalidatePath('/dashboard/client')
+  revalidatePath('/dashboard/client/campaigns')
 }
 
 export async function rejectCampaign(campaignId: string) {
   const db = createAdminClient()
-  const { error } = await db.from('campaigns').update({ status: 'cancelled' })
-    .eq('id', campaignId).eq('status', 'pending_approval')
+
+  // Fetch campaign to get client_id + total_charged so we can refund wallet
+  const { data: campaign, error: fetchErr } = await db
+    .from('campaigns')
+    .select('client_id, total_charged_inr')
+    .eq('id', campaignId)
+    .eq('status', 'pending_approval')
+    .single()
+
+  if (fetchErr || !campaign) throw new Error('Campaign not found or already processed')
+
+  // Refund client wallet
+  const { data: wallet } = await db
+    .from('wallets')
+    .select('balance_inr, total_debited_inr')
+    .eq('user_id', campaign.client_id)
+    .single()
+
+  if (wallet) {
+    await db.from('wallets').update({
+      balance_inr:       Number(wallet.balance_inr)       + Number(campaign.total_charged_inr),
+      total_debited_inr: Math.max(0, Number(wallet.total_debited_inr) - Number(campaign.total_charged_inr)),
+    }).eq('user_id', campaign.client_id)
+  }
+
+  // Cancel campaign
+  const { error } = await db.from('campaigns')
+    .update({ status: 'cancelled' })
+    .eq('id', campaignId)
 
   if (error) throw new Error(error.message)
   revalidatePath('/dashboard/admin')
   revalidatePath('/dashboard/admin/campaigns')
+  revalidatePath('/dashboard/client')
+  revalidatePath('/dashboard/client/campaigns')
 }
 
 // ── Submissions ──────────────────────────────────────────────
