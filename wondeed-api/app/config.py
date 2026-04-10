@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     # App
     environment: str = "development"
     allowed_origins: list[str] = ["http://localhost:3000"]
+    cron_secret: str = ""  # Set CRON_SECRET env var; used to auth /campaigns/expire
 
     class Config:
         env_file = ".env"

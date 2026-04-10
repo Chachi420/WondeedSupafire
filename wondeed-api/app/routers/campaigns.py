@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException
 from app.database import get_supabase
 from app.main import get_caller_user
+from app.config import settings
 
 router = APIRouter()
 
@@ -29,12 +30,17 @@ def get_campaign(campaign_id: str, user=Depends(get_caller_user)):
 
 
 @router.post("/expire")
-def expire_campaigns(user=Depends(get_caller_user)):
+def expire_campaigns(x_cron_secret: str = Header(default="")):
     """
-    Admin/cron: mark all active campaigns past their end_date as completed.
+    Cron: mark all active campaigns past their end_date as completed.
     Unspent budget is NOT refunded — it accrues to Wondeed revenue.
-    Call this endpoint daily via a cron job (Railway cron / GitHub Actions).
+
+    Auth: pass the CRON_SECRET env var as the X-Cron-Secret header.
+    Called daily by GitHub Actions (see .github/workflows/expire-campaigns.yml).
     """
+    if not settings.cron_secret or x_cron_secret != settings.cron_secret:
+        raise HTTPException(status_code=401, detail="Invalid cron secret")
+
     from datetime import datetime, timezone
 
     db = get_supabase()

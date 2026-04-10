@@ -1,0 +1,27 @@
+name: Expire Campaigns
+
+on:
+  schedule:
+    # Runs daily at 00:30 UTC (06:00 IST)
+    - cron: '30 0 * * *'
+  workflow_dispatch:  # Allow manual trigger from GitHub Actions UI
+
+jobs:
+  expire:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger campaign expiry
+        run: |
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X POST "${{ secrets.WONDEED_API_URL }}/campaigns/expire" \
+            -H "X-Cron-Secret: ${{ secrets.WONDEED_CRON_SECRET }}" \
+            -H "Content-Type: application/json")
+
+          echo "API response status: $RESPONSE"
+
+          if [ "$RESPONSE" != "200" ]; then
+            echo "Campaign expiry failed with HTTP $RESPONSE"
+            exit 1
+          fi
+
+          echo "Campaign expiry completed successfully"
