@@ -3,17 +3,19 @@ import Link from 'next/link'
 
 async function getStats() {
   const db = createAdminClient()
-  const [pendingCampaigns, pendingSubmissions, activeCount, userCount] = await Promise.all([
+  const [pendingCampaigns, pendingSubmissions, activeCount, userCount, pendingPayouts] = await Promise.all([
     db.from('campaigns').select('id', { count: 'exact', head: true }).eq('status', 'pending_approval'),
     db.from('campaign_submissions').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
     db.from('campaigns').select('id', { count: 'exact', head: true }).eq('status', 'active'),
     db.from('profiles').select('id', { count: 'exact', head: true }),
+    db.from('payouts').select('id', { count: 'exact', head: true }).in('status', ['requested', 'processing']),
   ])
   return {
     pendingCampaigns:   pendingCampaigns.count  ?? 0,
     pendingSubmissions: pendingSubmissions.count ?? 0,
     activeCampaigns:    activeCount.count        ?? 0,
     totalUsers:         userCount.count          ?? 0,
+    pendingPayouts:     pendingPayouts.count     ?? 0,
   }
 }
 
@@ -49,10 +51,10 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 const STAT_CARDS = [
-  { label: 'Pending Campaigns',   key: 'pendingCampaigns',   href: '/dashboard/admin/campaigns',   dot: 'bg-amber-400' },
-  { label: 'Pending Submissions', key: 'pendingSubmissions',  href: '/dashboard/admin/submissions',  dot: 'bg-blue-500'  },
-  { label: 'Active Campaigns',    key: 'activeCampaigns',    href: '/dashboard/admin/campaigns',   dot: 'bg-green-500' },
-  { label: 'Total Users',         key: 'totalUsers',         href: '/dashboard/admin/users',       dot: 'bg-indigo-500'},
+  { label: 'Pending Campaigns',   key: 'pendingCampaigns',   href: '/dashboard/admin/campaigns',   dot: 'bg-amber-400'  },
+  { label: 'Pending Submissions', key: 'pendingSubmissions',  href: '/dashboard/admin/submissions',  dot: 'bg-blue-500'   },
+  { label: 'Pending Payouts',     key: 'pendingPayouts',     href: '/dashboard/admin/payouts',     dot: 'bg-violet-500' },
+  { label: 'Total Users',         key: 'totalUsers',         href: '/dashboard/admin/users',       dot: 'bg-indigo-500' },
 ] as const
 
 export default async function AdminOverviewPage() {

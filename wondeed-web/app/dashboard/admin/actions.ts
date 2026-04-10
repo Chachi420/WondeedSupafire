@@ -158,6 +158,82 @@ export async function rejectSubmission(submissionId: string, adminNotes: string)
   revalidatePath('/dashboard/admin/submissions')
 }
 
+// ── Payouts ──────────────────────────────────────────────────
+
+export async function markPayoutProcessing(payoutId: string) {
+  const user = await getAdminUser()
+  const db = createAdminClient()
+  const { error } = await db.from('payouts').update({
+    status:       'processing',
+    processed_by: user.id,
+    processed_at: new Date().toISOString(),
+  }).eq('id', payoutId).eq('status', 'requested')
+  if (error) throw new Error(error.message)
+  revalidatePath('/dashboard/admin/payouts')
+}
+
+export async function markPayoutCompleted(payoutId: string, razorpayPayoutId: string) {
+  const user = await getAdminUser()
+  const db = createAdminClient()
+  const { error } = await db.from('payouts').update({
+    status:            'completed',
+    razorpay_payout_id: razorpayPayoutId.trim(),
+    processed_by:      user.id,
+    processed_at:      new Date().toISOString(),
+  }).eq('id', payoutId).in('status', ['requested', 'processing'])
+  if (error) throw new Error(error.message)
+  revalidatePath('/dashboard/admin/payouts')
+}
+
+export async function markPayoutFailed(payoutId: string, failureReason: string) {
+  const user = await getAdminUser()
+  const db = createAdminClient()
+
+  // Fetch payout to refund clipper wallet
+  const { data: payout, error: fetchErr } = await db
+    .from('payouts')
+    .select('clipper_id, amount_inr, status')
+    .eq('id', payoutId)
+    .single()
+
+  if (fetchErr || !payout) throw new Error('Payout not found')
+  if (payout.status === 'completed') throw new Error('Cannot fail a completed payout')
+
+  // Refund clipper wallet
+  const { data: wallet } = await db
+    .from('wallets')
+    .select('balance_inr, total_debited_inr')
+    .eq('user_id', payout.clipper_id)
+    .single()
+
+  if (wallet) {
+    await db.from('wallets').update({
+      balance_inr:      Number(wallet.balance_inr)      + Number(payout.amount_inr),
+      total_debited_inr: Math.max(0, Number(wallet.total_debited_inr) - Number(payout.amount_inr)),
+    }).eq('user_id', payout.clipper_id)
+  }
+
+  const { error } = await db.from('payouts').update({
+    status:        'failed',
+    failure_reason: failureReason.trim() || null,
+    processed_by:  user.id,
+    processed_at:  new Date().toISOString(),
+  }).eq('id', payoutId)
+
+  if (error) throw new Error(error.message)
+  revalidatePath('/dashboard/admin/payouts')
+}
+
+export async function verifyClipperAccount(clipperId: string) {
+  const db = createAdminClient()
+  const { error } = await db
+    .from('clipper_accounts')
+    .update({ is_verified: true })
+    .eq('clipper_id', clipperId)
+  if (error) throw new Error(error.message)
+  revalidatePath('/dashboard/admin/payouts')
+}
+
 // ── Users ────────────────────────────────────────────────────
 
 export async function updateUserRole(userId: string, role: UserRole) {
