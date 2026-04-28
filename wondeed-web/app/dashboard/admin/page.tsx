@@ -26,7 +26,7 @@ async function getRecentActivity() {
       .select('id, title, status, created_at, profiles(full_name, phone)')
       .order('created_at', { ascending: false }).limit(5),
     db.from('campaign_submissions')
-      .select('id, platform, status, created_at, campaigns(title), profiles(full_name, phone)')
+      .select('id, platform, status, created_at, campaigns(title), profiles!clipper_id(full_name, phone)')
       .order('created_at', { ascending: false }).limit(5),
   ])
   return { campaigns: campaigns ?? [], submissions: submissions ?? [] }

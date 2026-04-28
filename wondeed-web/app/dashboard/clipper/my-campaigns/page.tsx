@@ -28,36 +28,40 @@ export default async function MyCampaignsPage({
   const { data: { user } } = await supabase.auth.getUser()
   const db = createAdminClient()
 
-  // Fetch all submissions for this clipper, joining full campaign details
-  const { data: rawSubs } = await db
+  // Try with migration-002 columns; fall back to base schema if they don't exist yet
+  let result = await db
     .from('campaign_submissions')
     .select(`
-      id,
-      clip_url,
-      platform,
-      status,
-      raw_view_count,
-      capped_view_count,
-      earnings_inr,
-      admin_notes,
-      created_at,
-      reviewed_at,
-      campaign_id,
+      id, clip_url, platform, status,
+      raw_view_count, capped_view_count, earnings_inr, admin_notes,
+      created_at, reviewed_at, campaign_id,
       campaigns (
-        id,
-        title,
-        platform,
-        target_platforms,
-        rate_per_million_inr,
-        budget_remaining_inr,
-        per_post_view_cap,
-        status,
-        end_date,
-        source_content_url
+        id, title, platform, target_platforms,
+        rate_per_million_inr, budget_remaining_inr,
+        per_post_view_cap, status, end_date, source_content_url
       )
     `)
     .eq('clipper_id', user!.id)
     .order('created_at', { ascending: false })
+
+  if (result.error) {
+    result = await db
+      .from('campaign_submissions')
+      .select(`
+        id, clip_url, platform, status,
+        raw_view_count, capped_view_count, earnings_inr, admin_notes,
+        created_at, reviewed_at, campaign_id,
+        campaigns (
+          id, title, platform,
+          rate_per_million_inr, budget_remaining_inr,
+          per_post_view_cap, status, end_date
+        )
+      `)
+      .eq('clipper_id', user!.id)
+      .order('created_at', { ascending: false })
+  }
+
+  const { data: rawSubs } = result
 
   const subs = (rawSubs ?? []) as any[]
 

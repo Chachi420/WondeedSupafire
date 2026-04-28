@@ -6,12 +6,14 @@ export const dynamic = 'force-dynamic'
 export default async function SubmissionsPage() {
   const db = createAdminClient()
 
-  const { data: pending } = await db
+  // Use !clipper_id hint to disambiguate — campaign_submissions has two FKs to profiles
+  // (clipper_id and reviewed_by). Without the hint PostgREST errors and returns nothing.
+  const { data: pending, error: pendingErr } = await db
     .from('campaign_submissions')
     .select(`
       id, clip_url, platform, status, created_at,
       campaigns ( title, rate_per_million_inr, per_post_view_cap, budget_remaining_inr ),
-      profiles ( full_name, phone )
+      profiles!clipper_id ( full_name, phone )
     `)
     .eq('status', 'pending')
     .order('created_at', { ascending: true })
@@ -22,7 +24,7 @@ export default async function SubmissionsPage() {
       id, clip_url, platform, status, raw_view_count, capped_view_count,
       earnings_inr, admin_notes, reviewed_at,
       campaigns ( title ),
-      profiles ( full_name, phone )
+      profiles!clipper_id ( full_name, phone )
     `)
     .in('status', ['approved', 'rejected'])
     .order('reviewed_at', { ascending: false })
@@ -45,6 +47,11 @@ export default async function SubmissionsPage() {
             </span>
           )}
         </div>
+        {pendingErr && (
+          <div className="mb-4 bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">
+            Query error: {pendingErr.message}
+          </div>
+        )}
         <SubmissionQueue submissions={(pending ?? []) as any} />
       </div>
 

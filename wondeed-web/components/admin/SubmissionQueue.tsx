@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { approveSubmission, rejectSubmission } from '@/app/dashboard/admin/actions'
+import { approveSubmission, rejectSubmission, fetchLiveViewCount } from '@/app/dashboard/admin/actions'
 
 type Submission = {
   id: string
@@ -40,12 +40,27 @@ function previewEarnings(views: number, cap: number, rate: number, remaining: nu
 
 function SubmissionRow({ sub }: { sub: Submission }) {
   const [isPending, startTransition] = useTransition()
-  const [mode, setMode]     = useState<'idle' | 'approve' | 'reject'>('idle')
-  const [views, setViews]   = useState('')
-  const [notes, setNotes]   = useState('')
-  const [error, setError]   = useState<string | null>(null)
+  const [mode, setMode]       = useState<'idle' | 'approve' | 'reject'>('idle')
+  const [views, setViews]     = useState('')
+  const [notes, setNotes]     = useState('')
+  const [error, setError]     = useState<string | null>(null)
+  const [fetching, setFetching] = useState(false)
 
   const camp = sub.campaigns
+
+  async function handleFetchLiveViews() {
+    setFetching(true)
+    setError(null)
+    try {
+      const count = await fetchLiveViewCount(sub.id)
+      if (count != null) setViews(String(count))
+      else setError('Could not fetch views — paste manually')
+    } catch {
+      setError('Fetch failed — paste manually')
+    } finally {
+      setFetching(false)
+    }
+  }
 
   function submitApprove() {
     const v = parseInt(views, 10)
@@ -153,6 +168,14 @@ function SubmissionRow({ sub }: { sub: Submission }) {
                     className="w-48 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
                     autoFocus
                   />
+                  <button
+                    type="button"
+                    onClick={handleFetchLiveViews}
+                    disabled={fetching || isPending}
+                    className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg disabled:opacity-40 transition-colors whitespace-nowrap"
+                  >
+                    {fetching ? 'Fetching…' : '⟳ Fetch Live Views'}
+                  </button>
                   {previewInr !== null && (
                     <div className="text-sm">
                       <span className="text-gray-500">Clipper earns: </span>

@@ -113,6 +113,33 @@ export async function submitForApproval(campaignId: string) {
   const user = await getClientUser()
   const db   = createAdminClient()
 
+  // Fetch the campaign to get the total amount that must be charged
+  const { data: campaign } = await db
+    .from('campaigns')
+    .select('total_charged_inr, status')
+    .eq('id', campaignId)
+    .eq('client_id', user.id)
+    .single()
+
+  if (!campaign || campaign.status !== 'draft') throw new Error('Campaign not found or not in draft status')
+
+  const totalCharged = Number(campaign.total_charged_inr)
+
+  // Check wallet balance
+  const { data: wallet } = await db
+    .from('wallets')
+    .select('balance_inr, total_debited_inr')
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  const walletBalance = Number(wallet?.balance_inr ?? 0)
+  if (walletBalance < totalCharged) {
+    throw new Error(
+      `Insufficient wallet balance. You need ₹${totalCharged.toLocaleString('en-IN')} but your wallet has ₹${walletBalance.toLocaleString('en-IN')}.`
+    )
+  }
+
+  // Update campaign status
   const { error } = await db.from('campaigns')
     .update({ status: 'pending_approval' })
     .eq('id', campaignId)
@@ -120,6 +147,20 @@ export async function submitForApproval(campaignId: string) {
     .eq('status', 'draft')
 
   if (error) throw new Error(error.message)
+
+  // Deduct from wallet
+  const { error: walletError } = await db.from('wallets')
+    .update({
+      balance_inr:       walletBalance - totalCharged,
+      total_debited_inr: Number(wallet?.total_debited_inr ?? 0) + totalCharged,
+    })
+    .eq('user_id', user.id)
+
+  if (walletError) {
+    // Compensate: revert campaign back to draft
+    await db.from('campaigns').update({ status: 'draft' }).eq('id', campaignId)
+    throw new Error('Failed to deduct wallet balance. Please try again.')
+  }
 
   revalidatePath('/dashboard/client')
   revalidatePath('/dashboard/client/campaigns')

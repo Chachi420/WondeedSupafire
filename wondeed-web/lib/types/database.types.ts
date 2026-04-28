@@ -15,6 +15,7 @@ export type Database = {
           phone: string
           full_name: string | null
           role: Database['public']['Enums']['user_role']
+          account_status: 'pending' | 'active' | 'suspended'
           subscription_tier: Database['public']['Enums']['subscription_tier']
           created_at: string
           updated_at: string
@@ -24,6 +25,7 @@ export type Database = {
           phone: string
           full_name?: string | null
           role?: Database['public']['Enums']['user_role']
+          account_status?: 'pending' | 'active' | 'suspended'
           subscription_tier?: Database['public']['Enums']['subscription_tier']
           created_at?: string
           updated_at?: string
@@ -33,6 +35,7 @@ export type Database = {
           phone?: string
           full_name?: string | null
           role?: Database['public']['Enums']['user_role']
+          account_status?: 'pending' | 'active' | 'suspended'
           subscription_tier?: Database['public']['Enums']['subscription_tier']
           updated_at?: string
         }
@@ -174,6 +177,11 @@ export type Database = {
           reviewed_by: string | null
           reviewed_at: string | null
           admin_notes: string | null
+          view_count_source: 'manual' | 'youtube_api' | 'instagram_api' | null
+          live_view_count: number | null
+          live_like_count: number | null
+          live_comment_count: number | null
+          last_refreshed_at: string | null
           created_at: string
           updated_at: string
         }
@@ -190,6 +198,11 @@ export type Database = {
           reviewed_by?: string | null
           reviewed_at?: string | null
           admin_notes?: string | null
+          view_count_source?: 'manual' | 'youtube_api' | 'instagram_api' | null
+          live_view_count?: number | null
+          live_like_count?: number | null
+          live_comment_count?: number | null
+          last_refreshed_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -203,6 +216,54 @@ export type Database = {
           reviewed_by?: string | null
           reviewed_at?: string | null
           admin_notes?: string | null
+          view_count_source?: 'manual' | 'youtube_api' | 'instagram_api' | null
+          live_view_count?: number | null
+          live_like_count?: number | null
+          live_comment_count?: number | null
+          last_refreshed_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      clipper_social_accounts: {
+        Row: {
+          clipper_id: string
+          instagram_user_id: string | null
+          instagram_username: string | null
+          instagram_access_token: string | null
+          instagram_token_expires_at: string | null
+          instagram_connected_at: string | null
+          youtube_channel_id: string | null
+          youtube_channel_handle: string | null
+          youtube_channel_title: string | null
+          youtube_verified_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          clipper_id: string
+          instagram_user_id?: string | null
+          instagram_username?: string | null
+          instagram_access_token?: string | null
+          instagram_token_expires_at?: string | null
+          instagram_connected_at?: string | null
+          youtube_channel_id?: string | null
+          youtube_channel_handle?: string | null
+          youtube_channel_title?: string | null
+          youtube_verified_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          instagram_user_id?: string | null
+          instagram_username?: string | null
+          instagram_access_token?: string | null
+          instagram_token_expires_at?: string | null
+          instagram_connected_at?: string | null
+          youtube_channel_id?: string | null
+          youtube_channel_handle?: string | null
+          youtube_channel_title?: string | null
+          youtube_verified_at?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -372,6 +433,8 @@ export type Wallet             = Database['public']['Tables']['wallets']['Row']
 export type Payout             = Database['public']['Tables']['payouts']['Row']
 export type ClipperAccount     = Database['public']['Tables']['clipper_accounts']['Row']
 export type Subscription       = Database['public']['Tables']['subscriptions']['Row']
+
+export type ClipperSocialAccount = Database['public']['Tables']['clipper_social_accounts']['Row']
 
 export type UserRole             = Database['public']['Enums']['user_role']
 export type CampaignStatus       = Database['public']['Enums']['campaign_status']

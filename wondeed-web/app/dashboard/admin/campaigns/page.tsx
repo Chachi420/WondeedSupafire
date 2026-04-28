@@ -1,5 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import CampaignQueue from '@/components/admin/CampaignQueue'
+import SeedTestCampaignButton from '@/components/admin/SeedTestCampaignButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,23 +12,26 @@ export default async function CampaignsPage() {
     .select(`
       id, title, description, budget_inr, total_charged_inr,
       platform, start_date, end_date, per_post_view_cap, created_at,
-      profiles ( full_name, phone )
+      profiles!client_id ( full_name, phone )
     `)
     .eq('status', 'pending_approval')
     .order('created_at', { ascending: true })  // oldest first
 
   const { data: all, count } = await db
     .from('campaigns')
-    .select('id, title, status, budget_inr, platform, created_at, profiles(full_name, phone)', { count: 'exact' })
+    .select('id, title, status, budget_inr, platform, created_at, profiles!client_id(full_name, phone)', { count: 'exact' })
     .in('status', ['active', 'completed', 'cancelled'])
     .order('created_at', { ascending: false })
     .limit(20)
 
   return (
     <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Campaigns</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Review and approve client campaign submissions</p>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Campaigns</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Review and approve client campaign submissions</p>
+        </div>
+        <SeedTestCampaignButton />
       </div>
 
       {/* Approval queue */}

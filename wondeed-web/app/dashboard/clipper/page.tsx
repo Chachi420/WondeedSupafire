@@ -199,11 +199,11 @@ export default async function ClipperHomePage() {
                 <span className="text-xs font-medium text-emerald-700">Browse Campaigns</span>
               </Link>
               <Link
-                href="/dashboard/clipper/my-campaigns"
+                href="/dashboard/clipper/submit"
                 className="flex flex-col items-center gap-2 p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors text-center"
               >
                 <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.069A1 1 0 0121 8.82V15a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                 </svg>
                 <span className="text-xs font-medium text-blue-700">Submit a Clip</span>
               </Link>

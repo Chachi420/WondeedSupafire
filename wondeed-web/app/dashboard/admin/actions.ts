@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { fetchInstagramMetrics } from '@/lib/instagram/scraper'
 import type { UserRole } from '@/lib/types/database.types'
 
 async function getAdminUser() {
@@ -35,36 +36,7 @@ export async function approveCampaign(campaignId: string) {
 
 export async function rejectCampaign(campaignId: string) {
   const db = createAdminClient()
-
-  // Fetch campaign to get client_id + total_charged so we can refund wallet
-  const { data: campaign, error: fetchErr } = await db
-    .from('campaigns')
-    .select('client_id, total_charged_inr')
-    .eq('id', campaignId)
-    .eq('status', 'pending_approval')
-    .single()
-
-  if (fetchErr || !campaign) throw new Error('Campaign not found or already processed')
-
-  // Refund client wallet
-  const { data: wallet } = await db
-    .from('wallets')
-    .select('balance_inr, total_debited_inr')
-    .eq('user_id', campaign.client_id)
-    .single()
-
-  if (wallet) {
-    await db.from('wallets').update({
-      balance_inr:       Number(wallet.balance_inr)       + Number(campaign.total_charged_inr),
-      total_debited_inr: Math.max(0, Number(wallet.total_debited_inr) - Number(campaign.total_charged_inr)),
-    }).eq('user_id', campaign.client_id)
-  }
-
-  // Cancel campaign
-  const { error } = await db.from('campaigns')
-    .update({ status: 'cancelled' })
-    .eq('id', campaignId)
-
+  const { error } = await db.rpc('reject_campaign_and_refund', { p_campaign_id: campaignId })
   if (error) throw new Error(error.message)
   revalidatePath('/dashboard/admin')
   revalidatePath('/dashboard/admin/campaigns')
@@ -77,69 +49,12 @@ export async function rejectCampaign(campaignId: string) {
 export async function approveSubmission(submissionId: string, rawViewCount: number) {
   const user = await getAdminUser()
   const db = createAdminClient()
-
-  // Fetch submission joined with campaign financials
-  const { data: sub, error: subErr } = await db
-    .from('campaign_submissions')
-    .select(`
-      id, clipper_id, campaign_id,
-      campaigns ( rate_per_million_inr, per_post_view_cap, budget_remaining_inr )
-    `)
-    .eq('id', submissionId)
-    .single()
-
-  if (subErr || !sub) throw new Error('Submission not found')
-
-  const camp = (sub as any).campaigns as {
-    rate_per_million_inr: number
-    per_post_view_cap: number
-    budget_remaining_inr: number
-  }
-
-  // Earnings calculation
-  const cappedViews  = Math.min(rawViewCount, Number(camp.per_post_view_cap))
-  const rawEarnings  = Math.floor(cappedViews * Number(camp.rate_per_million_inr) / 1_000_000)
-  const earningsInr  = Math.min(rawEarnings, Number(camp.budget_remaining_inr))
-  const newRemaining = Number(camp.budget_remaining_inr) - earningsInr
-  const now          = new Date().toISOString()
-
-  // 1. Update submission
-  await db.from('campaign_submissions').update({
-    status:            'approved',
-    raw_view_count:    rawViewCount,
-    capped_view_count: cappedViews,
-    earnings_inr:      earningsInr,
-    reviewed_by:       user.id,
-    reviewed_at:       now,
-  }).eq('id', submissionId)
-
-  // 2. Insert earning record
-  await db.from('earnings').insert({
-    clipper_id:    sub.clipper_id,
-    submission_id: submissionId,
-    campaign_id:   sub.campaign_id,
-    amount_inr:    earningsInr,
-    status:        'credited',
+  const { error } = await db.rpc('approve_submission', {
+    p_submission_id:  submissionId,
+    p_raw_view_count: rawViewCount,
+    p_reviewed_by:    user.id,
   })
-
-  // 3. Decrement campaign budget (auto-complete if exhausted)
-  await db.from('campaigns').update({
-    budget_remaining_inr: newRemaining,
-    ...(newRemaining <= 0 ? { status: 'completed' } : {}),
-  }).eq('id', sub.campaign_id)
-
-  // 4. Credit clipper wallet
-  const { data: wallet } = await db
-    .from('wallets').select('balance_inr, total_credited_inr')
-    .eq('user_id', sub.clipper_id).single()
-
-  if (wallet) {
-    await db.from('wallets').update({
-      balance_inr:        Number(wallet.balance_inr)        + earningsInr,
-      total_credited_inr: Number(wallet.total_credited_inr) + earningsInr,
-    }).eq('user_id', sub.clipper_id)
-  }
-
+  if (error) throw new Error(error.message)
   revalidatePath('/dashboard/admin')
   revalidatePath('/dashboard/admin/submissions')
 }
@@ -188,38 +103,11 @@ export async function markPayoutCompleted(payoutId: string, razorpayPayoutId: st
 export async function markPayoutFailed(payoutId: string, failureReason: string) {
   const user = await getAdminUser()
   const db = createAdminClient()
-
-  // Fetch payout to refund clipper wallet
-  const { data: payout, error: fetchErr } = await db
-    .from('payouts')
-    .select('clipper_id, amount_inr, status')
-    .eq('id', payoutId)
-    .single()
-
-  if (fetchErr || !payout) throw new Error('Payout not found')
-  if (payout.status === 'completed') throw new Error('Cannot fail a completed payout')
-
-  // Refund clipper wallet
-  const { data: wallet } = await db
-    .from('wallets')
-    .select('balance_inr, total_debited_inr')
-    .eq('user_id', payout.clipper_id)
-    .single()
-
-  if (wallet) {
-    await db.from('wallets').update({
-      balance_inr:      Number(wallet.balance_inr)      + Number(payout.amount_inr),
-      total_debited_inr: Math.max(0, Number(wallet.total_debited_inr) - Number(payout.amount_inr)),
-    }).eq('user_id', payout.clipper_id)
-  }
-
-  const { error } = await db.from('payouts').update({
-    status:        'failed',
-    failure_reason: failureReason.trim() || null,
-    processed_by:  user.id,
-    processed_at:  new Date().toISOString(),
-  }).eq('id', payoutId)
-
+  const { error } = await db.rpc('process_payout_failed', {
+    p_payout_id:      payoutId,
+    p_failure_reason: failureReason.trim() || '',
+    p_processed_by:   user.id,
+  })
   if (error) throw new Error(error.message)
   revalidatePath('/dashboard/admin/payouts')
 }
@@ -239,22 +127,11 @@ export async function verifyClipperAccount(clipperId: string) {
 export async function adminCreditWallet(userId: string, amountInr: number, note: string) {
   await getAdminUser()
   const db = createAdminClient()
-
   if (amountInr <= 0) throw new Error('Amount must be positive')
-
-  const { data: wallet, error: fetchErr } = await db
-    .from('wallets')
-    .select('balance_inr, total_credited_inr')
-    .eq('user_id', userId)
-    .single()
-
-  if (fetchErr || !wallet) throw new Error('Wallet not found for this user')
-
-  const { error } = await db.from('wallets').update({
-    balance_inr:        Number(wallet.balance_inr)        + amountInr,
-    total_credited_inr: Number(wallet.total_credited_inr) + amountInr,
-  }).eq('user_id', userId)
-
+  const { error } = await db.rpc('admin_credit_wallet', {
+    p_user_id: userId,
+    p_amount:  amountInr,
+  })
   if (error) throw new Error(error.message)
   revalidatePath('/dashboard/admin/users')
 }
@@ -266,4 +143,107 @@ export async function updateUserRole(userId: string, role: UserRole) {
   const { error } = await db.from('profiles').update({ role }).eq('id', userId)
   if (error) throw new Error(error.message)
   revalidatePath('/dashboard/admin/users')
+}
+
+// ── Clipper account approval ──────────────────────────────────
+
+export async function approveClipperAccount(clipperId: string) {
+  await getAdminUser()
+  const db = createAdminClient()
+  const { error } = await db
+    .from('profiles')
+    .update({ account_status: 'active' })
+    .eq('id', clipperId)
+    .eq('role', 'clipper')
+  if (error) throw new Error(error.message)
+  revalidatePath('/dashboard/admin/clippers')
+}
+
+export async function suspendClipperAccount(clipperId: string) {
+  await getAdminUser()
+  const db = createAdminClient()
+  const { error } = await db
+    .from('profiles')
+    .update({ account_status: 'suspended' })
+    .eq('id', clipperId)
+    .eq('role', 'clipper')
+  if (error) throw new Error(error.message)
+  revalidatePath('/dashboard/admin/clippers')
+}
+
+export async function reactivateClipperAccount(clipperId: string) {
+  await getAdminUser()
+  const db = createAdminClient()
+  const { error } = await db
+    .from('profiles')
+    .update({ account_status: 'active' })
+    .eq('id', clipperId)
+    .eq('role', 'clipper')
+  if (error) throw new Error(error.message)
+  revalidatePath('/dashboard/admin/clippers')
+}
+
+// ── Live view fetching ───────────────────────────────────────
+
+export async function fetchLiveViewCount(submissionId: string): Promise<number | null> {
+  await getAdminUser()
+  const db = createAdminClient()
+
+  const { data: sub } = await db
+    .from('campaign_submissions')
+    .select('clip_url, platform')
+    .eq('id', submissionId)
+    .single()
+
+  if (!sub) return null
+
+  if (sub.platform === 'instagram') {
+    const metrics = await fetchInstagramMetrics(sub.clip_url)
+    return metrics?.viewCount ?? null
+  }
+
+  if (sub.platform === 'youtube') {
+    const match = sub.clip_url.match(/(?:shorts\/|watch\?v=|youtu\.be\/)([\w-]{11})/)
+    const videoId = match?.[1]
+    if (!videoId) return null
+    const apiKey = process.env.YOUTUBE_API_KEY
+    if (!apiKey) return null
+    const res = await fetch(
+      `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${videoId}&key=${apiKey}`
+    )
+    if (!res.ok) return null
+    const json = await res.json()
+    return parseInt(json.items?.[0]?.statistics?.viewCount ?? '0', 10) || null
+  }
+
+  return null
+}
+
+// ── Dev / testing ────────────────────────────────────────────
+
+export async function seedTestCampaign(): Promise<string> {
+  const user = await getAdminUser()
+  const db   = createAdminClient()
+
+  const title = `[TEST] Instagram Campaign – ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`
+
+  // Minimal payload — only columns that exist in the original schema
+  const { data, error } = await db.from('campaigns').insert({
+    client_id:            user.id,
+    title,
+    platform:             'instagram',
+    budget_inr:           20000,
+    platform_fee_inr:     4000,
+    total_charged_inr:    24000,
+    budget_remaining_inr: 20000,
+    rate_per_million_inr: 10000,
+    per_post_view_cap:    1_000_000,
+    status:               'active',
+  }).select('id').single()
+
+  if (error) throw new Error(error.message)
+
+  revalidatePath('/dashboard/admin/campaigns')
+  revalidatePath('/dashboard/clipper/submit')
+  return data.id
 }

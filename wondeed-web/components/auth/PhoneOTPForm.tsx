@@ -130,7 +130,7 @@ export default function PhoneOTPForm() {
   return (
     <div className="space-y-4">
       {step === 'phone' ? (
-        <form onSubmit={handleSendOTP} className="space-y-4">
+        <form onSubmit={handleSendOTP} className="space-y-4" suppressHydrationWarning>
           <div>
             <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
               Phone number
@@ -143,6 +143,7 @@ export default function PhoneOTPForm() {
               onChange={(e) => setPhone(e.target.value)}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              suppressHydrationWarning
             />
             <p className="mt-1 text-xs text-gray-400">India (+91) numbers only for now</p>
           </div>
