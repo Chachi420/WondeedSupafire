@@ -4,27 +4,27 @@ import ClipperSidebar from '@/components/clipper/Sidebar'
 
 function PendingApprovalScreen() {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-      <div className="max-w-md w-full bg-white rounded-2xl border border-gray-200 p-8 text-center shadow-sm">
-        <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-5">
-          <svg className="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, background: 'var(--bg)' }}>
+      <div className="card" style={{ width: '100%', maxWidth: 440, padding: '40px 32px', textAlign: 'center' }}>
+        <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(245,158,11,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+          <svg style={{ width: 32, height: 32, color: '#d97706' }} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <h1 className="text-xl font-bold text-gray-900 mb-2">Account Pending Approval</h1>
-        <p className="text-sm text-gray-500 leading-relaxed mb-6">
+        <h1 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>Account Pending Approval</h1>
+        <p className="text-xs faint mb-20" style={{ lineHeight: 1.6 }}>
           Your clipper account is under review. Our team will verify your profile within 24–48 hours.
           You will receive a notification once approved.
         </p>
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-left space-y-2 mb-6">
-          <p className="text-xs font-semibold text-amber-800 mb-1">While you wait:</p>
-          <p className="text-xs text-amber-700">• Make sure you have a professional Instagram/YouTube account</p>
-          <p className="text-xs text-amber-700">• Your account must be public and in good standing</p>
-          <p className="text-xs text-amber-700">• Have your UPI ID ready for payouts</p>
+        <div style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 10, padding: 16, textAlign: 'left', marginBottom: 20 }} className="col gap-6">
+          <p className="text-xs med" style={{ color: '#d97706' }}>While you wait:</p>
+          <p className="text-xs faint">• Make sure you have a professional Instagram/YouTube account</p>
+          <p className="text-xs faint">• Your account must be public and in good standing</p>
+          <p className="text-xs faint">• Have your UPI ID ready for payouts</p>
         </div>
-        <p className="text-xs text-gray-400">
+        <p className="text-xs faint">
           Questions? Contact us at{' '}
-          <a href="mailto:support@wondeed.com" className="text-emerald-600 font-medium hover:underline">
+          <a href="mailto:support@wondeed.com" style={{ color: 'var(--primary)', fontWeight: 500 }}>
             support@wondeed.com
           </a>
         </p>
@@ -35,20 +35,20 @@ function PendingApprovalScreen() {
 
 function SuspendedScreen() {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-      <div className="max-w-md w-full bg-white rounded-2xl border border-red-200 p-8 text-center shadow-sm">
-        <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-5">
-          <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, background: 'var(--bg)' }}>
+      <div className="card" style={{ width: '100%', maxWidth: 440, padding: '40px 32px', textAlign: 'center', borderColor: 'rgba(239,68,68,0.3)' }}>
+        <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(239,68,68,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+          <svg style={{ width: 32, height: 32, color: 'var(--danger)' }} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
           </svg>
         </div>
-        <h1 className="text-xl font-bold text-gray-900 mb-2">Account Suspended</h1>
-        <p className="text-sm text-gray-500 leading-relaxed mb-6">
+        <h1 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>Account Suspended</h1>
+        <p className="text-xs faint mb-16" style={{ lineHeight: 1.6 }}>
           Your account has been suspended. Please contact support if you believe this is an error.
         </p>
-        <p className="text-xs text-gray-400">
+        <p className="text-xs faint">
           Contact:{' '}
-          <a href="mailto:support@wondeed.com" className="text-emerald-600 font-medium hover:underline">
+          <a href="mailto:support@wondeed.com" style={{ color: 'var(--primary)', fontWeight: 500 }}>
             support@wondeed.com
           </a>
         </p>
@@ -72,10 +72,23 @@ export default async function ClipperLayout({ children }: { children: React.Reac
   if (status === 'pending') return <PendingApprovalScreen />
   if (status === 'suspended') return <SuspendedScreen />
 
+  const [fullProfileResult, feedCountResult] = await Promise.all([
+    supabase.from('profiles').select('full_name, subscription_tier, phone').eq('id', user.id).single(),
+    supabase.from('campaigns').select('id', { count: 'exact', head: true }).eq('status', 'active'),
+  ])
+
+  const fullProfile = fullProfileResult.data
+  const feedBadge = feedCountResult.count ?? 0
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <ClipperSidebar />
-      <div className="ml-64 min-h-screen flex flex-col">
+    <div className="app">
+      <ClipperSidebar
+        userName={(fullProfile as any)?.full_name ?? undefined}
+        userHandle={(fullProfile as any)?.phone ?? undefined}
+        userTier={(fullProfile as any)?.subscription_tier ?? 'Free'}
+        feedBadge={feedBadge}
+      />
+      <div className="main">
         {children}
       </div>
     </div>

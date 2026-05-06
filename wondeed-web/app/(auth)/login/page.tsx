@@ -2,9 +2,9 @@ import PhoneOTPForm from '@/components/auth/PhoneOTPForm'
 
 export default function LoginPage() {
   return (
-    <div className="w-full max-w-sm p-8 bg-white rounded-2xl shadow-sm border border-gray-100">
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Wondeed</h1>
-      <p className="text-sm text-gray-500 mb-8">Sign in with your phone number</p>
+    <div className="card" style={{ width: '100%', maxWidth: 380, padding: '32px 28px' }}>
+      <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>Wondeed</h1>
+      <p className="text-xs faint mb-20">Sign in with your phone number</p>
       <PhoneOTPForm />
     </div>
   )

@@ -18,78 +18,78 @@ export default async function SettingsPage() {
   const p = profile as any
 
   return (
-    <div className="p-8 max-w-2xl">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Manage your account information</p>
+    <>
+      <div className="topbar">
+        <div className="col">
+          <h1>Settings</h1>
+          <div className="topbar-sub">Manage your account information</div>
+        </div>
       </div>
 
-      {/* Profile card */}
-      <form action={updateProfile} className="bg-white rounded-xl border border-gray-200 p-6 mb-6 space-y-5">
-        <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wide text-xs text-gray-500">
-          Profile Information
-        </h2>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Display name</label>
-          <input
-            name="full_name"
-            type="text"
-            defaultValue={p?.full_name ?? ''}
-            required
-            placeholder="Your full name or company name"
-            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Phone number</label>
-          <input
-            type="text"
-            value={p?.phone ?? '—'}
-            disabled
-            className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-gray-50 text-gray-500 cursor-not-allowed"
-          />
-          <p className="mt-1 text-xs text-gray-400">Phone is your login identifier and cannot be changed.</p>
-        </div>
-
-        <div className="flex items-center justify-end pt-2">
-          <button
-            type="submit"
-            className="px-5 py-2.5 bg-brand-500 text-white text-sm font-semibold rounded-lg hover:bg-brand-600 transition-colors"
-          >
-            Save Changes
-          </button>
-        </div>
-      </form>
-
-      {/* Account details (read-only) */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-        <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Account Details</h2>
-
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <p className="text-gray-400 text-xs mb-0.5">Role</p>
-            <p className="font-medium text-gray-900 capitalize">{p?.role ?? '—'}</p>
+      <div className="content fade-up">
+        <form action={updateProfile} className="card mb-20">
+          <div className="card-head">
+            <h2>Profile Information</h2>
           </div>
-          <div>
-            <p className="text-gray-400 text-xs mb-0.5">Subscription tier</p>
-            <p className="font-medium text-gray-900 capitalize">{p?.subscription_tier ?? 'pro'}</p>
+          <div style={{ padding: '20px 24px' }} className="col gap-16">
+            <div className="field">
+              <label className="field-label">Display name</label>
+              <input
+                name="full_name"
+                type="text"
+                defaultValue={p?.full_name ?? ''}
+                required
+                placeholder="Your full name or company name"
+                className="input"
+              />
+            </div>
+            <div className="field">
+              <label className="field-label">Phone number</label>
+              <input
+                type="text"
+                value={p?.phone ?? '—'}
+                disabled
+                className="input"
+                style={{ opacity: 0.6, cursor: 'not-allowed' }}
+              />
+              <span className="field-hint">Phone is your login identifier and cannot be changed.</span>
+            </div>
           </div>
-          <div>
-            <p className="text-gray-400 text-xs mb-0.5">Account ID</p>
-            <p className="font-mono text-xs text-gray-600 break-all">{user!.id}</p>
+          <div style={{ padding: '14px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end' }}>
+            <button type="submit" className="btn btn-primary">Save Changes</button>
           </div>
-          <div>
-            <p className="text-gray-400 text-xs mb-0.5">Member since</p>
-            <p className="font-medium text-gray-900">
-              {p?.created_at
+        </form>
+
+        <div className="card">
+          <div className="card-head">
+            <h2>Account Details</h2>
+          </div>
+          <div style={{ padding: '20px 24px' }} className="g2">
+            {[
+              ['Role',              p?.role ?? '—',                          true ],
+              ['Subscription Tier', p?.subscription_tier ?? 'pro',           true ],
+              ['Account ID',        user!.id,                                false],
+              ['Member Since',      p?.created_at
                 ? new Date(p.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
-                : '—'}
-            </p>
+                : '—',                                                        false],
+            ].map(([label, value, cap]) => (
+              <div key={label as string} className="col gap-4">
+                <div className="text-xs faint">{label}</div>
+                <div
+                  className="med text-xs"
+                  style={{
+                    textTransform: cap ? 'capitalize' : undefined,
+                    fontFamily: label === 'Account ID' ? 'var(--mono)' : undefined,
+                    wordBreak: 'break-all',
+                  }}
+                >
+                  {value}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
-    </div>
+    </>
   )
 }

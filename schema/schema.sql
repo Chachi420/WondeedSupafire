@@ -67,14 +67,15 @@ CREATE TABLE profiles (
 --
 -- Budget model:
 --   budget_inr          = clipper earnings pool (what clippers can earn in total)
---   platform_fee_inr    = 20% of budget_inr → Wondeed's revenue
+--   platform_fee_inr    = Wondeed's fee — variable, decided per client by Abhinav
 --   total_charged_inr   = budget_inr + platform_fee_inr → debited from client wallet on activation
 --   budget_remaining_inr = starts at budget_inr, decremented on each submission approval
 --
 -- When budget_remaining_inr reaches 0 (or would go negative), the campaign is set to 'completed'.
 --
 -- Earnings per submission = FLOOR(capped_view_count × rate_per_million_inr / 1,000,000)
--- rate_per_million_inr defaults to 10,000 (₹10,000 per 1M views)
+-- rate_per_million_inr is variable — set by admin at campaign approval based on niche.
+-- There is no fixed default; admin must explicitly set this before activating any campaign.
 CREATE TABLE campaigns (
   id                    UUID              PRIMARY KEY DEFAULT uuid_generate_v4(),
   client_id             UUID              NOT NULL REFERENCES profiles(id) ON DELETE RESTRICT,
@@ -91,7 +92,7 @@ CREATE TABLE campaigns (
   -- NOTE: unspent budget_remaining_inr on campaign completion (budget exhausted OR
   -- end_date passed) accrues to Wondeed. It is NOT refunded to the client wallet.
   -- The full total_charged_inr is debited from the client wallet at activation.
-  rate_per_million_inr  NUMERIC(12,2)     NOT NULL DEFAULT 10000,
+  rate_per_million_inr  NUMERIC(12,2)     NOT NULL DEFAULT 0,  -- set by admin at approval; 0 = not yet set
   per_post_view_cap     BIGINT            NOT NULL CHECK (per_post_view_cap > 0),
 
   -- Extended content / clip spec fields
@@ -121,8 +122,7 @@ CREATE TABLE campaigns (
   -- Integrity constraints
   CONSTRAINT campaign_budget_remaining_le_budget
     CHECK (budget_remaining_inr <= budget_inr),
-  CONSTRAINT campaign_fee_is_20pct
-    CHECK (ABS(platform_fee_inr - budget_inr * 0.20) < 0.01),
+  -- NOTE: platform_fee_inr is variable (decided per client by Abhinav) — no fixed % constraint.
   CONSTRAINT campaign_total_charged_correct
     CHECK (ABS(total_charged_inr - (budget_inr + platform_fee_inr)) < 0.01),
   CONSTRAINT campaign_dates_order

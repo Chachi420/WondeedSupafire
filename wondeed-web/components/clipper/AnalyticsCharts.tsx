@@ -39,7 +39,7 @@ function groupByPeriod(daily: DailyEarning[], period: Period): DailyEarning[] {
       monday.setDate(date.getDate() - ((dayOfWeek + 6) % 7))
       key = monday.toISOString().slice(0, 10)
     } else {
-      key = d.date.slice(0, 7) // YYYY-MM
+      key = d.date.slice(0, 7)
     }
     buckets.set(key, (buckets.get(key) ?? 0) + d.amount)
   }
@@ -49,31 +49,36 @@ function groupByPeriod(daily: DailyEarning[], period: Period): DailyEarning[] {
     .slice(-12)
 }
 
-function BarChart({ data, label }: { data: DailyEarning[]; label: string }) {
+function BarChart({ data }: { data: DailyEarning[] }) {
   const maxVal = Math.max(...data.map(d => d.amount), 1)
 
   if (data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-40 text-sm text-gray-400">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 160, color: 'var(--fg-muted)', fontSize: 14 }}>
         No earnings data yet
       </div>
     )
   }
 
   return (
-    <div className="flex items-end gap-1 h-40">
+    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 160 }}>
       {data.map((d, i) => {
         const heightPct = (d.amount / maxVal) * 100
         return (
-          <div key={i} className="flex-1 flex flex-col items-center gap-1 group relative">
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs rounded px-1.5 py-0.5 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
-              {fmt(d.amount)}
-            </div>
+          <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, position: 'relative' }}>
             <div
-              className="w-full rounded-t bg-emerald-500 group-hover:bg-emerald-600 transition-colors min-h-[2px]"
-              style={{ height: `${heightPct}%` }}
+              style={{
+                width: '100%',
+                borderRadius: '3px 3px 0 0',
+                background: 'var(--primary)',
+                minHeight: 2,
+                height: `${heightPct}%`,
+                opacity: 0.7,
+                transition: 'opacity 0.1s',
+              }}
+              title={fmt(d.amount)}
             />
-            <span className="text-[9px] text-gray-400 rotate-45 origin-left translate-x-1 truncate w-full">
+            <span style={{ fontSize: 9, color: 'var(--fg-muted)', transform: 'rotate(45deg) translateX(2px)', transformOrigin: 'left', whiteSpace: 'nowrap', overflow: 'hidden', width: '100%' }}>
               {d.date.slice(5)}
             </span>
           </div>
@@ -86,7 +91,7 @@ function BarChart({ data, label }: { data: DailyEarning[]; label: string }) {
 function LineChart({ data }: { data: DailyView[] }) {
   if (data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-40 text-sm text-gray-400">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 160, color: 'var(--fg-muted)', fontSize: 14 }}>
         No view data yet
       </div>
     )
@@ -106,7 +111,7 @@ function LineChart({ data }: { data: DailyView[] }) {
   const area = `M ${points[0].x} ${H} ` + points.map(p => `L ${p.x} ${p.y}`).join(' ') + ` L ${points[points.length - 1].x} ${H} Z`
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-40">
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 160 }}>
       <defs>
         <linearGradient id="viewsGrad" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%"   stopColor="#10b981" stopOpacity="0.2" />
@@ -125,15 +130,15 @@ function LineChart({ data }: { data: DailyView[] }) {
 }
 
 const PLATFORM_COLORS: Record<string, string> = {
-  instagram: 'bg-pink-500',
-  youtube:   'bg-red-500',
-  moj:       'bg-orange-400',
+  instagram: '#ec4899',
+  youtube:   '#ef4444',
+  x:         '#111827',
 }
 
 const PLATFORM_LABELS: Record<string, string> = {
   instagram: 'Instagram',
   youtube:   'YouTube',
-  moj:       'Moj',
+  x:         'X (Twitter)',
 }
 
 export default function AnalyticsCharts({ dailyEarnings, cumulativeViews, platformStats }: Props) {
@@ -144,87 +149,86 @@ export default function AnalyticsCharts({ dailyEarnings, cumulativeViews, platfo
 
   const allPlatforms: PlatformStat[] = [
     ...platformStats,
-    ...(['instagram', 'youtube', 'moj'] as const)
+    ...(['instagram', 'youtube', 'x'] as const)
       .filter(p => !platformStats.find(s => s.platform === p))
       .map(p => ({ platform: p, views: 0, earnings: 0 })),
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="col gap-16">
 
       {/* Cumulative views chart */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100">
-          <h2 className="text-sm font-semibold text-gray-900">Cumulative Views</h2>
-          <p className="text-xs text-gray-400 mt-0.5">Running total of capped views across all approved clips</p>
+      <div className="card">
+        <div className="card-head">
+          <div>
+            <h2>Cumulative Views</h2>
+            <div className="sub">Running total of capped views across all approved clips</div>
+          </div>
         </div>
-        <div className="px-5 py-4">
+        <div style={{ padding: '16px 24px' }}>
           <LineChart data={cumulativeViews} />
-          <div className="flex items-center justify-between mt-2">
-            <span className="text-xs text-gray-400">Earliest submission</span>
-            <span className="text-xs text-gray-400">Latest</span>
+          <div className="row between mt-8">
+            <span className="text-xs faint">Earliest submission</span>
+            <span className="text-xs faint">Latest</span>
           </div>
         </div>
       </div>
 
       {/* Earnings bar chart */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+      <div className="card">
+        <div className="card-head">
           <div>
-            <h2 className="text-sm font-semibold text-gray-900">Earnings</h2>
-            <p className="text-xs text-gray-400 mt-0.5">Breakdown by period</p>
+            <h2>Earnings</h2>
+            <div className="sub">Breakdown by period</div>
           </div>
-          <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-            {(['day', 'week', 'month'] as Period[]).map(p => (
-              <button
-                key={p}
-                onClick={() => setPeriod(p)}
-                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors capitalize ${
-                  period === p
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                {p === 'day' ? 'Daily' : p === 'week' ? 'Weekly' : 'Monthly'}
-              </button>
-            ))}
+          <div className="card-head-right">
+            <div className="segmented">
+              {(['day', 'week', 'month'] as Period[]).map(p => (
+                <button
+                  key={p}
+                  onClick={() => setPeriod(p)}
+                  className={`seg-item${period === p ? ' active' : ''}`}
+                  style={{ textTransform: 'capitalize' }}
+                >
+                  {p === 'day' ? 'Daily' : p === 'week' ? 'Weekly' : 'Monthly'}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-        <div className="px-5 py-4">
-          <BarChart data={grouped} label={period} />
+        <div style={{ padding: '16px 24px' }}>
+          <BarChart data={grouped} />
         </div>
       </div>
 
       {/* Platform breakdown */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100">
-          <h2 className="text-sm font-semibold text-gray-900">Platform Breakdown</h2>
-          <p className="text-xs text-gray-400 mt-0.5">Views and earnings by platform</p>
+      <div className="card">
+        <div className="card-head">
+          <div>
+            <h2>Platform Breakdown</h2>
+            <div className="sub">Views and earnings by platform</div>
+          </div>
         </div>
-        <div className="px-5 py-4 space-y-4">
+        <div style={{ padding: '20px 24px' }} className="col gap-20">
           {allPlatforms.map((p) => {
             const pct = totalViews > 0 ? Math.round((p.views / totalViews) * 100) : 0
+            const color = PLATFORM_COLORS[p.platform] ?? 'var(--fg-muted)'
             return (
               <div key={p.platform}>
-                <div className="flex items-center justify-between mb-1.5">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-2.5 h-2.5 rounded-full ${PLATFORM_COLORS[p.platform] ?? 'bg-gray-400'}`} />
-                    <span className="text-sm font-medium text-gray-700">
-                      {PLATFORM_LABELS[p.platform] ?? p.platform}
-                    </span>
+                <div className="row between mb-8">
+                  <div className="row gap-8">
+                    <div style={{ width: 10, height: 10, borderRadius: '50%', background: color, flexShrink: 0 }} />
+                    <span className="med text-xs">{PLATFORM_LABELS[p.platform] ?? p.platform}</span>
                   </div>
-                  <div className="flex items-center gap-4 text-xs text-gray-500">
-                    <span>{fmtViews(p.views)} views</span>
-                    <span className="font-medium text-gray-900">{fmt(p.earnings)}</span>
+                  <div className="row gap-16 text-xs">
+                    <span className="faint">{fmtViews(p.views)} views</span>
+                    <span className="med">{fmt(p.earnings)}</span>
                   </div>
                 </div>
-                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full ${PLATFORM_COLORS[p.platform] ?? 'bg-gray-400'}`}
-                    style={{ width: `${pct}%` }}
-                  />
+                <div className="progress">
+                  <div className="progress-bar" style={{ width: `${pct}%`, background: color }} />
                 </div>
-                <p className="text-xs text-gray-400 mt-1">{pct}% of total views</p>
+                <p className="text-xs faint mt-4">{pct}% of total views</p>
               </div>
             )
           })}

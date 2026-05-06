@@ -55,9 +55,6 @@ export async function createCampaign(formData: FormData) {
   }
   // ─────────────────────────────────────────────────────────────
 
-  const platformFee  = Math.round(budgetInr * 0.20 * 100) / 100
-  const totalCharged = Math.round((budgetInr + platformFee) * 100) / 100
-
   // ── Read extended fields ──────────────────────────────────────
   const targetPlatforms  = formData.getAll('target_platforms') as string[]
   const durationDays     = parseInt(formData.get('duration_days') as string, 10) || null
@@ -76,20 +73,21 @@ export async function createCampaign(formData: FormData) {
     endDate = d.toISOString().split('T')[0]
   }
 
-  const { data, error } = await db.from('campaigns').insert({
+  const { data, error } = await (db.from('campaigns') as any).insert({
     client_id:            user.id,
     title:                (formData.get('title') as string).trim(),
     description:          (formData.get('description') as string).trim() || null,
     budget_inr:           budgetInr,
-    platform_fee_inr:     platformFee,
-    total_charged_inr:    totalCharged,
+    platform_fee_inr:     0,
+    total_charged_inr:    budgetInr,
     budget_remaining_inr: budgetInr,
-    rate_per_million_inr: 10000,
+    rate_per_million_inr: 0,
     per_post_view_cap:    perPostViewCap,
     platform:             formData.get('platform') as 'instagram' | 'youtube' | 'both',
     end_date:             endDate,
     status:               'draft',
     // extended fields
+    niche:                (formData.get('niche') as string) || null,
     source_content_url:   (formData.get('source_content_url') as string).trim() || null,
     target_platforms:     targetPlatforms.length > 0 ? targetPlatforms : ['instagram', 'youtube'],
     clip_length_seconds:  clipLengthSeconds,
@@ -252,10 +250,6 @@ export async function createCampaignAndSubmit(formData: FormData) {
     }
   }
 
-  // ── Calculate fees ────────────────────────────────────────────
-  const platformFee  = Math.round(budgetInr * 0.20 * 100) / 100
-  const totalCharged = Math.round((budgetInr + platformFee) * 100) / 100
-
   // ── Wallet balance check ──────────────────────────────────────
   const { data: wallet } = await db
     .from('wallets')
@@ -264,9 +258,9 @@ export async function createCampaignAndSubmit(formData: FormData) {
     .maybeSingle()
 
   const walletBalance = Number(wallet?.balance_inr ?? 0)
-  if (walletBalance < totalCharged) {
+  if (walletBalance < budgetInr) {
     throw new Error(
-      `Insufficient wallet balance. You need ₹${totalCharged.toLocaleString('en-IN')} (budget + 20% platform fee) but your wallet has ₹${walletBalance.toLocaleString('en-IN')}.`
+      `Insufficient wallet balance. You need ₹${budgetInr.toLocaleString('en-IN')} but your wallet has ₹${walletBalance.toLocaleString('en-IN')}.`
     )
   }
 
@@ -297,19 +291,23 @@ export async function createCampaignAndSubmit(formData: FormData) {
     endDate = d.toISOString().split('T')[0]
   }
 
+  // ── Parse niche ───────────────────────────────────────────────
+  const niche = (formData.get('niche') as string) || null
+
   // ── Insert campaign ───────────────────────────────────────────
-  const { data: campaign, error: campaignError } = await db.from('campaigns').insert({
+  const { data: campaign, error: campaignError } = await (db.from('campaigns') as any).insert({
     client_id:            user.id,
     title,
     description,
     budget_inr:           budgetInr,
-    platform_fee_inr:     platformFee,
-    total_charged_inr:    totalCharged,
+    platform_fee_inr:     0,
+    total_charged_inr:    budgetInr,
     budget_remaining_inr: budgetInr,
-    rate_per_million_inr: 10000,
+    rate_per_million_inr: 0,
     per_post_view_cap:    perPostViewCap,
     platform:             derivedPlatform,
     status:               'pending_approval',
+    niche,
     source_content_url:   sourceContentUrl,
     target_platforms:     targetPlatforms,
     clip_length_seconds:  clipLengthSeconds,
@@ -328,8 +326,8 @@ export async function createCampaignAndSubmit(formData: FormData) {
   // ── Deduct from wallet ────────────────────────────────────────
   const { error: walletError } = await db.from('wallets')
     .update({
-      balance_inr:       walletBalance - totalCharged,
-      total_debited_inr: Number(wallet?.total_debited_inr ?? 0) + totalCharged,
+      balance_inr:       walletBalance - budgetInr,
+      total_debited_inr: Number(wallet?.total_debited_inr ?? 0) + budgetInr,
     })
     .eq('user_id', user.id)
 

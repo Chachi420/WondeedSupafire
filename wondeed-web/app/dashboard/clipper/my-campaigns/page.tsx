@@ -28,7 +28,6 @@ export default async function MyCampaignsPage({
   const { data: { user } } = await supabase.auth.getUser()
   const db = createAdminClient()
 
-  // Try with migration-002 columns; fall back to base schema if they don't exist yet
   let result = await db
     .from('campaign_submissions')
     .select(`
@@ -62,10 +61,8 @@ export default async function MyCampaignsPage({
   }
 
   const { data: rawSubs } = result
-
   const subs = (rawSubs ?? []) as any[]
 
-  // ── Group by campaign ──────────────────────────────────────────
   const groupMap = new Map<string, CampaignGroup>()
 
   for (const s of subs) {
@@ -78,7 +75,7 @@ export default async function MyCampaignsPage({
         title:                c?.title               ?? 'Unknown Campaign',
         platform:             c?.platform            ?? 'both',
         target_platforms:     c?.target_platforms     ?? [],
-        rate_per_million_inr: Number(c?.rate_per_million_inr ?? 10_000),
+        rate_per_million_inr: Number(c?.rate_per_million_inr ?? 0),
         budget_remaining_inr: Number(c?.budget_remaining_inr ?? 0),
         per_post_view_cap:    Number(c?.per_post_view_cap    ?? 0),
         campaign_status:      c?.status              ?? 'unknown',
@@ -110,65 +107,75 @@ export default async function MyCampaignsPage({
     g.submissions.push(sub)
   }
 
-  const groups = Array.from(groupMap.values())
-
-  // ── Split active vs completed/other ───────────────────────────
+  const groups          = Array.from(groupMap.values())
   const activeGroups    = groups.filter(g => g.campaign_status === 'active')
   const completedGroups = groups.filter(g => g.campaign_status !== 'active')
 
-  // ── Summary stats ─────────────────────────────────────────────
   const totalViews    = groups.reduce((s, g) => s + g.total_views, 0)
   const totalEarnings = groups.reduce((s, g) => s + g.total_earnings, 0)
   const totalSubs     = subs.length
-  const approvedSubs  = subs.filter(s => s.status === 'approved').length
   const pendingSubs   = subs.filter(s => s.status === 'pending').length
 
   return (
-    <div className="p-8">
-
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">My Campaigns</h1>
-        <p className="text-sm text-gray-500 mt-0.5">
-          {groups.length} campaign{groups.length !== 1 ? 's' : ''} joined · {totalSubs} clip{totalSubs !== 1 ? 's' : ''} submitted
-        </p>
-      </div>
-
-      {/* Summary cards */}
-      {groups.length > 0 && (
-        <div className="grid grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <div className="w-2 h-2 rounded-full bg-blue-500 mb-3" />
-            <p className="text-2xl font-bold text-gray-900 tabular-nums">{totalSubs}</p>
-            <p className="text-xs text-gray-500 mt-1">Total Submissions</p>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <div className="w-2 h-2 rounded-full bg-amber-400 mb-3" />
-            <p className="text-2xl font-bold text-gray-900 tabular-nums">{pendingSubs}</p>
-            <p className="text-xs text-gray-500 mt-1">Pending Review</p>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 mb-3" />
-            <p className="text-2xl font-bold text-gray-900 tabular-nums">
-              {fmtViews(totalViews)}
-            </p>
-            <p className="text-xs text-gray-500 mt-1">Total Views</p>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <div className="w-2 h-2 rounded-full bg-green-600 mb-3" />
-            <p className="text-2xl font-bold text-emerald-600 tabular-nums">
-              {fmt(totalEarnings)}
-            </p>
-            <p className="text-xs text-gray-500 mt-1">Total Earned</p>
+    <>
+      <div className="topbar">
+        <div className="col">
+          <h1>My Campaigns</h1>
+          <div className="topbar-sub">
+            {groups.length} campaign{groups.length !== 1 ? 's' : ''} joined · {totalSubs} clip{totalSubs !== 1 ? 's' : ''} submitted
           </div>
         </div>
-      )}
+      </div>
 
-      <MyCampaignsClient
-        activeGroups={activeGroups}
-        completedGroups={completedGroups}
-        initialJoinId={joinId}
-      />
-    </div>
+      <div className="content fade-up">
+        {groups.length > 0 && (
+          <div className="stat-grid mb-20">
+            <div className="stat-card">
+              <div className="stat-ico ico-blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+                  <path d="M22 12h-6l-2 3h-4l-2-3H2"/>
+                  <path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/>
+                </svg>
+              </div>
+              <div className="stat-label">Total Submissions</div>
+              <div className="stat-value">{totalSubs}</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-ico ico-amber">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+                  <circle cx="12" cy="12" r="9"/><path d="M12 16v-5"/><circle cx="12" cy="8" r="0.6" fill="currentColor" stroke="none"/>
+                </svg>
+              </div>
+              <div className="stat-label">Pending Review</div>
+              <div className="stat-value">{pendingSubs}</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-ico ico-violet">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+                  <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>
+                </svg>
+              </div>
+              <div className="stat-label">Total Views</div>
+              <div className="stat-value">{fmtViews(totalViews)}</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-ico ico-green">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+                  <path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>
+                </svg>
+              </div>
+              <div className="stat-label">Total Earned</div>
+              <div className="stat-value">{fmt(totalEarnings)}</div>
+            </div>
+          </div>
+        )}
+
+        <MyCampaignsClient
+          activeGroups={activeGroups}
+          completedGroups={completedGroups}
+          initialJoinId={joinId}
+        />
+      </div>
+    </>
   )
 }

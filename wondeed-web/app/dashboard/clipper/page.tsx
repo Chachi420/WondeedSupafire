@@ -2,27 +2,54 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import Link from 'next/link'
 
-function fmt(n: number) {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency', currency: 'INR', maximumFractionDigits: 0,
-  }).format(n)
+function fmtRupee(n: number) {
+  if (n >= 100000) return '₹' + (n / 100000).toFixed(1).replace(/\.0$/, '') + 'L'
+  if (n >= 1000) return '₹' + (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K'
+  return '₹' + n.toLocaleString('en-IN')
 }
-
 function fmtViews(n: number) {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
-  if (n >= 1_000)     return `${(n / 1_000).toFixed(1)}K`
-  return `${n}`
+  if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M'
+  if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K'
+  return n.toLocaleString('en-IN')
+}
+function fmtDate(iso: string) {
+  return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const styles: Record<string, string> = {
-    pending:  'bg-amber-100 text-amber-800',
-    approved: 'bg-green-100 text-green-800',
-    rejected: 'bg-red-100 text-red-700',
-  }
+  if (status === 'approved') return (
+    <span className="badge badge-success">
+      <span className="badge-dot" style={{ background: '#16a34a' }} />Approved
+    </span>
+  )
+  if (status === 'rejected') return (
+    <span className="badge badge-danger">
+      <span className="badge-dot" style={{ background: '#dc2626' }} />Rejected
+    </span>
+  )
   return (
-    <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium capitalize ${styles[status] ?? 'bg-gray-100 text-gray-600'}`}>
-      {status}
+    <span className="badge badge-warn">
+      <span className="badge-dot" style={{ background: '#d97706' }} />Pending review
+    </span>
+  )
+}
+
+function PlatformPill({ platform }: { platform: string }) {
+  const isIg = platform === 'instagram'
+  const isYt = platform === 'youtube'
+  return (
+    <span className={`platform ${isIg ? 'ig' : isYt ? 'yt' : ''}`}>
+      {isIg && (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/>
+        </svg>
+      )}
+      {isYt && (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M22 8s-.2-1.4-.8-2c-.8-.8-1.7-.8-2.1-.9C16 5 12 5 12 5s-4 0-7.1.1c-.4 0-1.3 0-2.1.9C2.2 6.6 2 8 2 8s-.2 1.6-.2 3.3v1.4c0 1.7.2 3.3.2 3.3s.2 1.4.8 2c.8.8 1.8.8 2.3.9 1.6.2 7 .2 7 .2s4 0 7.1-.1c.4 0 1.3 0 2.1-.9.6-.6.8-2 .8-2s.2-1.6.2-3.3v-1.4C22.2 9.6 22 8 22 8z"/><path d="M10 9.5v5l4.5-2.5L10 9.5z" fill="currentColor"/>
+        </svg>
+      )}
+      {platform.charAt(0).toUpperCase() + platform.slice(1)}
     </span>
   )
 }
@@ -32,7 +59,7 @@ export default async function ClipperHomePage() {
   const { data: { user } } = await supabase.auth.getUser()
   const db = createAdminClient()
 
-  const now       = new Date()
+  const now = new Date()
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
 
   const [
@@ -41,247 +68,178 @@ export default async function ClipperHomePage() {
     thisMonthEarningsResult,
     totalViewsResult,
     activeCampaignsResult,
-    topPostResult,
     recentSubmissionsResult,
   ] = await Promise.all([
-    db.from('profiles').select('full_name, phone, subscription_tier').eq('id', user!.id).single(),
+    db.from('profiles').select('full_name, subscription_tier').eq('id', user!.id).single(),
     db.from('wallets').select('balance_inr, total_credited_inr').eq('user_id', user!.id).maybeSingle(),
-    db.from('earnings')
-      .select('amount_inr')
-      .eq('clipper_id', user!.id)
-      .gte('created_at', monthStart),
-    db.from('campaign_submissions')
-      .select('capped_view_count')
-      .eq('clipper_id', user!.id)
-      .eq('status', 'approved'),
-    db.from('campaign_submissions')
-      .select('campaign_id')
-      .eq('clipper_id', user!.id)
-      .in('status', ['pending', 'approved']),
-    db.from('campaign_submissions')
-      .select('id, clip_url, platform, capped_view_count, earnings_inr, campaigns(title)')
-      .eq('clipper_id', user!.id)
-      .eq('status', 'approved')
-      .order('capped_view_count', { ascending: false })
-      .limit(1),
+    db.from('earnings').select('amount_inr').eq('clipper_id', user!.id).gte('created_at', monthStart),
+    db.from('campaign_submissions').select('capped_view_count').eq('clipper_id', user!.id).eq('status', 'approved'),
+    db.from('campaign_submissions').select('campaign_id').eq('clipper_id', user!.id).in('status', ['pending', 'approved']),
     db.from('campaign_submissions')
       .select('id, clip_url, platform, status, capped_view_count, earnings_inr, created_at, campaigns(title)')
       .eq('clipper_id', user!.id)
       .order('created_at', { ascending: false })
-      .limit(8),
+      .limit(6),
   ])
 
-  const profile    = profileResult.data
-  const wallet     = walletResult.data
-  const displayName = profile?.full_name ?? profile?.phone ?? 'Clipper'
+  const profile = profileResult.data as any
+  const wallet  = walletResult.data as any
+  const displayName = profile?.full_name ?? 'Clipper'
+  const firstName   = displayName.split(' ')[0]
 
-  const thisMonthEarnings = (thisMonthEarningsResult.data ?? [])
-    .reduce((sum, e) => sum + Number(e.amount_inr), 0)
+  const thisMonthEarnings = (thisMonthEarningsResult.data ?? []).reduce((s: number, e: any) => s + Number(e.amount_inr), 0)
+  const totalViews        = (totalViewsResult.data ?? []).reduce((s: number, v: any) => s + Number(v.capped_view_count ?? 0), 0)
+  const activeCampaigns   = new Set((activeCampaignsResult.data ?? []).map((s: any) => s.campaign_id)).size
+  const walletBalance     = Number(wallet?.balance_inr ?? 0)
+  const recentSubs        = (recentSubmissionsResult.data ?? []) as any[]
 
-  const totalViews = (totalViewsResult.data ?? [])
-    .reduce((sum, s) => sum + Number(s.capped_view_count ?? 0), 0)
-
-  const activeCampaignIds = new Set((activeCampaignsResult.data ?? []).map(s => s.campaign_id))
-  const activeCampaignsCount = activeCampaignIds.size
-
-  const topPost = (topPostResult.data ?? [])[0] as any ?? null
-  const recentSubmissions = (recentSubmissionsResult.data ?? []) as any[]
+  const stats = [
+    { label: 'Wallet Balance',   value: fmtRupee(walletBalance),      delta: 'Available for payout', ico: 'wallet',  cls: 'ico-indigo' },
+    { label: 'This Month',       value: fmtRupee(thisMonthEarnings),  delta: 'May 2026',             ico: 'trend',   cls: 'ico-green'  },
+    { label: 'Total Views',      value: fmtViews(totalViews),         delta: 'Verified views',       ico: 'eye',     cls: 'ico-violet', flat: true },
+    { label: 'Active Campaigns', value: String(activeCampaigns),      delta: 'In progress',          ico: 'layers',  cls: 'ico-amber',  flat: true },
+  ]
 
   return (
-    <div className="p-8">
-
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Welcome back, {displayName}</h1>
-        <p className="text-sm text-gray-500 mt-0.5">
-          {now.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })} · Your earnings overview
-        </p>
-      </div>
-
-      {/* Stat cards */}
-      <div className="grid grid-cols-4 gap-5 mb-10">
-
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <div className="w-2 h-2 rounded-full bg-emerald-500 mb-4" />
-          <p className="text-3xl font-bold text-gray-900 tabular-nums">{fmt(thisMonthEarnings)}</p>
-          <p className="text-sm text-gray-500 mt-1.5">This Month's Earnings</p>
+    <>
+      <div className="topbar">
+        <div className="col">
+          <h1>Hey {firstName} 👋</h1>
+          <div className="topbar-sub">Here's your performance overview for {now.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}</div>
         </div>
-
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <div className="w-2 h-2 rounded-full bg-blue-500 mb-4" />
-          <p className="text-3xl font-bold text-gray-900 tabular-nums">{fmtViews(totalViews)}</p>
-          <p className="text-sm text-gray-500 mt-1.5">Total Views Tracked</p>
-        </div>
-
-        <Link
-          href="/dashboard/clipper/my-campaigns"
-          className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-shadow group"
-        >
-          <div className="w-2 h-2 rounded-full bg-purple-500 mb-4" />
-          <p className="text-3xl font-bold text-gray-900 tabular-nums">{activeCampaignsCount}</p>
-          <p className="text-sm text-gray-500 mt-1.5 group-hover:text-emerald-600 transition-colors">
-            Active Campaigns →
-          </p>
-        </Link>
-
-        <Link
-          href="/dashboard/clipper/analytics"
-          className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-shadow group"
-        >
-          <div className="w-2 h-2 rounded-full bg-amber-400 mb-4" />
-          {topPost ? (
-            <>
-              <p className="text-3xl font-bold text-gray-900 tabular-nums">
-                {fmtViews(Number(topPost.capped_view_count ?? 0))}
-              </p>
-              <p className="text-sm text-gray-500 mt-1.5 group-hover:text-emerald-600 transition-colors truncate">
-                Top Post Views →
-              </p>
-            </>
-          ) : (
-            <>
-              <p className="text-3xl font-bold text-gray-900 tabular-nums">—</p>
-              <p className="text-sm text-gray-500 mt-1.5">Top Performing Post</p>
-            </>
-          )}
-        </Link>
-      </div>
-
-      {/* Main grid */}
-      <div className="grid grid-cols-2 gap-6">
-
-        {/* Top performing post detail */}
-        <div className="space-y-6">
-
-          {topPost && (
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
-                <span className="text-sm font-semibold text-gray-900">Top Performing Post</span>
-                <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-800 rounded font-medium">Best</span>
-              </div>
-              <div className="p-5">
-                <p className="text-sm font-medium text-gray-900 mb-1">{topPost.campaigns?.title}</p>
-                <a
-                  href={topPost.clip_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-emerald-600 hover:underline truncate block mb-4"
-                >
-                  {topPost.clip_url}
-                </a>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <p className="text-xs text-gray-500 mb-1">Views</p>
-                    <p className="text-xl font-bold text-gray-900">{fmtViews(Number(topPost.capped_view_count ?? 0))}</p>
-                  </div>
-                  <div className="bg-emerald-50 rounded-lg p-4">
-                    <p className="text-xs text-gray-500 mb-1">Earned</p>
-                    <p className="text-xl font-bold text-emerald-700">{fmt(Number(topPost.earnings_inr ?? 0))}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Quick actions */}
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-100">
-              <h2 className="text-sm font-semibold text-gray-900">Quick Actions</h2>
-            </div>
-            <div className="p-5 grid grid-cols-2 gap-3">
-              <Link
-                href="/dashboard/clipper/feed"
-                className="flex flex-col items-center gap-2 p-4 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors text-center"
-              >
-                <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                <span className="text-xs font-medium text-emerald-700">Browse Campaigns</span>
-              </Link>
-              <Link
-                href="/dashboard/clipper/submit"
-                className="flex flex-col items-center gap-2 p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors text-center"
-              >
-                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                </svg>
-                <span className="text-xs font-medium text-blue-700">Submit a Clip</span>
-              </Link>
-              <Link
-                href="/dashboard/clipper/analytics"
-                className="flex flex-col items-center gap-2 p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors text-center"
-              >
-                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-                <span className="text-xs font-medium text-purple-700">View Analytics</span>
-              </Link>
-              <Link
-                href="/dashboard/clipper/earnings"
-                className="flex flex-col items-center gap-2 p-4 bg-amber-50 hover:bg-amber-100 rounded-lg transition-colors text-center"
-              >
-                <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span className="text-xs font-medium text-amber-700">Request Payout</span>
-              </Link>
-            </div>
+        <div className="topbar-right">
+          <div className="search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
+            </svg>
+            <input placeholder="Search campaigns, clips, earnings…" />
           </div>
+          <Link href="/dashboard/clipper/feed" className="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Browse Campaigns
+          </Link>
+        </div>
+      </div>
+
+      <div className="content fade-up">
+        {/* Stat cards */}
+        <div className="stat-grid">
+          {stats.map((s, i) => (
+            <div key={i} className="stat-card">
+              <div className={`stat-ico ${s.cls}`}>
+                <StatIcon name={s.ico} />
+              </div>
+              <div className="stat-label">{s.label}</div>
+              <div className="stat-value">{s.value}</div>
+              <span className={`stat-delta ${s.flat ? 'flat' : ''}`}>
+                {!s.flat && (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 10, height: 10 }}>
+                    <path d="M12 19V5M5 12l7-7 7 7"/>
+                  </svg>
+                )}
+                {s.delta}
+              </span>
+            </div>
+          ))}
         </div>
 
         {/* Recent submissions */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden self-start">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-            <h2 className="text-sm font-semibold text-gray-900">Recent Submissions</h2>
-            <Link href="/dashboard/clipper/my-campaigns" className="text-xs text-emerald-600 hover:underline">
-              View all →
-            </Link>
-          </div>
-          {recentSubmissions.length === 0 ? (
-            <div className="px-5 py-12 text-center">
-              <p className="text-sm text-gray-400">No submissions yet</p>
-              <p className="text-xs text-gray-400 mt-1">Browse campaigns and submit your first clip</p>
-              <Link
-                href="/dashboard/clipper/feed"
-                className="inline-block mt-4 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium rounded-lg transition-colors"
-              >
-                Browse Campaigns →
-              </Link>
+        <div className="card mb-20">
+          <div className="card-head">
+            <div>
+              <h2>Recent Submissions</h2>
+              <div className="sub">Clips you've submitted — pending review or recently approved</div>
             </div>
-          ) : (
-            <ul className="divide-y divide-gray-50">
-              {recentSubmissions.map((s) => (
-                <li key={s.id} className="px-5 py-4">
-                  <div className="flex items-start justify-between gap-2 mb-1">
-                    <p className="text-sm font-medium text-gray-900 truncate">{s.campaigns?.title ?? '—'}</p>
-                    <StatusBadge status={s.status} />
-                  </div>
-                  <div className="flex items-center justify-between mt-1">
-                    <p className="text-xs text-gray-400 capitalize">
-                      {s.platform}
-                      {s.capped_view_count != null && (
-                        <> · {fmtViews(Number(s.capped_view_count))} views</>
-                      )}
-                    </p>
-                    {s.earnings_inr != null && (
-                      <p className="text-xs font-semibold text-emerald-600">{fmt(Number(s.earnings_inr))}</p>
-                    )}
-                  </div>
-                  <a
-                    href={s.clip_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block mt-1.5 text-xs text-gray-400 hover:text-emerald-600 transition-colors truncate"
-                  >
-                    {s.clip_url}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          )}
+            <div className="card-head-right">
+              <Link href="/dashboard/clipper/my-campaigns" className="btn btn-secondary btn-sm">View all</Link>
+            </div>
+          </div>
+          <div className="tbl-wrap">
+            {recentSubs.length === 0 ? (
+              <div style={{ padding: '48px 28px', textAlign: 'center', color: 'var(--fg-muted)' }}>
+                No submissions yet.{' '}
+                <Link href="/dashboard/clipper/feed" style={{ color: 'var(--primary-600)', fontWeight: 500 }}>Browse campaigns →</Link>
+              </div>
+            ) : (
+              <table className="tbl">
+                <thead>
+                  <tr>
+                    <th>Campaign</th>
+                    <th>Platform</th>
+                    <th>Submitted</th>
+                    <th style={{ textAlign: 'right' }}>Views</th>
+                    <th>Status</th>
+                    <th style={{ textAlign: 'right' }}>Earnings</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentSubs.map(s => (
+                    <tr key={s.id}>
+                      <td>
+                        <div className="col">
+                          <div className="med">{(s.campaigns as any)?.title ?? '—'}</div>
+                          <div className="text-xs faint mono mt-4">{s.id} · {s.clip_url}</div>
+                        </div>
+                      </td>
+                      <td><PlatformPill platform={s.platform} /></td>
+                      <td className="muted">{fmtDate(s.created_at)}</td>
+                      <td className="num" style={{ textAlign: 'right' }}>{fmtViews(Number(s.capped_view_count ?? 0))}</td>
+                      <td><StatusBadge status={s.status} /></td>
+                      <td className="num bold" style={{ textAlign: 'right' }}>
+                        {s.earnings_inr != null ? fmtRupee(Number(s.earnings_inr)) : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
 
+        {/* Quick actions */}
+        <div className="card-head" style={{ padding: '0 0 12px', border: 'none' }}>
+          <div>
+            <h2 style={{ fontSize: 15 }}>Quick Actions</h2>
+          </div>
+        </div>
+        <div className="g4">
+          {[
+            { href: '/dashboard/clipper/feed',      label: 'Browse Campaigns', sub: 'Find new campaigns', color: 'var(--primary-50)',  text: 'var(--primary-700)', ico: 'grid' },
+            { href: '/dashboard/clipper/submit',     label: 'Submit a Clip',    sub: 'Upload your content',color: '#eff6ff', text: '#1d4ed8', ico: 'upload' },
+            { href: '/dashboard/clipper/analytics',  label: 'View Analytics',   sub: 'Track your views',  color: '#f5f3ff', text: '#6d28d9', ico: 'chart' },
+            { href: '/dashboard/clipper/earnings',   label: 'Request Payout',   sub: 'Withdraw earnings', color: '#fefce8', text: '#a16207', ico: 'wallet' },
+          ].map(a => (
+            <Link key={a.href} href={a.href} className="card" style={{ padding: '18px', textDecoration: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: a.color, color: a.text, display: 'grid', placeItems: 'center' }}>
+                <StatIcon name={a.ico} />
+              </div>
+              <div>
+                <div className="bold text-md" style={{ color: 'var(--fg)' }}>{a.label}</div>
+                <div className="text-xs faint mt-4">{a.sub}</div>
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
-    </div>
+    </>
+  )
+}
+
+function StatIcon({ name }: { name: string }) {
+  const paths: Record<string, React.ReactNode> = {
+    wallet:  <><path d="M3 7a2 2 0 012-2h12a2 2 0 012 2v2H5a2 2 0 00-2 2V7z"/><path d="M3 11a2 2 0 012-2h14a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6z"/><circle cx="17" cy="14" r="1.4" fill="currentColor"/></>,
+    trend:   <><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></>,
+    eye:     <><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></>,
+    layers:  <><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></>,
+    grid:    <><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></>,
+    upload:  <><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></>,
+    chart:   <><path d="M3 21h18"/><rect x="5" y="11" width="3" height="8"/><rect x="10.5" y="6" width="3" height="13"/><rect x="16" y="14" width="3" height="5"/></>,
+  }
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+      {paths[name]}
+    </svg>
   )
 }

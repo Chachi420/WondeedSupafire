@@ -52,99 +52,147 @@ export default async function EarningsPage() {
   const hasPendingPayout = payouts.some(p => p.status === 'requested' || p.status === 'processing')
 
   return (
-    <div className="p-8">
-
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Earnings</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Your wallet balance, payouts, and transaction history</p>
-      </div>
-
-      {/* Stat cards */}
-      <div className="grid grid-cols-3 gap-5 mb-8">
-        <div className="bg-gray-900 rounded-xl p-6 text-white">
-          <div className="w-2 h-2 rounded-full bg-emerald-400 mb-4" />
-          <p className="text-3xl font-bold tabular-nums">{fmt(balance)}</p>
-          <p className="text-sm text-gray-400 mt-1.5">Available Balance</p>
+    <>
+      <div className="topbar">
+        <div className="col">
+          <h1>Earnings</h1>
+          <div className="topbar-sub">Track every rupee — from view-credit to UPI settlement.</div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <div className="w-2 h-2 rounded-full bg-emerald-500 mb-4" />
-          <p className="text-3xl font-bold text-gray-900 tabular-nums">{fmt(thisMonth)}</p>
-          <p className="text-sm text-gray-500 mt-1.5">This Month</p>
-        </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <div className="w-2 h-2 rounded-full bg-blue-500 mb-4" />
-          <p className="text-3xl font-bold text-gray-900 tabular-nums">{fmt(totalCredited)}</p>
-          <p className="text-sm text-gray-500 mt-1.5">Total Earned</p>
+        <div className="topbar-right">
+          <button className="btn btn-secondary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+            </svg>
+            Export CSV
+          </button>
         </div>
       </div>
 
-      {/* Pending payout warning */}
-      {hasPendingPayout && (
-        <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl px-5 py-4 flex items-center gap-3">
-          <svg className="w-5 h-5 text-amber-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-          <p className="text-sm text-amber-800 font-medium">
-            You have a payout request in progress. Please wait for it to complete before requesting another.
-          </p>
-        </div>
-      )}
-
-      <div className="grid grid-cols-2 gap-6">
-
-        {/* Left: UPI + payout form */}
-        <EarningsClient
-          walletBalance={balance}
-          account={account ?? null}
-        />
-
-        {/* Right: Payout history */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden self-start">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-            <h2 className="text-sm font-semibold text-gray-900">Payout History</h2>
-            <span className="text-xs text-gray-400">{payouts.length} total</span>
+      <div className="content fade-up">
+        <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 20, marginBottom: 20 }}>
+          {/* Wallet hero */}
+          <div className="wallet-hero">
+            <div className="row between items-start">
+              <div>
+                <div className="text-xs" style={{ color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
+                  Available Balance
+                </div>
+                <div className="mt-8" style={{ fontSize: 48, fontWeight: 600, letterSpacing: '-0.03em', lineHeight: 1 }}>
+                  {fmt(balance)}
+                </div>
+                <div className="mt-12 row gap-12 text-md" style={{ color: 'rgba(255,255,255,0.85)' }}>
+                  <span>Lifetime: {fmt(totalCredited)}</span>
+                  <span style={{ opacity: 0.4 }}>·</span>
+                  <span>Paid out: {fmt(totalDebited)}</span>
+                </div>
+              </div>
+              {account?.is_verified && (
+                <div className="col gap-8 items-end">
+                  <span className="badge" style={{ background: 'rgba(34,197,94,0.18)', color: '#86efac', border: '1px solid rgba(34,197,94,0.3)' }}>
+                    UPI Verified
+                  </span>
+                  <div className="text-xs" style={{ color: 'rgba(255,255,255,0.7)' }}>{account.upi_id}</div>
+                </div>
+              )}
+            </div>
+            <div className="row gap-12 mt-16 text-xs" style={{ color: 'rgba(255,255,255,0.6)' }}>
+              <span>Min payout: ₹500</span>
+              <span>·</span>
+              <span>Settles in 24h via UPI</span>
+              <span>·</span>
+              <span>Platform fee: 0%</span>
+            </div>
           </div>
 
+          {/* Right: stats + UPI */}
+          <div className="col gap-16">
+            <div className="g2">
+              <div className="stat-card">
+                <div className="stat-ico ico-green">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>
+                  </svg>
+                </div>
+                <div className="stat-label">This Month</div>
+                <div className="stat-value">{fmt(thisMonth)}</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-ico ico-violet">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>
+                  </svg>
+                </div>
+                <div className="stat-label">Total Earned</div>
+                <div className="stat-value">{fmt(totalCredited)}</div>
+              </div>
+            </div>
+
+            <EarningsClient walletBalance={balance} account={account ?? null} />
+          </div>
+        </div>
+
+        {hasPendingPayout && (
+          <div className="helper mb-20">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16, flexShrink: 0 }}>
+              <circle cx="12" cy="12" r="9"/><path d="M12 16v-5"/><circle cx="12" cy="8" r="0.6" fill="currentColor" stroke="none"/>
+            </svg>
+            A payout request is in progress. Please wait for it to complete before requesting another.
+          </div>
+        )}
+
+        {/* Payout history */}
+        <div className="card">
+          <div className="card-head">
+            <div>
+              <h2>Payout History</h2>
+              <div className="sub">Withdrawals to your UPI account</div>
+            </div>
+            <div className="card-head-right">
+              <span className="text-xs faint">{payouts.length} total</span>
+            </div>
+          </div>
           {payouts.length === 0 ? (
-            <div className="px-5 py-12 text-center">
-              <p className="text-sm text-gray-400">No payouts yet</p>
-              <p className="text-xs text-gray-400 mt-1">Your payout requests will appear here</p>
+            <div style={{ padding: '48px 28px', textAlign: 'center', color: 'var(--fg-muted)' }}>
+              No payouts yet. Request your first payout above.
             </div>
           ) : (
-            <ul className="divide-y divide-gray-50">
-              {payouts.map((p: any) => (
-                <li key={p.id} className="px-5 py-4">
-                  <div className="flex items-start justify-between gap-2 mb-1">
-                    <p className="text-sm font-semibold text-gray-900">{fmt(Number(p.amount_inr))}</p>
-                    <span className={`text-xs px-2 py-0.5 rounded font-medium capitalize ${PAYOUT_STATUS_STYLES[p.status] ?? 'bg-gray-100 text-gray-600'}`}>
-                      {p.status}
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-500">{p.upi_id}</p>
-                  <div className="flex items-center justify-between mt-1.5">
-                    <p className="text-xs text-gray-400">
-                      Requested {new Date(p.requested_at).toLocaleDateString('en-IN', {
-                        day: 'numeric', month: 'short', year: 'numeric',
-                      })}
-                    </p>
-                    {p.processed_at && (
-                      <p className="text-xs text-gray-400">
-                        Processed {new Date(p.processed_at).toLocaleDateString('en-IN', {
-                          day: 'numeric', month: 'short',
-                        })}
-                      </p>
-                    )}
-                  </div>
-                  {p.razorpay_payout_id && (
-                    <p className="text-xs text-gray-400 mt-1 font-mono">{p.razorpay_payout_id}</p>
-                  )}
-                </li>
-              ))}
-            </ul>
+            <div className="tbl-wrap">
+              <table className="tbl">
+                <thead>
+                  <tr>
+                    <th>Payout ID</th>
+                    <th>UPI</th>
+                    <th>Requested</th>
+                    <th>Reference</th>
+                    <th style={{ textAlign: 'right' }}>Amount</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {payouts.map((p: any) => (
+                    <tr key={p.id}>
+                      <td className="mono med">{p.id.slice(0, 12)}…</td>
+                      <td className="mono">{p.upi_id}</td>
+                      <td className="muted">{new Date(p.requested_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                      <td className="mono text-xs faint">{p.razorpay_payout_id ?? '—'}</td>
+                      <td className="num bold" style={{ textAlign: 'right' }}>{fmt(Number(p.amount_inr))}</td>
+                      <td>
+                        {p.status === 'completed'
+                          ? <span className="badge badge-success">Completed</span>
+                          : p.status === 'processing'
+                          ? <span className="badge badge-info">Processing</span>
+                          : p.status === 'failed'
+                          ? <span className="badge badge-danger">Failed</span>
+                          : <span className="badge badge-warn">Requested</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </div>
-    </div>
+    </>
   )
 }

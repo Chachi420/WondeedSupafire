@@ -15,20 +15,30 @@ export default async function UsersPage() {
     .order('created_at', { ascending: false })
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Users</h1>
-        <p className="text-sm text-gray-500 mt-0.5">
-          {count ?? 0} registered users · Click a role to change it
-        </p>
+    <>
+      <div className="topbar">
+        <div className="col">
+          <h1>Users</h1>
+          <div className="topbar-sub">{count ?? 0} registered users · Click a role to change it</div>
+        </div>
       </div>
 
-      <UserTable
-        users={(users ?? []).map((u: any) => ({
-          ...u,
-          wallets: Array.isArray(u.wallets) ? u.wallets[0] ?? null : u.wallets,
-        }))}
-      />
-    </div>
+      <div className="content fade-up">
+        <div className="card">
+          <div className="card-head">
+            <div>
+              <h2>All Users</h2>
+              <div className="sub">Manage roles and view wallet balances</div>
+            </div>
+          </div>
+          <UserTable
+            users={(users ?? []).map((u: any) => ({
+              ...u,
+              wallets: Array.isArray(u.wallets) ? u.wallets[0] ?? null : u.wallets,
+            }))}
+          />
+        </div>
+      </div>
+    </>
   )
 }

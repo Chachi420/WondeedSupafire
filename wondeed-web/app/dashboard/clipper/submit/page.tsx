@@ -6,25 +6,24 @@ export const dynamic = 'force-dynamic'
 export default async function SubmitClipPage() {
   const db = createAdminClient()
 
-  // Try with extended columns first; fall back to base columns if migrations haven't run
-  let { data, error } = await db
-    .from('campaigns')
-    .select('id, title, platform, rate_per_million_inr, budget_remaining_inr, per_post_view_cap, end_date, source_content_url')
+  const { data: raw, error } = await (db.from('campaigns') as any)
+    .select('id, title, platform, rate_per_million_inr, budget_remaining_inr, per_post_view_cap, end_date, source_content_url, niche')
     .eq('status', 'active')
     .gt('budget_remaining_inr', 0)
     .order('created_at', { ascending: false })
 
+  let rawData = raw
   if (error) {
-    const fallback = await db
+    const { data: fallback } = await db
       .from('campaigns')
-      .select('id, title, platform, rate_per_million_inr, budget_remaining_inr, per_post_view_cap, end_date')
+      .select('id, title, platform, rate_per_million_inr, budget_remaining_inr, per_post_view_cap, end_date, source_content_url')
       .eq('status', 'active')
       .gt('budget_remaining_inr', 0)
       .order('created_at', { ascending: false })
-    data = fallback.data
+    rawData = fallback
   }
 
-  const campaigns = (data ?? []) as {
+  const campaigns = (rawData ?? []) as {
     id: string
     title: string
     platform: string
@@ -32,18 +31,21 @@ export default async function SubmitClipPage() {
     budget_remaining_inr: number
     end_date: string | null
     source_content_url: string | null
+    niche: string | null
   }[]
 
   return (
-    <div className="p-8 max-w-2xl">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Submit Clips</h1>
-        <p className="text-sm text-gray-500 mt-0.5">
-          Pick a campaign and paste up to 10 clip URLs — views are fetched automatically
-        </p>
+    <>
+      <div className="topbar">
+        <div className="col">
+          <h1>Submit Clips</h1>
+          <div className="topbar-sub">Pick a campaign and paste up to 10 clip URLs — views are fetched automatically</div>
+        </div>
       </div>
 
-      <SubmitClipClient campaigns={campaigns} />
-    </div>
+      <div className="content fade-up">
+        <SubmitClipClient campaigns={campaigns} />
+      </div>
+    </>
   )
 }

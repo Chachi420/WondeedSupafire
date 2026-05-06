@@ -12,13 +12,12 @@ function fmt(n: number) {
   }).format(n)
 }
 
-const CAMPAIGN_STATUS_LABEL: Record<string, string> = {
-  active:           'Active',
-  completed:        'Completed',
-  cancelled:        'Cancelled',
-  pending_approval: 'Pending',
-  draft:            'Draft',
-  paused:           'Paused',
+function StatusBadge({ status }: { status: string }) {
+  const labels: Record<string, string> = {
+    active: 'Active', completed: 'Completed', cancelled: 'Cancelled',
+    pending_approval: 'Pending', draft: 'Draft', paused: 'Paused',
+  }
+  return <span className="badge badge-neutral">{labels[status] ?? status}</span>
 }
 
 export default async function BillingPage() {
@@ -46,191 +45,158 @@ export default async function BillingPage() {
   const tierConfig = TIER_CONFIG[tier]
   const upgrade    = nextTier(tier)
 
-  const balance   = Number((walletResult.data as any)?.balance_inr ?? 0)
-  const credited  = Number((walletResult.data as any)?.total_credited_inr ?? 0)
-  const debited   = Number((walletResult.data as any)?.total_debited_inr ?? 0)
+  const balance  = Number((walletResult.data as any)?.balance_inr         ?? 0)
+  const credited = Number((walletResult.data as any)?.total_credited_inr  ?? 0)
+  const debited  = Number((walletResult.data as any)?.total_debited_inr   ?? 0)
 
-  const campaigns     = (campaignsResult.data as any[]) ?? []
+  const campaigns     = (campaignsResult.data     as any[]) ?? []
   const subscriptions = (subscriptionsResult.data as any[]) ?? []
 
   return (
-    <div className="p-8 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Billing</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Your plan, wallet, and transaction history</p>
+    <>
+      <div className="topbar">
+        <div className="col">
+          <h1>Billing</h1>
+          <div className="topbar-sub">Your plan, wallet, and transaction history</div>
+        </div>
       </div>
 
-      {/* Current plan */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-        <h2 className="text-sm font-semibold text-gray-900 mb-5">Current Plan</h2>
-
-        <div className="flex items-start gap-8">
-          {/* Active tier */}
-          <div className={`flex-1 rounded-xl border-2 p-5 ${
-            tier === 'pro'        ? 'border-gray-200 bg-gray-50' :
-            tier === 'premium'    ? 'border-blue-300 bg-blue-50' :
-            'border-purple-300 bg-purple-50'
-          }`}>
-            <div className="flex items-center justify-between mb-3">
-              <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${tierConfig.badge_class}`}>
-                {tierConfig.name} — Active
-              </span>
-              <span className="text-sm font-bold text-gray-900">{tierConfig.price_label}</span>
+      <div className="content fade-up">
+        {/* Wallet hero */}
+        <div className="wallet-hero mb-20">
+          <div className="row between items-start">
+            <div>
+              <div className="text-xs" style={{ color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
+                Wallet Balance
+              </div>
+              <div className="mt-8" style={{ fontSize: 48, fontWeight: 600, letterSpacing: '-0.03em', lineHeight: 1 }}>
+                {fmt(balance)}
+              </div>
+              <div className="mt-12 row gap-12 text-md" style={{ color: 'rgba(255,255,255,0.85)' }}>
+                <span>Topped up: {fmt(credited)}</span>
+                <span style={{ opacity: 0.4 }}>·</span>
+                <span>Spent: {fmt(debited)}</span>
+              </div>
             </div>
-            <ul className="space-y-1.5">
-              {tierConfig.features.map(f => (
-                <li key={f} className="flex items-center gap-2 text-sm text-gray-700">
-                  <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                  {f}
-                </li>
-              ))}
-            </ul>
+            <div className="col gap-8 items-end">
+              <span className="badge" style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.8)', border: '1px solid rgba(255,255,255,0.2)' }}>
+                {tierConfig.name} Plan
+              </span>
+              <div className="text-xs" style={{ color: 'rgba(255,255,255,0.6)' }}>{tierConfig.price_label}</div>
+            </div>
           </div>
+          <div className="row gap-12 mt-16" style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>
+            <span>Top-up via Razorpay coming in Phase 2</span>
+            <span>·</span>
+            <span>Contact admin to add funds now</span>
+          </div>
+        </div>
 
-          {/* Upgrade tiers */}
-          {upgrade && (
-            <div className="flex flex-col gap-4 flex-shrink-0 w-56">
-              {TIER_ORDER.filter(t => TIER_ORDER.indexOf(t) > TIER_ORDER.indexOf(tier)).map(t => {
-                const tc = TIER_CONFIG[t]
-                return (
-                  <div key={t} className="bg-white border border-gray-200 rounded-xl p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${tc.badge_class}`}>
-                        {tc.name}
-                      </span>
-                      <span className="text-xs font-bold text-gray-700">{tc.price_label}</span>
-                    </div>
-                    <p className="text-xs text-gray-500 mb-3">{tc.features[0]}</p>
-                    <button
-                      disabled
-                      className={`w-full py-2 rounded-lg text-xs font-semibold opacity-60 cursor-not-allowed ${tc.accent_class}`}
-                    >
-                      Upgrade — Coming Soon
-                    </button>
+        {/* Current plan */}
+        <div className="card mb-20">
+          <div className="card-head">
+            <div>
+              <h2>Current Plan</h2>
+              <div className="sub">{tierConfig.name} — {tierConfig.price_label}</div>
+            </div>
+            <div className="card-head-right">
+              {upgrade && (
+                <button disabled className="btn btn-secondary" style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+                  Upgrade — Coming Soon
+                </button>
+              )}
+            </div>
+          </div>
+          <div style={{ padding: '20px 24px' }} className="col gap-12">
+            {tierConfig.features.map((f: string) => (
+              <div key={f} className="row gap-8 text-xs">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 12, height: 12, color: 'var(--success)', flexShrink: 0 }}>
+                  <path d="M5 13l4 4L19 7"/>
+                </svg>
+                {f}
+              </div>
+            ))}
+
+            {upgrade && (
+              <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16, marginTop: 4 }}>
+                <div className="text-xs faint mb-12">Available upgrades</div>
+                <div className="col gap-8">
+                  {TIER_ORDER.filter((t: SubscriptionTier) => TIER_ORDER.indexOf(t) > TIER_ORDER.indexOf(tier)).map((t: SubscriptionTier) => {
+                    const tc = TIER_CONFIG[t]
+                    return (
+                      <div key={t} className="row between" style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--surface-2)' }}>
+                        <div className="row gap-10">
+                          <span className="badge badge-neutral">{tc.name}</span>
+                          <span className="text-xs faint">{tc.features[0]}</span>
+                        </div>
+                        <span className="text-xs faint">{tc.price_label}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {subscriptions.length > 0 && (
+              <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16 }}>
+                <div className="text-xs faint mb-12">Subscription history</div>
+                {subscriptions.map((s: any, i: number) => (
+                  <div key={i} className="row between text-xs" style={{ padding: '6px 0' }}>
+                    <span className="med" style={{ textTransform: 'capitalize' }}>{s.tier} plan</span>
+                    <span className="faint">
+                      {new Date(s.starts_at).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })}
+                      {s.ends_at && ` → ${new Date(s.ends_at).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })}`}
+                    </span>
+                    <span>{fmt(Number(s.amount_inr))}</span>
                   </div>
-                )
-              })}
-              <p className="text-xs text-gray-400 text-center">Contact us to upgrade your plan</p>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Spend history */}
+        <div className="card">
+          <div className="card-head">
+            <div>
+              <h2>Campaign Spend History</h2>
+              <div className="sub">Wallet is debited when you submit a campaign</div>
+            </div>
+          </div>
+          {campaigns.length === 0 ? (
+            <div style={{ padding: '48px 28px', textAlign: 'center', color: 'var(--fg-muted)' }}>No transactions yet</div>
+          ) : (
+            <div className="tbl-wrap">
+              <table className="tbl">
+                <thead>
+                  <tr>
+                    <th>Campaign</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th style={{ textAlign: 'right' }}>Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {campaigns.map((c: any) => (
+                    <tr key={c.id}>
+                      <td>
+                        <Link href={`/dashboard/client/campaigns/${c.id}`} className="med" style={{ color: 'var(--fg)', textDecoration: 'none' }}>
+                          {c.title}
+                        </Link>
+                      </td>
+                      <td className="muted">
+                        {new Date(c.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </td>
+                      <td><StatusBadge status={c.status} /></td>
+                      <td className="num bold" style={{ textAlign: 'right' }}>{fmt(Number(c.total_charged_inr))}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
-
-        {/* Subscription history */}
-        {subscriptions.length > 0 && (
-          <div className="mt-5 pt-5 border-t border-gray-100">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Subscription History</p>
-            <ul className="space-y-2">
-              {subscriptions.map((s: any, i: number) => (
-                <li key={i} className="flex items-center justify-between text-sm">
-                  <span className="text-gray-700 capitalize">{s.tier} plan</span>
-                  <span className="text-gray-400 text-xs">
-                    {new Date(s.starts_at).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })}
-                    {s.ends_at && ` → ${new Date(s.ends_at).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })}`}
-                  </span>
-                  <span className="text-gray-600">{fmt(Number(s.amount_inr))}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
       </div>
-
-      {/* Wallet */}
-      <div className="bg-gray-900 text-white rounded-xl p-6 mb-6">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Wallet Balance</p>
-        <p className="text-4xl font-bold tabular-nums mb-5">{fmt(balance)}</p>
-
-        <div className="grid grid-cols-2 gap-6 pt-5 border-t border-gray-700 text-sm mb-5">
-          <div>
-            <p className="text-gray-400 mb-0.5">Total topped up</p>
-            <p className="text-lg font-semibold tabular-nums">{fmt(credited)}</p>
-          </div>
-          <div>
-            <p className="text-gray-400 mb-0.5">Total spent on campaigns</p>
-            <p className="text-lg font-semibold tabular-nums">{fmt(debited)}</p>
-          </div>
-        </div>
-
-        {/* Top-up grid */}
-        <div className="bg-white/10 rounded-lg p-4">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-sm font-medium">Top Up Wallet</p>
-            <span className="text-xs bg-amber-500/20 text-amber-300 font-medium px-2 py-0.5 rounded">
-              Razorpay — Phase 2
-            </span>
-          </div>
-          <div className="grid grid-cols-3 gap-2 mb-3">
-            {[5_000, 10_000, 25_000, 50_000, 1_00_000, 2_00_000].map(amt => (
-              <button key={amt} disabled
-                className="py-2 bg-white/10 rounded-lg text-sm font-medium text-gray-300 cursor-not-allowed"
-              >
-                {fmt(amt)}
-              </button>
-            ))}
-          </div>
-          <button disabled
-            className="w-full py-2.5 bg-brand-500 text-white text-sm font-semibold rounded-lg opacity-40 cursor-not-allowed"
-          >
-            Pay via Razorpay
-          </button>
-          <p className="text-xs text-gray-400 mt-2 text-center">
-            To add funds during testing, contact the admin team.
-          </p>
-        </div>
-      </div>
-
-      {/* Transaction history */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100">
-          <h2 className="text-sm font-semibold text-gray-900">Campaign Spend History</h2>
-          <p className="text-xs text-gray-400 mt-0.5">Wallet is debited immediately when you submit a campaign</p>
-        </div>
-
-        {campaigns.length === 0 ? (
-          <div className="px-5 py-10 text-center">
-            <p className="text-sm text-gray-400">No transactions yet</p>
-          </div>
-        ) : (
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-100 bg-gray-50">
-                <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Campaign</th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Date</th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
-                <th className="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {campaigns.map((c: any) => (
-                <tr key={c.id} className="border-b border-gray-50 hover:bg-gray-50">
-                  <td className="px-5 py-3.5">
-                    <Link href={`/dashboard/client/campaigns/${c.id}`}
-                      className="text-sm font-medium text-gray-900 hover:text-brand-500"
-                    >
-                      {c.title}
-                    </Link>
-                  </td>
-                  <td className="px-5 py-3.5 text-sm text-gray-500">
-                    {new Date(c.created_at).toLocaleDateString('en-IN', {
-                      day: 'numeric', month: 'short', year: 'numeric',
-                    })}
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <span className="text-xs text-gray-600">
-                      {CAMPAIGN_STATUS_LABEL[c.status] ?? c.status}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3.5 text-right text-sm font-semibold text-gray-900 tabular-nums">
-                    {fmt(Number(c.total_charged_inr))}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-    </div>
+    </>
   )
 }

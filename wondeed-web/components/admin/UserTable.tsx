@@ -13,27 +13,27 @@ type UserRow = {
   wallets: { balance_inr: number; total_credited_inr: number; total_debited_inr: number } | null
 }
 
-const ROLE_STYLES: Record<UserRole, string> = {
-  client:  'bg-indigo-100 text-indigo-700',
-  clipper: 'bg-teal-100 text-teal-700',
-  admin:   'bg-gray-800 text-white',
-}
-
 const ROLES: UserRole[] = ['client', 'clipper', 'admin']
 
 function fmt(n: number) {
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n)
 }
 
-function UserRow({ user: initial }: { user: UserRow }) {
-  const [user, setUser]           = useState(initial)
-  const [isPending, startTransition] = useTransition()
-  const [editRole, setEditRole]   = useState(false)
-  const [topUpOpen, setTopUpOpen] = useState(false)
-  const [amount, setAmount]       = useState('')
-  const [note, setNote]           = useState('')
-  const [error, setError]         = useState<string | null>(null)
-  const [success, setSuccess]     = useState<string | null>(null)
+function RoleBadge({ role }: { role: UserRole }) {
+  if (role === 'admin')   return <span className="badge" style={{ background: '#1f2937', color: '#fff' }}>admin</span>
+  if (role === 'client')  return <span className="badge badge-indigo">client</span>
+  return <span className="badge badge-neutral">clipper</span>
+}
+
+function UserRowItem({ user: initial }: { user: UserRow }) {
+  const [user, setUser]               = useState(initial)
+  const [isPending, startTransition]  = useTransition()
+  const [editRole, setEditRole]       = useState(false)
+  const [topUpOpen, setTopUpOpen]     = useState(false)
+  const [amount, setAmount]           = useState('')
+  const [note, setNote]               = useState('')
+  const [error, setError]             = useState<string | null>(null)
+  const [success, setSuccess]         = useState<string | null>(null)
 
   function changeRole(newRole: UserRole) {
     if (newRole === user.role) { setEditRole(false); return }
@@ -79,89 +79,66 @@ function UserRow({ user: initial }: { user: UserRow }) {
 
   return (
     <>
-      <tr className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${isPending ? 'opacity-60' : ''}`}>
-        {/* User */}
-        <td className="px-5 py-4">
-          <p className="text-sm font-medium text-gray-900">{user.full_name ?? <span className="text-gray-400 italic">No name</span>}</p>
-          <p className="text-xs text-gray-400 mt-0.5 font-mono">{user.phone ?? <span className="italic">email user</span>}</p>
+      <tr className={isPending ? 'opacity-60' : ''}>
+        <td>
+          <p className="med text-xs">{user.full_name ?? <span className="faint italic">No name</span>}</p>
+          <p className="text-xs faint mt-4 mono">{user.phone ?? <span className="italic">email user</span>}</p>
         </td>
-
-        {/* Role */}
-        <td className="px-5 py-4">
+        <td>
           {editRole ? (
-            <div className="flex items-center gap-1">
+            <div className="row gap-4">
               {ROLES.map((r) => (
                 <button
                   key={r}
                   onClick={() => changeRole(r)}
                   disabled={isPending}
-                  className={`px-2.5 py-1 rounded text-xs font-medium border transition-colors ${
-                    r === user.role
-                      ? ROLE_STYLES[r] + ' border-transparent'
-                      : 'border-gray-200 text-gray-500 hover:border-gray-400'
-                  }`}
+                  className={`btn btn-sm ${r === user.role ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ textTransform: 'capitalize' }}
                 >
                   {r}
                 </button>
               ))}
-              <button onClick={() => setEditRole(false)} className="ml-1 text-xs text-gray-400 hover:text-gray-600">✕</button>
+              <button onClick={() => setEditRole(false)} className="btn btn-sm btn-ghost">✕</button>
             </div>
           ) : (
-            <button onClick={() => setEditRole(true)} className="group flex items-center gap-2">
-              <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${ROLE_STYLES[user.role]}`}>
-                {user.role}
-              </span>
-              <span className="text-xs text-gray-300 group-hover:text-gray-500 transition-colors">edit</span>
+            <button onClick={() => setEditRole(true)} className="row gap-8" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              <RoleBadge role={user.role} />
+              <span className="text-xs faint">edit</span>
             </button>
           )}
-          {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+          {error && <p className="text-xs mt-4" style={{ color: 'var(--danger)' }}>{error}</p>}
         </td>
-
-        {/* Wallet balance */}
-        <td className="px-5 py-4">
-          <p className="text-sm font-semibold text-gray-900 tabular-nums">
-            {user.wallets ? fmt(Number(user.wallets.balance_inr)) : '—'}
-          </p>
-          {success && <p className="text-xs text-green-600 mt-0.5">{success}</p>}
+        <td>
+          <p className="med text-xs">{user.wallets ? fmt(Number(user.wallets.balance_inr)) : '—'}</p>
+          {success && <p className="text-xs mt-4" style={{ color: 'var(--success)' }}>{success}</p>}
         </td>
-
-        {/* Total credited */}
-        <td className="px-5 py-4 text-sm text-gray-500 tabular-nums">
-          {user.wallets ? fmt(Number(user.wallets.total_credited_inr)) : '—'}
-        </td>
-
-        {/* Joined */}
-        <td className="px-5 py-4 text-sm text-gray-400">
-          {new Date(user.created_at).toLocaleDateString('en-IN')}
-        </td>
-
-        {/* Top-up action */}
-        <td className="px-5 py-4">
+        <td className="text-xs muted">{user.wallets ? fmt(Number(user.wallets.total_credited_inr)) : '—'}</td>
+        <td className="text-xs faint">{new Date(user.created_at).toLocaleDateString('en-IN')}</td>
+        <td>
           {user.wallets ? (
             <button
               onClick={() => { setTopUpOpen(o => !o); setError(null); setSuccess(null) }}
-              className="text-xs px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-medium transition-colors"
+              className="btn btn-sm btn-secondary"
             >
               {topUpOpen ? 'Cancel' : 'Top Up'}
             </button>
           ) : (
-            <span className="text-xs text-gray-300">No wallet</span>
+            <span className="text-xs faint">No wallet</span>
           )}
         </td>
       </tr>
 
-      {/* Inline top-up form */}
       {topUpOpen && (
-        <tr className="bg-indigo-50 border-b border-indigo-100">
-          <td colSpan={6} className="px-5 py-3">
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-medium text-indigo-700 w-28 flex-shrink-0">
+        <tr>
+          <td colSpan={6} style={{ background: 'var(--surface-2)', borderBottom: '1px solid var(--border)' }}>
+            <div className="row gap-12" style={{ padding: '4px 0' }}>
+              <span className="text-xs med" style={{ width: 120, flexShrink: 0 }}>
                 Credit wallet for<br />
-                <span className="font-semibold">{user.full_name ?? user.phone ?? user.id.slice(0, 8)}</span>
+                <span style={{ fontWeight: 700 }}>{user.full_name ?? user.phone ?? user.id.slice(0, 8)}</span>
               </span>
-              <div className="flex items-center gap-2 flex-1">
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">₹</span>
+              <div className="row gap-8" style={{ flex: 1 }}>
+                <div style={{ position: 'relative' }}>
+                  <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--fg-muted)', fontSize: 13 }}>₹</span>
                   <input
                     type="number"
                     min="1"
@@ -169,7 +146,8 @@ function UserRow({ user: initial }: { user: UserRow }) {
                     value={amount}
                     onChange={e => setAmount(e.target.value)}
                     placeholder="Amount"
-                    className="pl-7 pr-3 py-1.5 border border-indigo-200 rounded-lg text-sm w-32 focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
+                    className="input"
+                    style={{ paddingLeft: 24, width: 120 }}
                   />
                 </div>
                 <input
@@ -177,17 +155,18 @@ function UserRow({ user: initial }: { user: UserRow }) {
                   value={note}
                   onChange={e => setNote(e.target.value)}
                   placeholder="Note (optional)"
-                  className="flex-1 px-3 py-1.5 border border-indigo-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
+                  className="input"
+                  style={{ flex: 1 }}
                 />
                 <button
                   onClick={handleTopUp}
                   disabled={isPending || !amount}
-                  className="px-4 py-1.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                  className="btn btn-primary"
                 >
                   {isPending ? 'Crediting…' : 'Credit'}
                 </button>
               </div>
-              {error && <p className="text-xs text-red-600">{error}</p>}
+              {error && <p className="text-xs" style={{ color: 'var(--danger)' }}>{error}</p>}
             </div>
           </td>
         </tr>
@@ -202,46 +181,45 @@ export default function UserTable({ users }: { users: UserRow[] }) {
   const filtered = filter === 'all' ? users : users.filter((u) => u.role === filter)
 
   return (
-    <div>
-      {/* Filter tabs */}
-      <div className="flex items-center gap-2 mb-4">
-        {(['all', ...ROLES] as const).map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              filter === f
-                ? 'bg-gray-900 text-white'
-                : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-400'
-            }`}
-          >
-            {f === 'all' ? `All (${users.length})` : `${f} (${users.filter(u => u.role === f).length})`}
-          </button>
-        ))}
+    <>
+      <div style={{ padding: '10px 20px', borderBottom: '1px solid var(--border)' }}>
+        <div className="segmented">
+          {(['all', ...ROLES] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`seg-item${filter === f ? ' active' : ''}`}
+              style={{ textTransform: 'capitalize' }}
+            >
+              {f === 'all' ? `All (${users.length})` : `${f} (${users.filter(u => u.role === f).length})`}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        {filtered.length === 0
-          ? <p className="p-10 text-sm text-gray-400 text-center">No users in this category</p>
-          : (
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-100 bg-gray-50">
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">User</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Role</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Wallet Balance</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Total Credited</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Joined</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Wallet</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((u) => <UserRow key={u.id} user={u} />)}
-              </tbody>
-            </table>
-          )
-        }
-      </div>
-    </div>
+      {filtered.length === 0 ? (
+        <div style={{ padding: '40px 28px', textAlign: 'center', color: 'var(--fg-muted)', fontSize: 14 }}>
+          No users in this category
+        </div>
+      ) : (
+        <div className="tbl-wrap">
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Role</th>
+                <th>Wallet Balance</th>
+                <th>Total Credited</th>
+                <th>Joined</th>
+                <th>Wallet</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((u) => <UserRowItem key={u.id} user={u} />)}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </>
   )
 }

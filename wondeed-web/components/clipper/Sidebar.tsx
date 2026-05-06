@@ -5,79 +5,39 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 const NAV = [
-  {
-    href: '/dashboard/clipper',
-    label: 'Home',
-    exact: true,
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-      </svg>
-    ),
-  },
-  {
-    href: '/dashboard/clipper/feed',
-    label: 'Campaign Feed',
-    exact: false,
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-      </svg>
-    ),
-  },
-  {
-    href: '/dashboard/clipper/submit',
-    label: 'Submit a Clip',
-    exact: false,
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-      </svg>
-    ),
-  },
-  {
-    href: '/dashboard/clipper/my-campaigns',
-    label: 'My Campaigns',
-    exact: false,
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.069A1 1 0 0121 8.82V15a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
-      </svg>
-    ),
-  },
-  {
-    href: '/dashboard/clipper/analytics',
-    label: 'Analytics',
-    exact: false,
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-      </svg>
-    ),
-  },
-  {
-    href: '/dashboard/clipper/earnings',
-    label: 'Earnings',
-    exact: false,
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    ),
-  },
-  {
-    href: '/dashboard/clipper/profile',
-    label: 'Profile',
-    exact: false,
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-      </svg>
-    ),
-  },
+  { href: '/dashboard/clipper',              label: 'Home',           exact: true,  icon: 'home' },
+  { href: '/dashboard/clipper/feed',         label: 'Campaign Feed',  exact: false, icon: 'grid',   isFeed: true },
+  { href: '/dashboard/clipper/submit',       label: 'Submit a Clip',  exact: false, icon: 'upload' },
+  { href: '/dashboard/clipper/my-campaigns', label: 'My Campaigns',   exact: false, icon: 'folder' },
+  { href: '/dashboard/clipper/earnings',     label: 'Earnings',       exact: false, icon: 'wallet' },
+  { href: '/dashboard/clipper/analytics',    label: 'Analytics',      exact: false, icon: 'chart' },
 ]
 
-export default function ClipperSidebar() {
+function Icon({ name }: { name: string }) {
+  const paths: Record<string, React.ReactNode> = {
+    home:   <><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1h-5v-7h-6v7H4a1 1 0 01-1-1V9.5z"/></>,
+    grid:   <><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></>,
+    upload: <><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></>,
+    folder: <><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/></>,
+    wallet: <><path d="M3 7a2 2 0 012-2h12a2 2 0 012 2v2H5a2 2 0 00-2 2V7z"/><path d="M3 11a2 2 0 012-2h14a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6z"/><circle cx="17" cy="14" r="1.4" fill="currentColor"/></>,
+    chart:  <><path d="M3 21h18"/><rect x="5" y="11" width="3" height="8"/><rect x="10.5" y="6" width="3" height="13"/><rect x="16" y="14" width="3" height="5"/></>,
+    user:   <><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></>,
+    settings: <><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></>,
+    logout: <><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></>,
+  }
+  return (
+    <svg className="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      {paths[name]}
+    </svg>
+  )
+}
+
+export default function ClipperSidebar({ userName, userHandle, userTier, feedBadge }: {
+  userName?: string
+  userHandle?: string
+  userTier?: string
+  feedBadge?: number
+}) {
   const pathname = usePathname()
   const router   = useRouter()
   const supabase = createClient()
@@ -88,61 +48,56 @@ export default function ClipperSidebar() {
     router.refresh()
   }
 
+  const initials = userName
+    ? userName.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase()
+    : 'CL'
+
   return (
-    <aside className="fixed inset-y-0 left-0 w-64 bg-gray-900 flex flex-col z-10">
-      {/* Brand */}
-      <div className="h-16 flex items-center px-6 border-b border-gray-800">
-        <span className="text-white font-bold text-lg tracking-tight">Wondeed</span>
-        <span className="ml-2 text-xs font-medium bg-emerald-600 text-white px-2 py-0.5 rounded">Clipper</span>
+    <aside className="sidebar">
+      <div className="sidebar-brand">
+        <div className="brand-mark">W</div>
+        <div className="brand-name">
+          Wondeed
+          <span>Clipper</span>
+        </div>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {NAV.map((item) => {
-          const isActive = item.exact
-            ? pathname === item.href
-            : pathname.startsWith(item.href)
+      <div className="sidebar-user">
+        <div className="avatar avatar-rs">{initials}</div>
+        <div className="col">
+          <div className="user-name">{userName ?? 'Clipper'}</div>
+          <div className="user-meta">{userTier ?? 'Free'} · {userHandle ?? ''}</div>
+        </div>
+      </div>
+
+      <nav className="sidebar-nav">
+        <div className="nav-section-label">Workspace</div>
+        {NAV.map(item => {
+          const active = item.exact ? pathname === item.href : pathname.startsWith(item.href)
+          const badge = (item as any).isFeed && feedBadge != null && feedBadge > 0 ? feedBadge : null
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                isActive
-                  ? 'bg-emerald-600 text-white'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-800'
-              }`}
-            >
-              {item.icon}
+            <Link key={item.href} href={item.href} className={`nav-item ${active ? 'active' : ''}`}>
+              <Icon name={item.icon} />
               {item.label}
+              {badge != null && <span className="nav-badge">{badge}</span>}
             </Link>
           )
         })}
+        <div className="nav-section-label">Account</div>
+        <Link href="/dashboard/clipper/profile" className="nav-item">
+          <Icon name="user" />Profile &amp; Settings
+        </Link>
+        <button className="nav-item" onClick={handleSignOut}>
+          <Icon name="logout" />Sign out
+        </button>
       </nav>
 
-      {/* Find Campaigns CTA */}
-      <div className="px-4 pb-4">
-        <Link
-          href="/dashboard/clipper/feed"
-          className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-          Browse Campaigns
-        </Link>
-      </div>
-
-      {/* Sign out */}
-      <div className="p-4 border-t border-gray-800">
-        <button
-          onClick={handleSignOut}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-          Sign out
-        </button>
+      <div className="sidebar-foot">
+        <div className="row gap-6">
+          <span className="badge-dot" style={{ background: '#22c55e' }} />
+          All systems normal
+        </div>
+        <div className="mt-4 faint">v2.4.0 · Clipper</div>
       </div>
     </aside>
   )

@@ -18,60 +18,68 @@ export default async function ClientWalletPage() {
     .eq('user_id', user!.id)
     .single()
 
-  const balance   = Number(wallet?.balance_inr        ?? 0)
-  const credited  = Number(wallet?.total_credited_inr ?? 0)
-  const debited   = Number(wallet?.total_debited_inr  ?? 0)
+  const balance  = Number(wallet?.balance_inr        ?? 0)
+  const credited = Number(wallet?.total_credited_inr ?? 0)
+  const debited  = Number(wallet?.total_debited_inr  ?? 0)
 
   return (
-    <div className="p-8 max-w-2xl">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Wallet</h1>
-        <p className="text-sm text-gray-500 mt-0.5">
-          Fund your campaigns via Razorpay. Balance is debited when admin approves a campaign.
-        </p>
-      </div>
-
-      {/* Balance card */}
-      <div className="bg-gray-900 text-white rounded-2xl p-8 mb-6">
-        <p className="text-sm text-gray-400 mb-2">Available Balance</p>
-        <p className="text-5xl font-bold tabular-nums mb-6">{fmt(balance)}</p>
-        <div className="grid grid-cols-2 gap-6 pt-6 border-t border-gray-700 text-sm">
-          <div>
-            <p className="text-gray-400 mb-1">Total topped up</p>
-            <p className="text-xl font-semibold tabular-nums">{fmt(credited)}</p>
-          </div>
-          <div>
-            <p className="text-gray-400 mb-1">Total spent on campaigns</p>
-            <p className="text-xl font-semibold tabular-nums">{fmt(debited)}</p>
-          </div>
+    <>
+      <div className="topbar">
+        <div className="col">
+          <h1>Wallet</h1>
+          <div className="topbar-sub">Fund your campaigns via Razorpay · Balance debited on campaign approval</div>
         </div>
       </div>
 
-      {/* Top-up — Razorpay Phase 2 */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-gray-900">Top Up Wallet</h2>
-          <span className="text-xs bg-amber-100 text-amber-700 font-medium px-2 py-0.5 rounded">Razorpay — Phase 2</span>
+      <div className="content fade-up">
+        <div className="wallet-hero mb-20">
+          <div className="row between items-start">
+            <div>
+              <div className="text-xs" style={{ color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
+                Available Balance
+              </div>
+              <div className="mt-8" style={{ fontSize: 48, fontWeight: 600, letterSpacing: '-0.03em', lineHeight: 1 }}>
+                {fmt(balance)}
+              </div>
+              <div className="mt-12 row gap-12 text-md" style={{ color: 'rgba(255,255,255,0.85)' }}>
+                <span>Topped up: {fmt(credited)}</span>
+                <span style={{ opacity: 0.4 }}>·</span>
+                <span>Spent: {fmt(debited)}</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <p className="text-sm text-gray-500 mb-4">
-          Razorpay UPI / card top-up is coming soon. To add funds during testing, contact the admin team.
-        </p>
-        <div className="grid grid-cols-3 gap-3 mb-4">
-          {[5000, 10000, 25000, 50000, 100000, 200000].map((amt) => (
-            <button key={amt} disabled
-              className="py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-400 cursor-not-allowed"
-            >
-              {fmt(amt)}
+
+        <div className="card">
+          <div className="card-head">
+            <div>
+              <h2>Top Up Wallet</h2>
+              <div className="sub">Razorpay UPI / card payments — coming soon in Phase 2</div>
+            </div>
+            <div className="card-head-right">
+              <span className="badge badge-warn">Phase 2</span>
+            </div>
+          </div>
+          <div style={{ padding: '20px 24px' }} className="col gap-16">
+            <div className="helper">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16, flexShrink: 0 }}>
+                <circle cx="12" cy="12" r="9"/><path d="M12 16v-5"/><circle cx="12" cy="8" r="0.6" fill="currentColor" stroke="none"/>
+              </svg>
+              To add funds during testing, contact the admin team.
+            </div>
+            <div className="g3">
+              {[5_000, 10_000, 25_000, 50_000, 1_00_000, 2_00_000].map(amt => (
+                <button key={amt} disabled className="btn btn-secondary" style={{ opacity: 0.4, cursor: 'not-allowed' }}>
+                  {fmt(amt)}
+                </button>
+              ))}
+            </div>
+            <button disabled className="btn btn-primary" style={{ opacity: 0.4, cursor: 'not-allowed', width: '100%' }}>
+              Pay via Razorpay
             </button>
-          ))}
+          </div>
         </div>
-        <button
-          disabled
-          className="w-full py-3 bg-brand-500 text-white text-sm font-semibold rounded-lg opacity-40 cursor-not-allowed"
-        >
-          Pay via Razorpay
-        </button>
       </div>
-    </div>
+    </>
   )
 }

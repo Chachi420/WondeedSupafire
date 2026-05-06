@@ -11,12 +11,12 @@ export default async function CampaignFeedPage() {
   const db = createAdminClient()
 
   const [campaignsResult, submissionsResult, profileResult] = await Promise.all([
-    db.from('campaigns')
+    (db.from('campaigns') as any)
       .select(
         'id, title, description, platform, target_platforms, ' +
         'budget_inr, budget_remaining_inr, rate_per_million_inr, per_post_view_cap, ' +
         'end_date, min_clipper_tier, clip_aspect_ratio, clip_length_seconds, ' +
-        'clip_language, hook_style, min_views_for_payout, source_content_url, created_at'
+        'clip_language, hook_style, min_views_for_payout, source_content_url, niche, created_at'
       )
       .eq('status', 'active')
       .order('created_at', { ascending: false }),
@@ -36,19 +36,28 @@ export default async function CampaignFeedPage() {
   const clipperTier = profileResult.data?.subscription_tier ?? 'pro'
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Campaign Feed</h1>
-        <p className="text-sm text-gray-500 mt-0.5">
-          Browse live campaigns, filter by platform or tier, and join to start earning
-        </p>
+    <>
+      <div className="topbar">
+        <div className="col">
+          <h1>Campaign Feed</h1>
+          <div className="topbar-sub">{campaigns.length} active campaigns · Browse, filter, and join</div>
+        </div>
+        <div className="topbar-right">
+          <button className="btn btn-secondary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
+              <path d="M3 5h18l-7 9v6l-4-2v-4L3 5z"/>
+            </svg>
+            Saved filters
+          </button>
+        </div>
       </div>
-
-      <CampaignFeedClient
-        campaigns={campaigns}
-        joinedCampaignIds={joinedCampaignIds}
-        clipperTier={clipperTier}
-      />
-    </div>
+      <div className="content fade-up">
+        <CampaignFeedClient
+          campaigns={campaigns}
+          joinedCampaignIds={joinedCampaignIds}
+          clipperTier={clipperTier}
+        />
+      </div>
+    </>
   )
 }

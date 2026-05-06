@@ -22,21 +22,21 @@ function fmt(n: number) {
 
 function UPIForm({ account, onSaved }: { account: ClipperAccount; onSaved: (a: { upi_id: string; account_holder_name: string }) => void }) {
   const [isPending, startTransition] = useTransition()
-  const [error, setError]   = useState<string | null>(null)
+  const [error, setError]    = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [editing, setEditing] = useState(!account)
 
   if (!editing && account) {
     return (
-      <div className="bg-gray-50 rounded-lg px-4 py-3 flex items-center justify-between">
+      <div className="row between" style={{ background: 'var(--surface-2)', borderRadius: 8, padding: '10px 14px' }}>
         <div>
-          <p className="text-sm font-medium text-gray-900">{account.upi_id}</p>
-          <p className="text-xs text-gray-500">{account.account_holder_name}</p>
+          <p className="med text-xs">{account.upi_id}</p>
+          <p className="text-xs faint mt-4">{account.account_holder_name}</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="row gap-12">
           {account.is_verified && (
-            <span className="text-xs text-emerald-600 font-medium flex items-center gap-1">
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+            <span className="row gap-4 text-xs" style={{ color: 'var(--success)' }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} style={{ width: 12, height: 12 }}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
               Verified
@@ -44,7 +44,8 @@ function UPIForm({ account, onSaved }: { account: ClipperAccount; onSaved: (a: {
           )}
           <button
             onClick={() => { setEditing(true); setSuccess(false) }}
-            className="text-xs text-gray-500 hover:text-gray-900 underline"
+            className="text-xs faint"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
           >
             Edit
           </button>
@@ -73,52 +74,28 @@ function UPIForm({ account, onSaved }: { account: ClipperAccount; onSaved: (a: {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
-      <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">UPI ID</label>
-        <input
-          name="upi_id"
-          type="text"
-          required
-          defaultValue={account?.upi_id ?? ''}
-          placeholder="yourname@upi"
-          className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-        />
+    <form onSubmit={handleSubmit} className="col gap-12">
+      <div className="field">
+        <label className="field-label">UPI ID</label>
+        <input name="upi_id" type="text" required defaultValue={account?.upi_id ?? ''} placeholder="yourname@upi" className="input" />
       </div>
-      <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">Account Holder Name</label>
-        <input
-          name="account_holder_name"
-          type="text"
-          required
-          defaultValue={account?.account_holder_name ?? ''}
-          placeholder="Full name as on bank account"
-          className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-        />
+      <div className="field">
+        <label className="field-label">Account Holder Name</label>
+        <input name="account_holder_name" type="text" required defaultValue={account?.account_holder_name ?? ''} placeholder="Full name as on bank account" className="input" />
       </div>
       {error && (
-        <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
+        <p className="text-xs" style={{ color: 'var(--danger)', background: 'var(--danger-bg)', borderRadius: 6, padding: '8px 12px' }}>{error}</p>
       )}
-      <div className="flex gap-2">
-        <button
-          type="submit"
-          disabled={isPending}
-          className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg disabled:opacity-40 transition-colors"
-        >
+      <div className="row gap-8">
+        <button type="submit" disabled={isPending} className="btn btn-primary" style={{ flex: 1 }}>
           {isPending ? 'Saving…' : 'Save UPI Details'}
         </button>
         {account && (
-          <button
-            type="button"
-            onClick={() => setEditing(false)}
-            className="px-4 py-2.5 border border-gray-200 text-gray-600 text-sm rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            Cancel
-          </button>
+          <button type="button" onClick={() => setEditing(false)} className="btn btn-secondary">Cancel</button>
         )}
       </div>
       {success && (
-        <p className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+        <p className="text-xs" style={{ color: 'var(--success)', background: 'rgba(16,185,129,0.08)', borderRadius: 6, padding: '8px 12px' }}>
           UPI details saved successfully.
         </p>
       )}
@@ -128,13 +105,13 @@ function UPIForm({ account, onSaved }: { account: ClipperAccount; onSaved: (a: {
 
 function PayoutForm({ balance, upiId }: { balance: number; upiId: string | null }) {
   const [isPending, startTransition] = useTransition()
-  const [error, setError]   = useState<string | null>(null)
+  const [error, setError]    = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
-  const [amount, setAmount] = useState('')
+  const [amount, setAmount]  = useState('')
 
   if (!upiId) {
     return (
-      <p className="text-sm text-gray-400 text-center py-4">
+      <p className="text-xs faint" style={{ textAlign: 'center', padding: '16px 0' }}>
         Please save your UPI details above before requesting a payout.
       </p>
     )
@@ -159,24 +136,22 @@ function PayoutForm({ balance, upiId }: { balance: number; upiId: string | null 
 
   if (success) {
     return (
-      <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 text-sm text-emerald-700 flex items-center gap-2">
-        <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+      <div className="helper">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ width: 16, height: 16, flexShrink: 0 }}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
         </svg>
-        Payout request submitted! We'll process it within 2–3 business days.
+        Payout request submitted! We&apos;ll process it within 2–3 business days.
       </div>
     )
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
-      <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">
-          Amount (available: {fmt(balance)})
-        </label>
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">₹</span>
+    <form onSubmit={handleSubmit} className="col gap-12">
+      <div className="field">
+        <label className="field-label">Amount (available: {fmt(balance)})</label>
+        <div className="row gap-8">
+          <div style={{ position: 'relative', flex: 1 }}>
+            <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--fg-muted)', fontSize: 13 }}>₹</span>
             <input
               type="number"
               min={100}
@@ -186,26 +161,27 @@ function PayoutForm({ balance, upiId }: { balance: number; upiId: string | null 
               value={amount}
               onChange={e => setAmount(e.target.value)}
               placeholder="Enter amount"
-              className="w-full pl-7 pr-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="input"
+              style={{ paddingLeft: 26 }}
             />
           </div>
           <button
             type="button"
             onClick={() => setAmount(String(Math.floor(balance)))}
-            className="shrink-0 px-3 py-2.5 border border-gray-200 text-gray-600 text-xs rounded-lg hover:bg-gray-50 transition-colors"
+            className="btn btn-secondary btn-sm"
           >
             Max
           </button>
         </div>
-        <p className="text-xs text-gray-400 mt-1">To UPI: {upiId}</p>
+        <span className="field-hint">To UPI: {upiId}</span>
       </div>
       {error && (
-        <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
+        <p className="text-xs" style={{ color: 'var(--danger)', background: 'var(--danger-bg)', borderRadius: 6, padding: '8px 12px' }}>{error}</p>
       )}
       <button
         type="submit"
         disabled={isPending || !amount || Number(amount) <= 0 || Number(amount) > balance}
-        className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        className="btn btn-primary btn-block"
       >
         {isPending ? 'Requesting…' : 'Request Payout →'}
       </button>
@@ -217,14 +193,15 @@ export default function EarningsClient({ walletBalance, account }: Props) {
   const [currentUpi, setCurrentUpi] = useState(account?.upi_id ?? null)
 
   return (
-    <div className="space-y-6">
-      {/* UPI Setup */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100">
-          <h2 className="text-sm font-semibold text-gray-900">UPI Details</h2>
-          <p className="text-xs text-gray-400 mt-0.5">Used for payout transfers</p>
+    <div className="col gap-16">
+      <div className="card">
+        <div className="card-head">
+          <div>
+            <h2>UPI Details</h2>
+            <div className="sub">Used for payout transfers</div>
+          </div>
         </div>
-        <div className="p-5">
+        <div style={{ padding: '20px 24px' }}>
           <UPIForm
             account={account}
             onSaved={({ upi_id }) => setCurrentUpi(upi_id)}
@@ -232,13 +209,14 @@ export default function EarningsClient({ walletBalance, account }: Props) {
         </div>
       </div>
 
-      {/* Payout Request */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100">
-          <h2 className="text-sm font-semibold text-gray-900">Request Payout</h2>
-          <p className="text-xs text-gray-400 mt-0.5">Minimum withdrawal: ₹100</p>
+      <div className="card">
+        <div className="card-head">
+          <div>
+            <h2>Request Payout</h2>
+            <div className="sub">Minimum withdrawal: ₹100</div>
+          </div>
         </div>
-        <div className="p-5">
+        <div style={{ padding: '20px 24px' }}>
           <PayoutForm balance={walletBalance} upiId={currentUpi} />
         </div>
       </div>

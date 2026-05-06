@@ -29,77 +29,74 @@ export default async function CreateCampaignPage() {
   const tierConfig    = TIER_CONFIG[tier]
 
   return (
-    <div className="p-8 max-w-3xl">
-
-      {/* Header */}
-      <div className="mb-8">
-        <Link
-          href="/dashboard/client/campaigns"
-          className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 mb-4 transition-colors"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          My Campaigns
-        </Link>
-        <h1 className="text-2xl font-bold text-gray-900">Create Campaign</h1>
-        <p className="text-sm text-gray-500 mt-0.5">
-          Campaign will be submitted directly for admin approval. Budget is deducted from your wallet on submission.
-        </p>
+    <>
+      <div className="topbar">
+        <div className="col">
+          <h1>Create Campaign</h1>
+          <div className="topbar-sub">Set up a new performance campaign · Pay only when verified views land</div>
+        </div>
+        <div className="topbar-right">
+          <Link href="/dashboard/client/campaigns" className="btn btn-ghost">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
+              <path d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            My Campaigns
+          </Link>
+        </div>
       </div>
 
-      {/* Wallet + tier banner */}
-      <div className="flex items-stretch gap-4 mb-8">
-        <div className="flex-1 bg-white rounded-xl border border-gray-200 px-5 py-4 flex items-center gap-4">
-          <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-          <div>
-            <p className="text-xs text-gray-500">Wallet Balance</p>
-            <p className={`text-xl font-bold ${walletBalance >= 20_000 ? 'text-gray-900' : 'text-red-600'}`}>
+      <div className="content fade-up">
+        {/* Wallet + tier quick stats */}
+        <div className="g2 mb-20">
+          <div className="stat-card">
+            <div className="stat-ico ico-violet">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+                <path d="M3 7a2 2 0 012-2h12a2 2 0 012 2v2H5a2 2 0 00-2 2V7z"/>
+                <path d="M3 11a2 2 0 012-2h14a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6z"/>
+                <circle cx="17" cy="14" r="1.4" fill="currentColor"/>
+              </svg>
+            </div>
+            <div className="stat-label">Wallet Balance</div>
+            <div className="stat-value" style={{ color: walletBalance < 20_000 ? 'var(--danger)' : undefined }}>
               {fmt(walletBalance)}
-            </p>
+            </div>
+            {walletBalance < 20_000 && (
+              <Link href="/dashboard/client/billing" className="stat-delta" style={{ color: 'var(--danger)', textDecoration: 'none', fontSize: 11 }}>
+                Top Up →
+              </Link>
+            )}
           </div>
-          {walletBalance < 20_000 && (
-            <Link
-              href="/dashboard/client/wallet"
-              className="ml-auto px-3 py-1.5 text-xs font-medium bg-brand-500 hover:bg-brand-600 text-white rounded-lg transition-colors"
-            >
-              Top Up →
-            </Link>
-          )}
+          <div className="stat-card">
+            <div className="stat-ico ico-green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <div className="stat-label">Current Plan</div>
+            <div className="stat-value" style={{ fontSize: 22 }}>{tierConfig.name}</div>
+            <div className="stat-delta flat" style={{ fontSize: 11 }}>
+              {isFinite(tierConfig.campaign_limit) ? `${tierConfig.campaign_limit} campaigns/month` : 'Unlimited campaigns'}
+            </div>
+          </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 px-5 py-4 flex items-center gap-3">
-          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${tierConfig.badge_class}`}>
-            {tierConfig.name}
-          </span>
-          <div>
-            <p className="text-xs text-gray-500">Monthly limit</p>
-            <p className="text-sm font-semibold text-gray-900">
-              {isFinite(tierConfig.campaign_limit) ? `${tierConfig.campaign_limit} campaigns` : 'Unlimited'}
-            </p>
+        {walletBalance < 20_000 && (
+          <div className="helper mb-20" style={{ background: 'var(--danger-bg)', borderColor: '#fecaca', color: 'var(--danger)' }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16, flexShrink: 0 }}>
+              <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            <div>
+              <div className="bold">Insufficient wallet balance</div>
+              <div className="mt-4 text-xs">
+                You need at least ₹20,000 (minimum campaign budget). Your current balance is {fmt(walletBalance)}.{' '}
+                <Link href="/dashboard/client/billing" style={{ color: 'inherit', fontWeight: 600 }}>Top up →</Link>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
+
+        <CreateCampaignForm walletBalance={walletBalance} />
       </div>
-
-      {walletBalance < 20_000 && (
-        <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl px-5 py-4 flex items-start gap-3">
-          <svg className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-          <div>
-            <p className="text-sm font-semibold text-amber-900">Insufficient wallet balance</p>
-            <p className="text-xs text-amber-700 mt-0.5">
-              You need at least ₹24,000 (₹20,000 budget + 20% platform fee) to create a campaign.
-              Your current balance is {fmt(walletBalance)}.
-            </p>
-            <Link href="/dashboard/client/wallet" className="inline-block mt-2 text-xs font-medium text-amber-800 underline">
-              Top up your wallet →
-            </Link>
-          </div>
-        </div>
-      )}
-
-      <CreateCampaignForm walletBalance={walletBalance} />
-    </div>
+    </>
   )
 }

@@ -7,9 +7,6 @@ import type { UserRole } from '@/lib/types/database.types'
 
 type Step = 'phone' | 'otp'
 
-// Role selection is only shown to new users who choose to sign up.
-// Existing users simply enter their phone and OTP — role is fetched from profiles.
-// Admins are provisioned manually; they should not self-select admin role.
 const SELECTABLE_ROLES: { value: Extract<UserRole, 'client' | 'clipper'>; label: string; description: string }[] = [
   {
     value: 'client',
@@ -24,18 +21,16 @@ const SELECTABLE_ROLES: { value: Extract<UserRole, 'client' | 'clipper'>; label:
 ]
 
 export default function PhoneOTPForm() {
-  const router = useRouter()
+  const router   = useRouter()
   const supabase = createClient()
 
   const [step, setStep]         = useState<Step>('phone')
   const [phone, setPhone]       = useState('')
   const [otp, setOtp]           = useState('')
   const [role, setRole]         = useState<Extract<UserRole, 'client' | 'clipper'>>('clipper')
-  const [isNewUser, setIsNewUser] = useState(false)
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState<string | null>(null)
 
-  // Normalise to E.164 with +91 prefix
   function toE164(raw: string): string {
     const digits = raw.replace(/\D/g, '')
     if (digits.startsWith('91') && digits.length === 12) return `+${digits}`
@@ -50,7 +45,6 @@ export default function PhoneOTPForm() {
 
     const e164 = toE164(phone)
 
-    // Check if user already exists to decide whether to show role picker
     const { data: existingProfile } = await supabase
       .from('profiles')
       .select('role')
@@ -58,22 +52,13 @@ export default function PhoneOTPForm() {
       .maybeSingle()
 
     const isExisting = !!existingProfile
-    setIsNewUser(!isExisting)
 
     const { error: otpError } = await supabase.auth.signInWithOtp({
       phone: e164,
-      options: {
-        // Pass role in metadata so the DB trigger can set it on new profiles
-        data: isExisting ? undefined : { role },
-      },
+      options: { data: isExisting ? undefined : { role } },
     })
 
-    if (otpError) {
-      setError(otpError.message)
-    } else {
-      setStep('otp')
-    }
-
+    if (otpError) { setError(otpError.message) } else { setStep('otp') }
     setLoading(false)
   }
 
@@ -96,12 +81,10 @@ export default function PhoneOTPForm() {
       return
     }
 
-    // Middleware will redirect to the correct dashboard based on role in profiles
     router.push('/dashboard')
     router.refresh()
   }
 
-  // ── Dev login state ───────────────────────────────────────
   const [devEmail, setDevEmail]       = useState('')
   const [devPassword, setDevPassword] = useState('')
   const [devLoading, setDevLoading]   = useState(false)
@@ -128,13 +111,11 @@ export default function PhoneOTPForm() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="col gap-16">
       {step === 'phone' ? (
-        <form onSubmit={handleSendOTP} className="space-y-4" suppressHydrationWarning>
-          <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-              Phone number
-            </label>
+        <form onSubmit={handleSendOTP} className="col gap-16" suppressHydrationWarning>
+          <div className="field">
+            <label htmlFor="phone" className="field-label">Phone number</label>
             <input
               id="phone"
               type="tel"
@@ -142,24 +123,24 @@ export default function PhoneOTPForm() {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="input"
               suppressHydrationWarning
             />
-            <p className="mt-1 text-xs text-gray-400">India (+91) numbers only for now</p>
+            <span className="field-hint">India (+91) numbers only for now</span>
           </div>
 
-          {/* Role picker — only relevant for new users; existing users skip this */}
-          <div>
-            <p className="text-sm font-medium text-gray-700 mb-2">I am a…</p>
-            <div className="space-y-2">
+          <div className="field">
+            <label className="field-label">I am a…</label>
+            <div className="col gap-8">
               {SELECTABLE_ROLES.map((r) => (
                 <label
                   key={r.value}
-                  className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
-                    role === r.value
-                      ? 'border-brand-500 bg-brand-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
+                  style={{
+                    display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 14px',
+                    borderRadius: 8, border: `1px solid ${role === r.value ? 'var(--primary)' : 'var(--border)'}`,
+                    background: role === r.value ? 'rgba(163,230,53,0.06)' : 'var(--surface)',
+                    cursor: 'pointer',
+                  }}
                 >
                   <input
                     type="radio"
@@ -167,36 +148,32 @@ export default function PhoneOTPForm() {
                     value={r.value}
                     checked={role === r.value}
                     onChange={() => setRole(r.value)}
-                    className="mt-0.5"
+                    style={{ marginTop: 2, accentColor: 'var(--primary)' }}
                   />
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{r.label}</p>
-                    <p className="text-xs text-gray-500">{r.description}</p>
+                    <p className="med text-xs">{r.label}</p>
+                    <p className="text-xs faint mt-4">{r.description}</p>
                   </div>
                 </label>
               ))}
             </div>
-            <p className="mt-2 text-xs text-gray-400">
-              Returning users: role is fetched from your existing account automatically.
-            </p>
+            <span className="field-hint">Returning users: role is fetched from your existing account automatically.</span>
           </div>
 
-          {error && <p className="text-sm text-red-500">{error}</p>}
+          {error && <p className="text-xs" style={{ color: 'var(--danger)' }}>{error}</p>}
 
           <button
             type="submit"
             disabled={loading || phone.length < 10}
-            className="w-full py-2.5 px-4 bg-brand-500 text-white rounded-lg text-sm font-medium hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="btn btn-primary btn-block"
           >
             {loading ? 'Sending OTP…' : 'Send OTP'}
           </button>
         </form>
       ) : (
-        <form onSubmit={handleVerifyOTP} className="space-y-4">
-          <div>
-            <label htmlFor="otp" className="block text-sm font-medium text-gray-700 mb-1">
-              Enter OTP
-            </label>
+        <form onSubmit={handleVerifyOTP} className="col gap-16">
+          <div className="field">
+            <label htmlFor="otp" className="field-label">Enter OTP</label>
             <input
               id="otp"
               type="text"
@@ -208,17 +185,18 @@ export default function PhoneOTPForm() {
               onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
               required
               autoFocus
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 tracking-widest text-center text-lg"
+              className="input"
+              style={{ textAlign: 'center', letterSpacing: '0.3em', fontSize: 20 }}
             />
-            <p className="mt-1 text-xs text-gray-400">Sent to +91 {phone}</p>
+            <span className="field-hint">Sent to +91 {phone}</span>
           </div>
 
-          {error && <p className="text-sm text-red-500">{error}</p>}
+          {error && <p className="text-xs" style={{ color: 'var(--danger)' }}>{error}</p>}
 
           <button
             type="submit"
             disabled={loading || otp.length !== 6}
-            className="w-full py-2.5 px-4 bg-brand-500 text-white rounded-lg text-sm font-medium hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="btn btn-primary btn-block"
           >
             {loading ? 'Verifying…' : 'Verify & Sign In'}
           </button>
@@ -226,27 +204,25 @@ export default function PhoneOTPForm() {
           <button
             type="button"
             onClick={() => { setStep('phone'); setOtp(''); setError(null) }}
-            className="w-full text-sm text-gray-500 hover:text-gray-700"
+            className="btn btn-ghost btn-block"
           >
             ← Change number
           </button>
         </form>
       )}
 
-      {/* ── Dev Only (hidden in production) ──────────────────── */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="mt-6 pt-6 border-t border-dashed border-amber-300 bg-amber-50 rounded-lg p-4">
-          <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-3">
-            Dev Login
-          </p>
-          <form onSubmit={handleDevLogin} className="space-y-3">
+        <div style={{ marginTop: 8, paddingTop: 20, borderTop: '1px dashed #d97706', background: 'rgba(245,158,11,0.06)', borderRadius: 8, padding: '16px' }}>
+          <p className="text-xs med mb-12" style={{ color: '#d97706', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Dev Login</p>
+          <form onSubmit={handleDevLogin} className="col gap-8">
             <input
               type="email"
               placeholder="Email"
               value={devEmail}
               onChange={(e) => setDevEmail(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-amber-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
+              className="input"
+              style={{ borderColor: '#d97706' }}
             />
             <input
               type="password"
@@ -254,13 +230,15 @@ export default function PhoneOTPForm() {
               value={devPassword}
               onChange={(e) => setDevPassword(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-amber-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
+              className="input"
+              style={{ borderColor: '#d97706' }}
             />
-            {devError && <p className="text-xs text-red-600">{devError}</p>}
+            {devError && <p className="text-xs" style={{ color: 'var(--danger)' }}>{devError}</p>}
             <button
               type="submit"
               disabled={devLoading}
-              className="w-full py-2 px-4 bg-amber-400 text-amber-900 rounded-lg text-sm font-medium hover:bg-amber-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="btn btn-block"
+              style={{ background: '#fbbf24', color: '#78350f', borderColor: '#fbbf24' }}
             >
               {devLoading ? 'Signing in…' : 'Dev Login'}
             </button>

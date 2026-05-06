@@ -224,7 +224,7 @@ export async function submitClip(formData: FormData) {
     clipper_id:         user.id,
     clip_url:           clipUrl,
     platform,
-    status:             'pending',
+    status:             'pending' as const,
     live_view_count:    liveViewCount,
     live_like_count:    liveLikeCount,
     live_comment_count: liveCommentCount,

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { submitMultipleClips } from '@/app/dashboard/clipper/actions'
+import { NICHES } from '@/components/client/CampaignForm'
 
 type Campaign = {
   id: string
@@ -11,6 +12,7 @@ type Campaign = {
   budget_remaining_inr: number
   end_date: string | null
   source_content_url: string | null
+  niche: string | null
 }
 
 type ClipResult = { url: string; success: boolean; viewCount?: number | null; error?: string }
@@ -73,12 +75,12 @@ export default function SubmitClipClient({ campaigns }: { campaigns: Campaign[] 
 
   if (campaigns.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-dashed border-gray-300 p-16 text-center">
-        <svg className="w-10 h-10 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <div className="card" style={{ padding: '64px 28px', textAlign: 'center', borderStyle: 'dashed' }}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} style={{ width: 40, height: 40, color: 'var(--fg-muted)', margin: '0 auto 12px' }}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
         </svg>
-        <p className="text-sm font-medium text-gray-500">No active campaigns right now</p>
-        <p className="text-xs text-gray-400 mt-1">Check back soon or ask an admin to approve campaigns</p>
+        <p className="med text-xs">No active campaigns right now</p>
+        <p className="text-xs faint mt-4">Check back soon or ask an admin to approve campaigns</p>
       </div>
     )
   }
@@ -87,45 +89,45 @@ export default function SubmitClipClient({ campaigns }: { campaigns: Campaign[] 
     const successCount = results.filter(r => r.success).length
     const failCount    = results.length - successCount
     return (
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className={`px-6 py-5 ${successCount === results.length ? 'bg-emerald-50 border-b border-emerald-100' : 'bg-amber-50 border-b border-amber-100'}`}>
-          <p className="text-base font-semibold text-gray-900">
-            {successCount} of {results.length} clip{results.length > 1 ? 's' : ''} submitted
-          </p>
-          <p className="text-sm text-gray-500 mt-0.5">
+      <div className="card">
+        <div style={{
+          padding: '20px 24px',
+          borderBottom: '1px solid var(--border)',
+          background: successCount === results.length ? 'rgba(16,185,129,0.06)' : 'rgba(245,158,11,0.06)',
+        }}>
+          <p className="med">{successCount} of {results.length} clip{results.length > 1 ? 's' : ''} submitted</p>
+          <p className="text-xs muted mt-4">
             {failCount > 0 ? `${failCount} failed — fix the URLs and resubmit` : 'Admin will review within 48 hours'}
           </p>
         </div>
 
-        <ul className="divide-y divide-gray-100">
+        <div style={{ borderBottom: '1px solid var(--border)' }}>
           {results.map((r, i) => (
-            <li key={i} className="flex items-start gap-3 px-6 py-4">
-              <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${r.success ? 'bg-emerald-100' : 'bg-red-100'}`}>
+            <div key={i} className="row gap-12" style={{ padding: '14px 24px', borderBottom: i < results.length - 1 ? '1px solid var(--border)' : 'none' }}>
+              <div style={{
+                width: 20, height: 20, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                background: r.success ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)',
+              }}>
                 {r.success
-                  ? <svg className="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                  : <svg className="w-3 h-3 text-red-500" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                  ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} style={{ width: 12, height: 12, color: 'var(--success)' }}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                  : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} style={{ width: 12, height: 12, color: 'var(--danger)' }}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                 }
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs text-gray-400 truncate font-mono">{r.url}</p>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <p className="text-xs faint mono" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.url}</p>
                 {r.success
-                  ? <p className="text-xs text-emerald-600 mt-0.5">
+                  ? <p className="text-xs mt-4" style={{ color: 'var(--primary)' }}>
                       Pending review{r.viewCount != null ? ` · ${r.viewCount.toLocaleString('en-IN')} views` : ''}
                     </p>
-                  : <p className="text-xs text-red-500 mt-0.5">{r.error}</p>
+                  : <p className="text-xs mt-4" style={{ color: 'var(--danger)' }}>{r.error}</p>
                 }
               </div>
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
 
-        <div className="px-6 py-5 border-t border-gray-100">
-          <button
-            onClick={reset}
-            className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors"
-          >
-            Submit more clips
-          </button>
+        <div style={{ padding: '20px 24px' }}>
+          <button onClick={reset} className="btn btn-primary">Submit more clips</button>
         </div>
       </div>
     )
@@ -137,20 +139,23 @@ export default function SubmitClipClient({ campaigns }: { campaigns: Campaign[] 
     : 'https://instagram.com/reel/…'
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
+    <form onSubmit={handleSubmit} className="col gap-16">
 
       {/* Campaign selector */}
-      <div className="px-6 py-5">
-        <label className="block text-sm font-semibold text-gray-800 mb-3">Select Campaign</label>
-        <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+      <div className="card">
+        <div className="card-head">
+          <h2>Select Campaign</h2>
+        </div>
+        <div style={{ padding: '16px 20px', maxHeight: 280, overflowY: 'auto' }} className="col gap-8">
           {campaigns.map(c => (
             <label
               key={c.id}
-              className={`flex items-start gap-3 p-3.5 rounded-lg border cursor-pointer transition-colors ${
-                campaignId === c.id
-                  ? 'border-emerald-500 bg-emerald-50'
-                  : 'border-gray-200 hover:border-gray-300 bg-white'
-              }`}
+              style={{
+                display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 14px',
+                borderRadius: 8, border: `1px solid ${campaignId === c.id ? 'var(--primary)' : 'var(--border)'}`,
+                background: campaignId === c.id ? 'rgba(var(--primary-rgb, 163,230,53),0.06)' : 'var(--surface)',
+                cursor: 'pointer',
+              }}
             >
               <input
                 type="radio"
@@ -158,17 +163,20 @@ export default function SubmitClipClient({ campaigns }: { campaigns: Campaign[] 
                 value={c.id}
                 checked={campaignId === c.id}
                 onChange={() => handleCampaignChange(c.id)}
-                className="mt-0.5 accent-emerald-600"
+                style={{ marginTop: 2, accentColor: 'var(--primary)' }}
               />
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-900 truncate">{c.title}</p>
-                <div className="flex items-center gap-3 mt-1 flex-wrap">
-                  <span className="text-xs text-gray-500 capitalize">{c.platform}</span>
-                  <span className="text-xs text-emerald-600 font-medium">
-                    ₹{Number(c.rate_per_million_inr).toLocaleString('en-IN')}/M views
-                  </span>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <p className="med text-xs" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.title}</p>
+                <div className="row gap-12 mt-4">
+                  <span className="text-xs faint" style={{ textTransform: 'capitalize' }}>{c.platform}</span>
+                  <span className="text-xs" style={{ color: 'var(--primary)' }}>₹{Number(c.rate_per_million_inr).toLocaleString('en-IN')}/M views</span>
+                  {c.niche && (
+                    <span className="text-xs" style={{ color: 'var(--primary)' }}>
+                      {NICHES.find(n => n.value === c.niche)?.label ?? c.niche}
+                    </span>
+                  )}
                   {c.end_date && (
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs faint">
                       Ends {new Date(c.end_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
                     </span>
                   )}
@@ -181,111 +189,109 @@ export default function SubmitClipClient({ campaigns }: { campaigns: Campaign[] 
 
       {/* Source content */}
       {selected?.source_content_url && (
-        <div className="px-6 py-4 bg-gray-50">
-          <p className="text-xs font-medium text-gray-500 mb-1">Source Content to Clip</p>
-          <a href={selected.source_content_url} target="_blank" rel="noopener noreferrer"
-            className="text-xs text-emerald-600 hover:underline break-all">
-            {selected.source_content_url}
-          </a>
+        <div className="card">
+          <div style={{ padding: '12px 20px', background: 'var(--surface-2)' }}>
+            <p className="text-xs faint mb-4">Source Content to Clip</p>
+            <a href={selected.source_content_url} target="_blank" rel="noopener noreferrer"
+              className="text-xs mono" style={{ color: 'var(--primary)', wordBreak: 'break-all' }}>
+              {selected.source_content_url}
+            </a>
+          </div>
         </div>
       )}
 
       {/* Platform toggle */}
       {showPlatformToggle && (
-        <div className="px-6 py-5">
-          <p className="text-sm font-semibold text-gray-800 mb-3">Platform</p>
-          <div className="flex gap-3">
-            {(['instagram', 'youtube'] as const).map(p => (
-              <label key={p}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg border cursor-pointer text-sm font-medium transition-colors capitalize ${
-                  platform === p
-                    ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
-                    : 'border-gray-200 text-gray-500 hover:border-gray-300'
-                }`}
-              >
-                <input type="radio" className="sr-only" checked={platform === p} onChange={() => setPlatform(p)} />
-                {p}
-              </label>
-            ))}
+        <div className="card">
+          <div style={{ padding: '16px 20px' }}>
+            <p className="field-label mb-12">Platform</p>
+            <div className="segmented">
+              {(['instagram', 'youtube'] as const).map(p => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setPlatform(p)}
+                  className={`seg-item${platform === p ? ' active' : ''}`}
+                  style={{ textTransform: 'capitalize', flex: 1 }}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}
 
       {/* Multi-URL inputs */}
-      <div className="px-6 py-5">
-        <div className="flex items-center justify-between mb-3">
-          <label className="text-sm font-semibold text-gray-800">
-            Clip URLs
-            <span className="ml-2 text-xs font-normal text-gray-400">up to {MAX_CLIPS}</span>
-          </label>
-          {urls.length > 1 && (
-            <span className="text-xs text-gray-400">{urls.length} clips</span>
-          )}
+      <div className="card">
+        <div className="card-head">
+          <div>
+            <h2>Clip URLs</h2>
+            <div className="sub">up to {MAX_CLIPS} — {urls.length} added</div>
+          </div>
         </div>
-
-        <div className="space-y-2">
+        <div style={{ padding: '16px 20px' }} className="col gap-8">
           {urls.map((url, i) => (
-            <div key={i} className="flex items-center gap-2">
+            <div key={i} className="row gap-8">
               <input
                 type="url"
                 value={url}
                 onChange={e => setUrl(i, e.target.value)}
                 placeholder={placeholder}
-                className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                className="input"
+                style={{ flex: 1 }}
               />
               <button
                 type="button"
                 onClick={() => removeUrl(i)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0"
+                className="btn btn-sm btn-ghost"
                 title="Remove"
+                style={{ width: 32, height: 32, padding: 0, flexShrink: 0 }}
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ width: 14, height: 14 }}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
           ))}
+
+          {urls.length < MAX_CLIPS && (
+            <button
+              type="button"
+              onClick={addUrl}
+              className="row gap-8"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', fontSize: 13, fontWeight: 500, padding: '4px 0' }}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} style={{ width: 14, height: 14 }}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              Add another clip
+            </button>
+          )}
+
+          <p className="text-xs faint">
+            {platform === 'instagram'
+              ? 'Paste public Instagram Reel URLs — views are fetched automatically'
+              : 'Paste public YouTube Shorts or video URLs — views are fetched automatically'}
+          </p>
         </div>
-
-        {urls.length < MAX_CLIPS && (
-          <button
-            type="button"
-            onClick={addUrl}
-            className="mt-3 flex items-center gap-1.5 text-sm text-emerald-600 hover:text-emerald-700 font-medium transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
-            Add another clip
-          </button>
-        )}
-
-        <p className="mt-3 text-xs text-gray-400">
-          {platform === 'instagram'
-            ? 'Paste public Instagram Reel URLs — views are fetched automatically'
-            : 'Paste public YouTube Shorts or video URLs — views are fetched automatically'}
-        </p>
       </div>
 
-      {/* Error */}
       {error && (
-        <div className="px-6 py-3 bg-red-50">
-          <p className="text-sm text-red-600">{error}</p>
+        <div className="helper" style={{ borderColor: 'var(--danger)', background: 'var(--danger-bg)', color: 'var(--danger)' }}>
+          {error}
         </div>
       )}
 
-      {/* Submit */}
-      <div className="px-6 py-5">
-        <button
-          type="submit"
-          disabled={isPending || !filledCount || !campaignId}
-          className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-        >
-          {isPending
-            ? `Submitting ${filledCount} clip${filledCount > 1 ? 's' : ''}…`
-            : `Submit ${filledCount || ''} Clip${filledCount !== 1 ? 's' : ''} →`}
-        </button>
-      </div>
+      <button
+        type="submit"
+        disabled={isPending || !filledCount || !campaignId}
+        className="btn btn-primary btn-block btn-lg"
+      >
+        {isPending
+          ? `Submitting ${filledCount} clip${filledCount > 1 ? 's' : ''}…`
+          : `Submit ${filledCount || ''} Clip${filledCount !== 1 ? 's' : ''} →`}
+      </button>
     </form>
   )
 }

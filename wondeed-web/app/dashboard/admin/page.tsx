@@ -33,105 +33,120 @@ async function getRecentActivity() {
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const styles: Record<string, string> = {
-    pending_approval: 'bg-amber-100 text-amber-800',
-    active:           'bg-green-100 text-green-800',
-    completed:        'bg-gray-100 text-gray-500',
-    cancelled:        'bg-red-100 text-red-700',
-    draft:            'bg-gray-100 text-gray-500',
-    pending:          'bg-blue-100 text-blue-800',
-    approved:         'bg-green-100 text-green-800',
-    rejected:         'bg-red-100 text-red-700',
-  }
-  return (
-    <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${styles[status] ?? 'bg-gray-100 text-gray-600'}`}>
-      {status.replace('_', ' ')}
-    </span>
-  )
+  if (status === 'active' || status === 'approved') return <span className="badge badge-success">{status.replace('_', ' ')}</span>
+  if (status === 'pending' || status === 'pending_approval') return <span className="badge badge-warn">{status.replace('_', ' ')}</span>
+  if (status === 'rejected' || status === 'cancelled') return <span className="badge badge-danger">{status.replace('_', ' ')}</span>
+  return <span className="badge badge-neutral">{status.replace('_', ' ')}</span>
 }
 
 const STAT_CARDS = [
-  { label: 'Pending Campaigns',   key: 'pendingCampaigns',   href: '/dashboard/admin/campaigns',   dot: 'bg-amber-400'  },
-  { label: 'Pending Submissions', key: 'pendingSubmissions',  href: '/dashboard/admin/submissions',  dot: 'bg-blue-500'   },
-  { label: 'Pending Payouts',     key: 'pendingPayouts',     href: '/dashboard/admin/payouts',     dot: 'bg-violet-500' },
-  { label: 'Total Users',         key: 'totalUsers',         href: '/dashboard/admin/users',       dot: 'bg-indigo-500' },
+  { label: 'Pending Campaigns',   key: 'pendingCampaigns',   href: '/dashboard/admin/campaigns',   ico: 'folder', cls: 'ico-amber'  },
+  { label: 'Pending Submissions', key: 'pendingSubmissions',  href: '/dashboard/admin/submissions',  ico: 'inbox',  cls: 'ico-blue'   },
+  { label: 'Pending Payouts',     key: 'pendingPayouts',     href: '/dashboard/admin/payouts',     ico: 'wallet', cls: 'ico-violet' },
+  { label: 'Total Users',         key: 'totalUsers',         href: '/dashboard/admin/users',       ico: 'users',  cls: 'ico-green'  },
 ] as const
+
+function StatIco({ name }: { name: string }) {
+  const paths: Record<string, React.ReactNode> = {
+    folder: <path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>,
+    inbox:  <><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></>,
+    wallet: <><path d="M3 7a2 2 0 012-2h12a2 2 0 012 2v2H5a2 2 0 00-2 2V7z"/><path d="M3 11a2 2 0 012-2h14a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6z"/><circle cx="17" cy="14" r="1.4" fill="currentColor"/></>,
+    users:  <><circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.5 3-6 7-6s7 2.5 7 6"/><circle cx="17" cy="6" r="2.5"/><path d="M16 13c3 0 6 2 6 5"/></>,
+  }
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+      {paths[name]}
+    </svg>
+  )
+}
 
 export default async function AdminOverviewPage() {
   const [stats, { campaigns, submissions }] = await Promise.all([getStats(), getRecentActivity()])
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Overview</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Wondeed operations dashboard</p>
-      </div>
-
-      {/* Stat cards */}
-      <div className="grid grid-cols-4 gap-5 mb-10">
-        {STAT_CARDS.map((card) => (
-          <Link key={card.key} href={card.href}
-            className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-shadow group"
-          >
-            <div className={`w-2 h-2 rounded-full ${card.dot} mb-4`} />
-            <p className="text-3xl font-bold text-gray-900 tabular-nums">
-              {stats[card.key]}
-            </p>
-            <p className="text-sm text-gray-500 mt-1.5 group-hover:text-indigo-600 transition-colors">
-              {card.label} →
-            </p>
+    <>
+      <div className="topbar">
+        <div className="col">
+          <h1>Overview</h1>
+          <div className="topbar-sub">Wondeed operations dashboard · Live data</div>
+        </div>
+        <div className="topbar-right">
+          <Link href="/dashboard/admin/submissions" className="btn btn-primary">
+            Review Queue
+            {stats.pendingSubmissions > 0 && (
+              <span className="badge badge-danger" style={{ marginLeft: 4 }}>{stats.pendingSubmissions}</span>
+            )}
           </Link>
-        ))}
+        </div>
       </div>
 
-      {/* Recent activity tables */}
-      <div className="grid grid-cols-2 gap-6">
-
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-            <h2 className="text-sm font-semibold text-gray-900">Recent Campaigns</h2>
-            <Link href="/dashboard/admin/campaigns" className="text-xs text-indigo-600 hover:underline">View all →</Link>
-          </div>
-          {campaigns.length === 0
-            ? <p className="px-5 py-10 text-sm text-gray-400 text-center">No campaigns yet</p>
-            : <ul className="divide-y divide-gray-50">
-                {campaigns.map((c: any) => (
-                  <li key={c.id} className="flex items-center justify-between px-5 py-3.5">
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{c.title}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{c.profiles?.full_name ?? c.profiles?.phone ?? '—'}</p>
-                    </div>
-                    <StatusBadge status={c.status} />
-                  </li>
-                ))}
-              </ul>
-          }
+      <div className="content fade-up">
+        <div className="stat-grid">
+          {STAT_CARDS.map((card) => (
+            <Link key={card.key} href={card.href} className="stat-card" style={{ textDecoration: 'none', display: 'block' }}>
+              <div className={`stat-ico ${card.cls}`}><StatIco name={card.ico} /></div>
+              <div className="stat-label">{card.label}</div>
+              <div className="stat-value">{stats[card.key]}</div>
+            </Link>
+          ))}
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-            <h2 className="text-sm font-semibold text-gray-900">Recent Submissions</h2>
-            <Link href="/dashboard/admin/submissions" className="text-xs text-indigo-600 hover:underline">View all →</Link>
+        <div className="g2">
+          <div className="card">
+            <div className="card-head">
+              <div><h2>Recent Campaigns</h2></div>
+              <div className="card-head-right">
+                <Link href="/dashboard/admin/campaigns" className="btn btn-ghost btn-sm">View all →</Link>
+              </div>
+            </div>
+            {campaigns.length === 0 ? (
+              <div style={{ padding: '48px 28px', textAlign: 'center', color: 'var(--fg-muted)' }}>No campaigns yet</div>
+            ) : (
+              <div className="tbl-wrap">
+                <table className="tbl">
+                  <thead><tr><th>Campaign</th><th>By</th><th>Status</th></tr></thead>
+                  <tbody>
+                    {campaigns.map((c: any) => (
+                      <tr key={c.id}>
+                        <td className="med truncate" style={{ maxWidth: 200 }}>{c.title}</td>
+                        <td className="muted">{c.profiles?.full_name ?? c.profiles?.phone ?? '—'}</td>
+                        <td><StatusBadge status={c.status} /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
-          {submissions.length === 0
-            ? <p className="px-5 py-10 text-sm text-gray-400 text-center">No submissions yet</p>
-            : <ul className="divide-y divide-gray-50">
-                {submissions.map((s: any) => (
-                  <li key={s.id} className="flex items-center justify-between px-5 py-3.5">
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{(s.campaigns as any)?.title ?? '—'}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        {(s.profiles as any)?.full_name ?? (s.profiles as any)?.phone ?? '—'} · {s.platform}
-                      </p>
-                    </div>
-                    <StatusBadge status={s.status} />
-                  </li>
-                ))}
-              </ul>
-          }
-        </div>
 
+          <div className="card">
+            <div className="card-head">
+              <div><h2>Recent Submissions</h2></div>
+              <div className="card-head-right">
+                <Link href="/dashboard/admin/submissions" className="btn btn-ghost btn-sm">View all →</Link>
+              </div>
+            </div>
+            {submissions.length === 0 ? (
+              <div style={{ padding: '48px 28px', textAlign: 'center', color: 'var(--fg-muted)' }}>No submissions yet</div>
+            ) : (
+              <div className="tbl-wrap">
+                <table className="tbl">
+                  <thead><tr><th>Campaign</th><th>Clipper</th><th>Status</th></tr></thead>
+                  <tbody>
+                    {submissions.map((s: any) => (
+                      <tr key={s.id}>
+                        <td className="med truncate" style={{ maxWidth: 180 }}>{(s.campaigns as any)?.title ?? '—'}</td>
+                        <td className="muted">{(s.profiles as any)?.full_name ?? (s.profiles as any)?.phone ?? '—'}</td>
+                        <td><StatusBadge status={s.status} /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   )
 }

@@ -30,92 +30,102 @@ export default async function SubmissionsPage() {
     .order('reviewed_at', { ascending: false })
     .limit(30)
 
+  const fmtNum = (n: number | null) => n != null ? new Intl.NumberFormat('en-IN').format(n) : '—'
+  const fmtInr = (n: number | null) => n != null
+    ? new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n)
+    : '—'
+
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Submissions</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Review clipper submissions and enter view counts</p>
+    <>
+      <div className="topbar">
+        <div className="col">
+          <div className="row gap-12">
+            <h1>Submission Review</h1>
+            {(pending?.length ?? 0) > 0 && (
+              <span className="badge badge-warn" style={{ padding: '4px 10px', fontSize: 12 }}>
+                <span className="badge-dot" style={{ background: '#d97706' }} />
+                {pending!.length} Pending
+              </span>
+            )}
+          </div>
+          <div className="topbar-sub">Verify view counts and approve clipper payouts. SLA: 24h.</div>
+        </div>
+        <div className="topbar-right">
+          <button className="btn btn-secondary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+            </svg>
+            Export queue
+          </button>
+        </div>
       </div>
 
-      {/* Pending queue */}
-      <div className="mb-10">
-        <div className="flex items-center gap-3 mb-4">
-          <h2 className="text-base font-semibold text-gray-900">Pending Review</h2>
-          {(pending?.length ?? 0) > 0 && (
-            <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-0.5 rounded-full">
-              {pending!.length} pending
-            </span>
-          )}
-        </div>
+      <div className="content fade-up">
         {pendingErr && (
-          <div className="mb-4 bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">
+          <div className="helper mb-20" style={{ background: 'var(--danger-bg)', borderColor: '#fecaca', color: 'var(--danger)' }}>
             Query error: {pendingErr.message}
           </div>
         )}
-        <SubmissionQueue submissions={(pending ?? []) as any} />
-      </div>
 
-      {/* Reviewed history */}
-      <div>
-        <h2 className="text-base font-semibold text-gray-900 mb-4">Recently Reviewed</h2>
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          {!reviewed?.length
-            ? <p className="p-10 text-sm text-gray-400 text-center">No reviewed submissions yet</p>
-            : (
-              <table className="w-full">
+        <div className="card mb-20">
+          <div className="card-head">
+            <div>
+              <h2>Pending Queue</h2>
+              <div className="sub">Click a row to review and enter view counts</div>
+            </div>
+          </div>
+          <SubmissionQueue submissions={(pending ?? []) as any} />
+        </div>
+
+        <div className="card">
+          <div className="card-head">
+            <div>
+              <h2>Recently Reviewed</h2>
+              <div className="sub">Last 30 approved / rejected submissions</div>
+            </div>
+          </div>
+          {!reviewed?.length ? (
+            <div style={{ padding: '48px 28px', textAlign: 'center', color: 'var(--fg-muted)' }}>No reviewed submissions yet</div>
+          ) : (
+            <div className="tbl-wrap">
+              <table className="tbl">
                 <thead>
-                  <tr className="border-b border-gray-100 bg-gray-50">
-                    <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Campaign / Clipper</th>
-                    <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Platform</th>
-                    <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Views (raw / capped)</th>
-                    <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Earned</th>
-                    <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
-                    <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Reviewed</th>
+                  <tr>
+                    <th>Campaign / Clipper</th>
+                    <th>Platform</th>
+                    <th style={{ textAlign: 'right' }}>Views (raw / capped)</th>
+                    <th style={{ textAlign: 'right' }}>Earned</th>
+                    <th>Status</th>
+                    <th>Reviewed</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {reviewed.map((s: any) => {
-                    const fmtNum = (n: number | null) =>
-                      n != null ? new Intl.NumberFormat('en-IN').format(n) : '—'
-                    const fmtInr = (n: number | null) =>
-                      n != null
-                        ? new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n)
-                        : '—'
-                    return (
-                      <tr key={s.id} className="border-b border-gray-50 hover:bg-gray-50">
-                        <td className="px-5 py-3.5">
-                          <p className="text-sm font-medium text-gray-900">{(s.campaigns as any)?.title ?? '—'}</p>
-                          <p className="text-xs text-gray-400">{(s.profiles as any)?.full_name ?? (s.profiles as any)?.phone ?? '—'}</p>
-                        </td>
-                        <td className="px-5 py-3.5 text-sm text-gray-500 capitalize">{s.platform}</td>
-                        <td className="px-5 py-3.5 text-sm text-gray-700 tabular-nums">
-                          {fmtNum(s.raw_view_count)} / {fmtNum(s.capped_view_count)}
-                        </td>
-                        <td className="px-5 py-3.5 text-sm font-medium text-gray-900 tabular-nums">
-                          {fmtInr(s.earnings_inr)}
-                        </td>
-                        <td className="px-5 py-3.5">
-                          <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${
-                            s.status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-700'
-                          }`}>
-                            {s.status}
-                          </span>
-                          {s.admin_notes && (
-                            <p className="text-xs text-gray-400 mt-0.5 italic">{s.admin_notes}</p>
-                          )}
-                        </td>
-                        <td className="px-5 py-3.5 text-sm text-gray-400">
-                          {s.reviewed_at ? new Date(s.reviewed_at).toLocaleDateString('en-IN') : '—'}
-                        </td>
-                      </tr>
-                    )
-                  })}
+                  {reviewed.map((s: any) => (
+                    <tr key={s.id}>
+                      <td>
+                        <div className="col">
+                          <div className="med">{(s.campaigns as any)?.title ?? '—'}</div>
+                          <div className="text-xs faint mt-4">{(s.profiles as any)?.full_name ?? (s.profiles as any)?.phone ?? '—'}</div>
+                        </div>
+                      </td>
+                      <td className="muted" style={{ textTransform: 'capitalize' }}>{s.platform}</td>
+                      <td className="num" style={{ textAlign: 'right' }}>{fmtNum(s.raw_view_count)} / {fmtNum(s.capped_view_count)}</td>
+                      <td className="num bold" style={{ textAlign: 'right' }}>{fmtInr(s.earnings_inr)}</td>
+                      <td>
+                        {s.status === 'approved'
+                          ? <span className="badge badge-success">Approved</span>
+                          : <span className="badge badge-danger">Rejected</span>}
+                        {s.admin_notes && <div className="text-xs faint mt-4 italic">{s.admin_notes}</div>}
+                      </td>
+                      <td className="muted">{s.reviewed_at ? new Date(s.reviewed_at).toLocaleDateString('en-IN') : '—'}</td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
-            )
-          }
+            </div>
+          )}
         </div>
       </div>
-    </div>
+    </>
   )
 }

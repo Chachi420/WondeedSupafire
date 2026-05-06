@@ -1,24 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { notFound, redirect } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { submitForApproval, cancelCampaign } from '@/app/dashboard/client/actions'
 
 export const dynamic = 'force-dynamic'
-
-const STATUS_STYLE: Record<string, string> = {
-  draft:            'bg-gray-100 text-gray-600',
-  pending_approval: 'bg-amber-100 text-amber-800',
-  active:           'bg-green-100 text-green-800',
-  completed:        'bg-blue-100 text-blue-700',
-  cancelled:        'bg-red-100 text-red-700',
-}
-
-const SUB_STATUS_STYLE: Record<string, string> = {
-  pending:  'bg-blue-100 text-blue-700',
-  approved: 'bg-green-100 text-green-800',
-  rejected: 'bg-red-100 text-red-700',
-}
 
 function fmt(n: number) {
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n)
@@ -29,6 +15,16 @@ function fmtViews(n: number | null) {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`
   if (n >= 1_000)     return `${(n / 1_000).toFixed(1)}K`
   return n.toLocaleString('en-IN')
+}
+
+function StatusBadge({ status }: { status: string }) {
+  if (status === 'active')           return <span className="badge badge-success">active</span>
+  if (status === 'pending_approval') return <span className="badge badge-warn">pending approval</span>
+  if (status === 'approved')         return <span className="badge badge-success">approved</span>
+  if (status === 'rejected')         return <span className="badge badge-danger">rejected</span>
+  if (status === 'pending')          return <span className="badge badge-info">pending</span>
+  if (status === 'cancelled')        return <span className="badge badge-danger">cancelled</span>
+  return <span className="badge badge-neutral">{status.replace('_', ' ')}</span>
 }
 
 export default async function CampaignDetailPage({ params }: { params: { id: string } }) {
@@ -51,7 +47,6 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
     .eq('campaign_id', params.id)
     .order('created_at', { ascending: false })
 
-  // Analytics aggregates
   const approved   = submissions?.filter(s => s.status === 'approved') ?? []
   const totalViews = approved.reduce((sum, s) => sum + (Number(s.capped_view_count) || 0), 0)
   const totalEarned= approved.reduce((sum, s) => sum + (Number(s.earnings_inr) || 0), 0)
@@ -60,185 +55,184 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
     ? Math.min(100, Math.round((budgetUsed / Number(campaign.budget_inr)) * 100))
     : 0
 
-  const canSubmit  = campaign.status === 'draft'
-  const canCancel  = ['draft', 'pending_approval'].includes(campaign.status)
+  const canSubmit = campaign.status === 'draft'
+  const canCancel = ['draft', 'pending_approval'].includes(campaign.status)
 
   return (
-    <div className="p-8">
+    <>
+      <div className="topbar">
+        <div className="col">
+          <div className="row gap-8 mb-4">
+            <Link href="/dashboard/client/campaigns" className="text-xs faint" style={{ textDecoration: 'none' }}>← All campaigns</Link>
+          </div>
+          <div className="row gap-12">
+            <h1>{campaign.title}</h1>
+            <StatusBadge status={campaign.status} />
+          </div>
+          {campaign.description && (
+            <div className="topbar-sub">{campaign.description}</div>
+          )}
+        </div>
+        <div className="topbar-right">
+          {canSubmit && (
+            <form action={submitForApproval.bind(null, campaign.id)}>
+              <button type="submit" className="btn btn-primary">Submit for Approval →</button>
+            </form>
+          )}
+          {campaign.status === 'pending_approval' && (
+            <span className="badge badge-warn" style={{ padding: '8px 14px' }}>Awaiting admin review</span>
+          )}
+          {canCancel && (
+            <form action={cancelCampaign.bind(null, campaign.id)}>
+              <button type="submit" className="btn btn-secondary">Cancel</button>
+            </form>
+          )}
+        </div>
+      </div>
 
-      {/* Header */}
-      <div className="mb-8">
-        <Link href="/dashboard/client/campaigns" className="text-sm text-gray-400 hover:text-gray-600 inline-block mb-3">
-          ← All campaigns
-        </Link>
-        <div className="flex items-start justify-between">
-          <div>
-            <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-2xl font-bold text-gray-900">{campaign.title}</h1>
-              <span className={`inline-flex px-2.5 py-1 rounded text-xs font-semibold ${STATUS_STYLE[campaign.status] ?? ''}`}>
-                {campaign.status.replace('_', ' ')}
-              </span>
+      <div className="content fade-up">
+        {/* Stats */}
+        <div className="stat-grid mb-20">
+          <div className="stat-card">
+            <div className="stat-ico ico-violet">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+                <path d="M3 7a2 2 0 012-2h12a2 2 0 012 2v2H5a2 2 0 00-2 2V7z"/>
+                <path d="M3 11a2 2 0 012-2h14a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6z"/>
+                <circle cx="17" cy="14" r="1.4" fill="currentColor"/>
+              </svg>
             </div>
-            {campaign.description && (
-              <p className="text-sm text-gray-500 mt-1 max-w-2xl">{campaign.description}</p>
-            )}
+            <div className="stat-label">Clipper Budget</div>
+            <div className="stat-value">{fmt(Number(campaign.budget_inr))}</div>
+            <div className="stat-delta flat" style={{ fontSize: 11 }}>+20% fee → {fmt(Number(campaign.total_charged_inr))} total</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-ico ico-amber">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+                <path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>
+              </svg>
+            </div>
+            <div className="stat-label">Budget Used</div>
+            <div className="stat-value">{fmt(budgetUsed)}</div>
+            <div style={{ marginTop: 6 }}>
+              <div className="progress" style={{ height: 4 }}>
+                <div className="progress-bar" style={{ width: `${usedPct}%` }} />
+              </div>
+              <div className="stat-delta flat" style={{ fontSize: 11, marginTop: 4 }}>{usedPct}% · {fmt(Number(campaign.budget_remaining_inr))} left</div>
+            </div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-ico ico-blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+            </div>
+            <div className="stat-label">Total Views</div>
+            <div className="stat-value">{fmtViews(totalViews)}</div>
+            <div className="stat-delta flat" style={{ fontSize: 11 }}>{approved.length} approved clip{approved.length !== 1 ? 's' : ''}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-ico ico-green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+                <circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.5 3-6 7-6s7 2.5 7 6"/>
+                <circle cx="17" cy="6" r="2.5"/><path d="M16 13c3 0 6 2 6 5"/>
+              </svg>
+            </div>
+            <div className="stat-label">Paid to Clippers</div>
+            <div className="stat-value">{fmt(totalEarned)}</div>
+            <div className="stat-delta flat" style={{ fontSize: 11 }}>cap: {fmtViews(Number(campaign.per_post_view_cap))} views/post</div>
+          </div>
+        </div>
+
+        {/* Campaign meta */}
+        <div className="card mb-20">
+          <div style={{ padding: '14px 24px' }} className="row gap-24 flex-wrap">
+            {[
+              ['Platform',  campaign.platform, true],
+              ['CPM Rate',  Number(campaign.rate_per_million_inr) > 0 ? `₹${Number(campaign.rate_per_million_inr).toLocaleString('en-IN')} / 1M views` : 'Set by Wondeed on approval', false],
+              ['Start',     campaign.start_date ?? '—', false],
+              ['End',       campaign.end_date ?? 'Until budget exhausted', false],
+            ].map(([label, value, cap]) => (
+              <div key={label as string} className="col gap-4">
+                <span className="text-xs faint">{label}</span>
+                <span className="med text-xs" style={{ textTransform: cap ? 'capitalize' : undefined }}>{value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Submissions */}
+        <div className="card">
+          <div className="card-head">
+            <div>
+              <h2>Clip Submissions</h2>
+              <div className="sub">{submissions?.length ?? 0} total</div>
+            </div>
           </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-3 flex-shrink-0">
-            {canSubmit && (
-              <form action={submitForApproval.bind(null, campaign.id)}>
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 bg-brand-500 text-white text-sm font-semibold rounded-lg hover:bg-brand-600 transition-colors"
-                >
-                  Submit for Approval →
-                </button>
-              </form>
-            )}
-            {campaign.status === 'pending_approval' && (
-              <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 px-4 py-2.5 rounded-lg">
-                Awaiting admin review
-              </p>
-            )}
-            {canCancel && (
-              <form action={cancelCampaign.bind(null, campaign.id)}>
-                <button
-                  type="submit"
-                  className="px-4 py-2.5 border border-gray-200 text-gray-500 text-sm font-medium rounded-lg hover:border-red-300 hover:text-red-600 transition-colors"
-                >
-                  Cancel
-                </button>
-              </form>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Financials + analytics */}
-      <div className="grid grid-cols-4 gap-5 mb-8">
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <p className="text-xs text-gray-400 mb-1">Clipper Budget</p>
-          <p className="text-2xl font-bold text-gray-900 tabular-nums">{fmt(Number(campaign.budget_inr))}</p>
-          <p className="text-xs text-gray-400 mt-1">+20% fee → {fmt(Number(campaign.total_charged_inr))} total</p>
-        </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <p className="text-xs text-gray-400 mb-1">Budget Used</p>
-          <p className="text-2xl font-bold text-gray-900 tabular-nums">{fmt(budgetUsed)}</p>
-          <div className="mt-2 bg-gray-100 rounded-full h-1.5">
-            <div className="bg-brand-500 h-1.5 rounded-full" style={{ width: `${usedPct}%` }} />
-          </div>
-          <p className="text-xs text-gray-400 mt-1">{usedPct}% used · {fmt(Number(campaign.budget_remaining_inr))} left</p>
-        </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <p className="text-xs text-gray-400 mb-1">Total Views</p>
-          <p className="text-2xl font-bold text-gray-900 tabular-nums">{fmtViews(totalViews)}</p>
-          <p className="text-xs text-gray-400 mt-1">from {approved.length} approved clip{approved.length !== 1 ? 's' : ''}</p>
-        </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <p className="text-xs text-gray-400 mb-1">Paid to Clippers</p>
-          <p className="text-2xl font-bold text-gray-900 tabular-nums">{fmt(totalEarned)}</p>
-          <p className="text-xs text-gray-400 mt-1">
-            per-post cap: {fmtViews(Number(campaign.per_post_view_cap))} views
-          </p>
-        </div>
-      </div>
-
-      {/* Campaign meta */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5 mb-8 flex items-center gap-10 text-sm">
-        <div>
-          <span className="text-gray-400">Platform </span>
-          <span className="font-medium text-gray-900 capitalize">{campaign.platform}</span>
-        </div>
-        <div>
-          <span className="text-gray-400">Rate </span>
-          <span className="font-medium text-gray-900">₹{Number(campaign.rate_per_million_inr).toLocaleString()} / 1M views</span>
-        </div>
-        <div>
-          <span className="text-gray-400">Start </span>
-          <span className="font-medium text-gray-900">{campaign.start_date ?? '—'}</span>
-        </div>
-        <div>
-          <span className="text-gray-400">End </span>
-          <span className="font-medium text-gray-900">{campaign.end_date ?? 'Until budget exhausted'}</span>
-        </div>
-      </div>
-
-      {/* Submissions table */}
-      <div>
-        <div className="flex items-center gap-3 mb-4">
-          <h2 className="text-base font-semibold text-gray-900">Clip Submissions</h2>
-          <span className="text-xs text-gray-400">({submissions?.length ?? 0} total)</span>
-        </div>
-
-        {!submissions?.length ? (
-          <div className="bg-white rounded-xl border border-dashed border-gray-200 p-12 text-center">
-            <p className="text-sm text-gray-400">
+          {!submissions?.length ? (
+            <div style={{ padding: '48px 28px', textAlign: 'center', color: 'var(--fg-muted)' }}>
               {campaign.status === 'active'
                 ? 'No clips submitted yet — clippers will see this campaign and submit soon'
                 : 'Clips will appear here once the campaign is active'}
-            </p>
-          </div>
-        ) : (
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-100 bg-gray-50">
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Clipper</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Clip</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Platform</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Views</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Earned</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {submissions.map((s: any) => (
-                  <tr key={s.id} className="border-b border-gray-50 hover:bg-gray-50">
-                    <td className="px-5 py-3.5">
-                      <p className="text-sm font-medium text-gray-900">
-                        {s.profiles?.full_name ?? s.profiles?.phone ?? 'Unknown'}
-                      </p>
-                      <p className="text-xs text-gray-400">{new Date(s.created_at).toLocaleDateString('en-IN')}</p>
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <a
-                        href={s.clip_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-indigo-600 hover:underline truncate block max-w-[180px]"
-                        title={s.clip_url}
-                      >
-                        {s.clip_url.replace(/^https?:\/\//, '').substring(0, 30)}…
-                      </a>
-                    </td>
-                    <td className="px-5 py-3.5 text-sm text-gray-500 capitalize">{s.platform}</td>
-                    <td className="px-5 py-3.5 text-sm text-gray-700 tabular-nums">
-                      {fmtViews(s.capped_view_count)}
-                      {s.raw_view_count !== s.capped_view_count && s.raw_view_count && (
-                        <span className="text-xs text-gray-400 ml-1">(raw: {fmtViews(s.raw_view_count)})</span>
-                      )}
-                    </td>
-                    <td className="px-5 py-3.5 text-sm font-medium text-gray-900 tabular-nums">
-                      {s.earnings_inr != null ? fmt(Number(s.earnings_inr)) : '—'}
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${SUB_STATUS_STYLE[s.status] ?? 'bg-gray-100 text-gray-500'}`}>
-                        {s.status}
-                      </span>
-                      {s.admin_notes && (
-                        <p className="text-xs text-gray-400 mt-0.5 italic max-w-[160px] truncate" title={s.admin_notes}>
-                          {s.admin_notes}
-                        </p>
-                      )}
-                    </td>
+            </div>
+          ) : (
+            <div className="tbl-wrap">
+              <table className="tbl">
+                <thead>
+                  <tr>
+                    <th>Clipper</th>
+                    <th>Clip</th>
+                    <th>Platform</th>
+                    <th style={{ textAlign: 'right' }}>Views</th>
+                    <th style={{ textAlign: 'right' }}>Earned</th>
+                    <th>Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody>
+                  {submissions.map((s: any) => (
+                    <tr key={s.id}>
+                      <td>
+                        <div className="med">{s.profiles?.full_name ?? s.profiles?.phone ?? 'Unknown'}</div>
+                        <div className="text-xs faint">{new Date(s.created_at).toLocaleDateString('en-IN')}</div>
+                      </td>
+                      <td>
+                        <a
+                          href={s.clip_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs mono"
+                          style={{ color: 'var(--primary)', textDecoration: 'none', display: 'block', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                          title={s.clip_url}
+                        >
+                          {s.clip_url.replace(/^https?:\/\//, '').substring(0, 30)}…
+                        </a>
+                      </td>
+                      <td className="muted" style={{ textTransform: 'capitalize' }}>{s.platform}</td>
+                      <td className="num" style={{ textAlign: 'right' }}>
+                        {fmtViews(s.capped_view_count)}
+                        {s.raw_view_count !== s.capped_view_count && s.raw_view_count && (
+                          <span className="text-xs faint ml-4">(raw: {fmtViews(s.raw_view_count)})</span>
+                        )}
+                      </td>
+                      <td className="num bold" style={{ textAlign: 'right' }}>
+                        {s.earnings_inr != null ? fmt(Number(s.earnings_inr)) : '—'}
+                      </td>
+                      <td>
+                        <StatusBadge status={s.status} />
+                        {s.admin_notes && (
+                          <div className="text-xs faint mt-4 italic" style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={s.admin_notes}>
+                            {s.admin_notes}
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   )
 }

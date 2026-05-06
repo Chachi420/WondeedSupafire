@@ -8,14 +8,16 @@ export default async function ClientLayout({ children }: { children: React.React
   if (!user) redirect('/login')
 
   const { data: profile } = await supabase
-    .from('profiles').select('role').eq('id', user.id).single()
+    .from('profiles').select('role, full_name').eq('id', user.id).single()
 
   if ((profile as { role: string } | null)?.role !== 'client') redirect('/dashboard')
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <ClientSidebar />
-      <div className="ml-64 min-h-screen flex flex-col">
+    <div className="app">
+      <ClientSidebar
+        userName={(profile as any)?.full_name ?? undefined}
+      />
+      <div className="main">
         {children}
       </div>
     </div>

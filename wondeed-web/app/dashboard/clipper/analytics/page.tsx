@@ -19,8 +19,7 @@ export default async function AnalyticsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   const db = createAdminClient()
 
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 86_400_000).toISOString()
-  const monthStart    = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
+  const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
 
   const [earningsResult, approvedSubsResult, allTimeViewsResult] = await Promise.all([
     db.from('earnings')
@@ -38,17 +37,15 @@ export default async function AnalyticsPage() {
       .eq('status', 'approved'),
   ])
 
-  const earnings    = earningsResult.data ?? []
+  const earnings     = earningsResult.data ?? []
   const approvedSubs = approvedSubsResult.data ?? []
 
-  // Total stats
   const totalViews    = (allTimeViewsResult.data ?? []).reduce((s, x) => s + Number(x.capped_view_count ?? 0), 0)
   const totalEarnings = earnings.reduce((s, e) => s + Number(e.amount_inr), 0)
   const thisMonthEarnings = earnings
     .filter(e => e.created_at >= monthStart)
     .reduce((s, e) => s + Number(e.amount_inr), 0)
 
-  // Build daily earnings map (last 30 days)
   const earningsMap = new Map<string, number>()
   for (let i = 29; i >= 0; i--) {
     const d = new Date(Date.now() - i * 86_400_000)
@@ -62,14 +59,12 @@ export default async function AnalyticsPage() {
   }
   const dailyEarnings = Array.from(earningsMap.entries()).map(([date, amount]) => ({ date, amount }))
 
-  // Cumulative views over time (approved subs sorted by date)
   let running = 0
   const cumulativeViews = approvedSubs.map(s => {
     running += Number(s.capped_view_count ?? 0)
     return { date: s.created_at.slice(0, 10), views: running }
   })
 
-  // Platform breakdown
   const platformMap = new Map<string, { views: number; earnings: number }>()
   for (const s of approvedSubs) {
     const p = s.platform as string
@@ -81,39 +76,51 @@ export default async function AnalyticsPage() {
   const platformStats = Array.from(platformMap.entries()).map(([platform, stat]) => ({ platform, ...stat }))
 
   return (
-    <div className="p-8">
-
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Your performance metrics and earnings breakdown</p>
-      </div>
-
-      {/* Summary stat cards */}
-      <div className="grid grid-cols-3 gap-5 mb-8">
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <div className="w-2 h-2 rounded-full bg-emerald-500 mb-4" />
-          <p className="text-3xl font-bold text-gray-900 tabular-nums">{fmt(totalEarnings)}</p>
-          <p className="text-sm text-gray-500 mt-1.5">All-time Earnings</p>
-        </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <div className="w-2 h-2 rounded-full bg-blue-500 mb-4" />
-          <p className="text-3xl font-bold text-gray-900 tabular-nums">{fmtViews(totalViews)}</p>
-          <p className="text-sm text-gray-500 mt-1.5">Total Views Tracked</p>
-        </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <div className="w-2 h-2 rounded-full bg-purple-500 mb-4" />
-          <p className="text-3xl font-bold text-gray-900 tabular-nums">{fmt(thisMonthEarnings)}</p>
-          <p className="text-sm text-gray-500 mt-1.5">This Month</p>
+    <>
+      <div className="topbar">
+        <div className="col">
+          <h1>Analytics</h1>
+          <div className="topbar-sub">Your performance metrics and earnings breakdown</div>
         </div>
       </div>
 
-      {/* Charts */}
-      <AnalyticsCharts
-        dailyEarnings={dailyEarnings}
-        cumulativeViews={cumulativeViews}
-        platformStats={platformStats}
-      />
-    </div>
+      <div className="content fade-up">
+        <div className="stat-grid mb-20" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+          <div className="stat-card">
+            <div className="stat-ico ico-green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+                <path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>
+              </svg>
+            </div>
+            <div className="stat-label">All-time Earnings</div>
+            <div className="stat-value">{fmt(totalEarnings)}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-ico ico-blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+            </div>
+            <div className="stat-label">Total Views Tracked</div>
+            <div className="stat-value">{fmtViews(totalViews)}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-ico ico-violet">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+            </div>
+            <div className="stat-label">This Month</div>
+            <div className="stat-value">{fmt(thisMonthEarnings)}</div>
+          </div>
+        </div>
+
+        <AnalyticsCharts
+          dailyEarnings={dailyEarnings}
+          cumulativeViews={cumulativeViews}
+          platformStats={platformStats}
+        />
+      </div>
+    </>
   )
 }

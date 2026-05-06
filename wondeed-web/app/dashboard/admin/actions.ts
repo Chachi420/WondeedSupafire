@@ -15,16 +15,19 @@ async function getAdminUser() {
 
 // ── Campaigns ────────────────────────────────────────────────
 
-export async function approveCampaign(campaignId: string) {
+export async function approveCampaign(campaignId: string, ratePerMillionInr: number) {
   const user = await getAdminUser()
   const db   = createAdminClient()
 
+  if (!ratePerMillionInr || ratePerMillionInr <= 0) throw new Error('A valid CPM rate is required to approve a campaign')
+
   // Budget was already deducted from client wallet at submission time.
-  // Admin approval simply activates the campaign — no wallet mutation needed.
+  // Admin approval activates the campaign and sets the CPM rate.
   const { error } = await db.from('campaigns').update({
-    status:      'active',
-    approved_by: user.id,
-    approved_at: new Date().toISOString(),
+    status:               'active',
+    approved_by:          user.id,
+    approved_at:          new Date().toISOString(),
+    rate_per_million_inr: ratePerMillionInr,
   }).eq('id', campaignId).eq('status', 'pending_approval')
 
   if (error) throw new Error(error.message)
@@ -32,6 +35,22 @@ export async function approveCampaign(campaignId: string) {
   revalidatePath('/dashboard/admin/campaigns')
   revalidatePath('/dashboard/client')
   revalidatePath('/dashboard/client/campaigns')
+}
+
+export async function updateCampaignCpm(campaignId: string, ratePerMillionInr: number) {
+  await getAdminUser()
+  const db = createAdminClient()
+
+  if (!ratePerMillionInr || ratePerMillionInr <= 0) throw new Error('CPM rate must be greater than 0')
+
+  const { error } = await db.from('campaigns')
+    .update({ rate_per_million_inr: ratePerMillionInr })
+    .eq('id', campaignId)
+    .in('status', ['active', 'paused'])
+
+  if (error) throw new Error(error.message)
+  revalidatePath('/dashboard/admin/campaigns')
+  revalidatePath('/dashboard/clipper')
 }
 
 export async function rejectCampaign(campaignId: string) {
@@ -233,10 +252,10 @@ export async function seedTestCampaign(): Promise<string> {
     title,
     platform:             'instagram',
     budget_inr:           20000,
-    platform_fee_inr:     4000,
-    total_charged_inr:    24000,
+    platform_fee_inr:     0,
+    total_charged_inr:    20000,
     budget_remaining_inr: 20000,
-    rate_per_million_inr: 10000,
+    rate_per_million_inr: 0,  // admin sets this at approval; 0 = not yet set
     per_post_view_cap:    1_000_000,
     status:               'active',
   }).select('id').single()

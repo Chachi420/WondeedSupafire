@@ -25,32 +25,66 @@ export default async function AdminClippersPage() {
   const suspended = (clippers ?? []).filter(c => c.account_status === 'suspended').length
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Clipper Approvals</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Review and approve new clipper accounts</p>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        <div className="bg-white rounded-xl border border-amber-200 p-5">
-          <p className="text-xs text-amber-600 font-medium mb-1">Pending Review</p>
-          <p className="text-3xl font-bold text-amber-700">{pending}</p>
-        </div>
-        <div className="bg-white rounded-xl border border-emerald-200 p-5">
-          <p className="text-xs text-emerald-600 font-medium mb-1">Active</p>
-          <p className="text-3xl font-bold text-emerald-700">{active}</p>
-        </div>
-        <div className="bg-white rounded-xl border border-red-200 p-5">
-          <p className="text-xs text-red-600 font-medium mb-1">Suspended</p>
-          <p className="text-3xl font-bold text-red-700">{suspended}</p>
+    <>
+      <div className="topbar">
+        <div className="col">
+          <div className="row gap-12">
+            <h1>Clipper Approvals</h1>
+            {pending > 0 && (
+              <span className="badge badge-warn" style={{ padding: '4px 10px', fontSize: 12 }}>
+                <span className="badge-dot" style={{ background: '#d97706' }} />
+                {pending} Pending
+              </span>
+            )}
+          </div>
+          <div className="topbar-sub">Review and approve new clipper accounts</div>
         </div>
       </div>
 
-      <ClipperApprovalQueue
-        clippers={(clippers ?? []) as any}
-        socialByClipperId={socialByClipperId}
-      />
-    </div>
+      <div className="content fade-up">
+        <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: 20 }}>
+          <div className="stat-card">
+            <div className="stat-ico ico-amber">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+                <circle cx="12" cy="12" r="9"/><path d="M12 16v-5"/><circle cx="12" cy="8" r="0.6" fill="currentColor" stroke="none"/>
+              </svg>
+            </div>
+            <div className="stat-label">Pending Review</div>
+            <div className="stat-value">{pending}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-ico ico-green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <div className="stat-label">Active</div>
+            <div className="stat-value">{active}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-ico" style={{ background: 'var(--danger-bg)', color: 'var(--danger)' }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+                <circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6m0-6l6 6"/>
+              </svg>
+            </div>
+            <div className="stat-label">Suspended</div>
+            <div className="stat-value">{suspended}</div>
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="card-head">
+            <div>
+              <h2>Clipper List</h2>
+              <div className="sub">{(clippers ?? []).length} total clippers</div>
+            </div>
+          </div>
+          <ClipperApprovalQueue
+            clippers={(clippers ?? []) as any}
+            socialByClipperId={socialByClipperId}
+          />
+        </div>
+      </div>
+    </>
   )
 }
