@@ -761,3 +761,43 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
   border: 2px solid var(--bg);
 }
 ::-webkit-scrollbar-thumb:hover { background: var(--fg-faint); }
+
+/* ========== Responsive / Mobile ========== */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+
+  .content { padding: 16px 14px 40px; }
+  .topbar  { padding: 12px 14px; }
+
+  /* Collapse all grid systems to single column */
+  .g2, .g3, .g4 { grid-template-columns: 1fr; gap: 12px; }
+
+  /* Tables scroll horizontally rather than overflow */
+  .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* Stat row wraps */
+  .stat-row { flex-wrap: wrap; }
+
+  /* Filter bar stacks */
+  .filter-bar-inner { flex-direction: column; gap: 14px; }
+
+  /* Campaign cards: 2-col grid for the brief detail page is fine on tablet */
+
+  /* Wallet hero: reduce padding */
+  .wallet-hero { padding: 20px 20px 28px; }
+}
+
+@media (max-width: 560px) {
+  /* Collapse 2-col grids on very small screens */
+  .g2 { grid-template-columns: 1fr; }
+
+  /* Scale down large type */
+  .text-3xl { font-size: 22px; }
+  .text-4xl { font-size: 26px; }
+  .topbar h1 { font-size: 17px; }
+
+  /* Campaign card stats grid: 2-col is still fine at this width */
+
+  /* Shrink content padding further */
+  .content { padding: 12px 10px 32px; }
+}

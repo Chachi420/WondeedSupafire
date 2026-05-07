@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { fmtRupee, fmtViews as fmtV } from '@/lib/format'
 
 export type SubmissionRow = {
   id: string
@@ -37,17 +38,8 @@ type Props = {
   initialJoinId?: string
 }
 
-function fmt(n: number) {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency', currency: 'INR', maximumFractionDigits: 0,
-  }).format(n)
-}
-
-function fmtViews(n: number) {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
-  if (n >= 1_000)     return `${(n / 1_000).toFixed(1)}K`
-  return String(n)
-}
+const fmt = fmtRupee
+const fmtViews = fmtV
 
 function calcEarnings(cappedViews: number | null, ratePerMillion: number): number | null {
   if (cappedViews == null) return null
@@ -168,12 +160,22 @@ function SubmissionRowUI({ sub, ratePerMillion }: { sub: SubmissionRow; ratePerM
                   ? <p className="text-xs mb-8" style={{ color: 'var(--danger)' }}>"{sub.admin_notes}"</p>
                   : <p className="text-xs faint mb-8">No specific reason provided.</p>
                 }
-                <div className="helper" style={{ marginBottom: 0 }}>
+                <div className="helper" style={{ marginBottom: 8 }}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ width: 14, height: 14, color: '#d97706', flexShrink: 0 }}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <span className="text-xs"><span className="med">How to fix: </span>{rejectionTip(sub.admin_notes)}</span>
                 </div>
+                <a
+                  href={`mailto:support@wondeed.com?subject=Appeal%20submission%20${sub.id}&body=Submission%20ID%3A%20${sub.id}%0AClip%20URL%3A%20${encodeURIComponent(sub.clip_url)}%0A%0APlease%20describe%20why%20you%20believe%20this%20rejection%20should%20be%20reviewed%3A%0A`}
+                  className="text-xs"
+                  style={{ color: 'var(--primary)', display: 'inline-flex', alignItems: 'center', gap: 4, textDecoration: 'none' }}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ width: 12, height: 12 }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  Appeal this decision →
+                </a>
               </div>
             </div>
           </td>

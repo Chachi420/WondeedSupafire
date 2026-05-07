@@ -1,20 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import Link from 'next/link'
-
-function fmtRupee(n: number) {
-  if (n >= 100000) return '₹' + (n / 100000).toFixed(1).replace(/\.0$/, '') + 'L'
-  if (n >= 1000) return '₹' + (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K'
-  return '₹' + n.toLocaleString('en-IN')
-}
-function fmtViews(n: number) {
-  if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M'
-  if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K'
-  return n.toLocaleString('en-IN')
-}
-function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
-}
+import { fmtRupee, fmtViews, fmtDate } from '@/lib/format'
 
 function StatusBadge({ status }: { status: string }) {
   if (status === 'approved') return (

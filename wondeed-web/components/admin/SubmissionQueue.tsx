@@ -30,11 +30,13 @@ function previewEarnings(views: number, cap: number, rate: number, remaining: nu
 
 function SubmissionRow({ sub }: { sub: Submission }) {
   const [isPending, startTransition] = useTransition()
-  const [mode, setMode]       = useState<'idle' | 'approve' | 'reject'>('idle')
-  const [views, setViews]     = useState('')
-  const [notes, setNotes]     = useState('')
-  const [error, setError]     = useState<string | null>(null)
+  const [mode, setMode]         = useState<'idle' | 'approve' | 'reject'>('idle')
+  const [views, setViews]       = useState('')
+  const [liveViews, setLiveViews] = useState<number | null>(null)
+  const [notes, setNotes]       = useState('')
+  const [error, setError]       = useState<string | null>(null)
   const [fetching, setFetching] = useState(false)
+  const [showDeltaWarn, setShowDeltaWarn] = useState(false)
 
   const camp = sub.campaigns
 
@@ -43,7 +45,7 @@ function SubmissionRow({ sub }: { sub: Submission }) {
     setError(null)
     try {
       const count = await fetchLiveViewCount(sub.id)
-      if (count != null) setViews(String(count))
+      if (count != null) { setViews(String(count)); setLiveViews(count) }
       else setError('Could not fetch views — paste manually')
     } catch {
       setError('Fetch failed — paste manually')
@@ -52,14 +54,25 @@ function SubmissionRow({ sub }: { sub: Submission }) {
     }
   }
 
-  function submitApprove() {
+  function doApprove() {
     const v = parseInt(views, 10)
-    if (!v || v < 0) { setError('Enter a valid view count'); return }
     setError(null)
+    setShowDeltaWarn(false)
     startTransition(async () => {
       try { await approveSubmission(sub.id, v) }
       catch (e: any) { setError(e.message) }
     })
+  }
+
+  function submitApprove() {
+    const v = parseInt(views, 10)
+    if (!v || v < 0) { setError('Enter a valid view count'); return }
+    // Guard: if live views were fetched and manual entry deviates >20%, warn
+    if (liveViews != null) {
+      const delta = Math.abs(v - liveViews) / liveViews
+      if (delta > 0.2) { setShowDeltaWarn(true); return }
+    }
+    doApprove()
   }
 
   function submitReject() {
@@ -73,6 +86,10 @@ function SubmissionRow({ sub }: { sub: Submission }) {
   const parsedViews = parseInt(views, 10)
   const previewInr  = camp && !isNaN(parsedViews) && parsedViews > 0
     ? previewEarnings(parsedViews, Number(camp.per_post_view_cap), Number(camp.rate_per_million_inr), Number(camp.budget_remaining_inr))
+    : null
+  const needsEscalation = previewInr != null && previewInr > 5000
+  const deltaFromLive = liveViews != null && !isNaN(parsedViews) && parsedViews > 0
+    ? Math.abs(parsedViews - liveViews) / liveViews
     : null
 
   return (
@@ -115,49 +132,87 @@ function SubmissionRow({ sub }: { sub: Submission }) {
       {mode === 'approve' && (
         <tr>
           <td colSpan={6} style={{ background: 'rgba(16,185,129,0.05)', borderBottom: '1px solid rgba(16,185,129,0.15)' }}>
-            <div className="row gap-16" style={{ padding: '4px 0', alignItems: 'flex-start' }}>
-              <div className="col gap-8" style={{ flex: 1 }}>
-                <label className="field-label">Actual view count (from platform analytics)</label>
-                <div className="row gap-12">
-                  <input
-                    type="number"
-                    min={0}
-                    placeholder="e.g. 250000"
-                    value={views}
-                    onChange={(e) => setViews(e.target.value)}
-                    className="input"
-                    style={{ width: 160 }}
-                    autoFocus
-                  />
-                  <button
-                    type="button"
-                    onClick={handleFetchLiveViews}
-                    disabled={fetching || isPending}
-                    className="btn btn-sm btn-secondary"
-                  >
-                    {fetching ? 'Fetching…' : '⟳ Fetch Live Views'}
-                  </button>
+            <div className="col gap-12" style={{ padding: '8px 0' }}>
+              <div className="row gap-16" style={{ alignItems: 'flex-start' }}>
+                <div className="col gap-8" style={{ flex: 1 }}>
+                  <label className="field-label">Actual view count (from platform analytics)</label>
+                  <div className="row gap-12 flex-wrap">
+                    <input
+                      type="number"
+                      min={0}
+                      placeholder="e.g. 250000"
+                      value={views}
+                      onChange={(e) => { setViews(e.target.value); setShowDeltaWarn(false) }}
+                      className="input"
+                      style={{ width: 160 }}
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={handleFetchLiveViews}
+                      disabled={fetching || isPending}
+                      className="btn btn-sm btn-secondary"
+                    >
+                      {fetching ? 'Fetching…' : '⟳ Fetch Live Views'}
+                    </button>
+                    {liveViews != null && (
+                      <span className="text-xs faint">API: {new Intl.NumberFormat('en-IN').format(liveViews)} views</span>
+                    )}
+                  </div>
                   {previewInr !== null && (
-                    <div className="text-xs">
-                      <span className="faint">Clipper earns: </span>
-                      <span className="med" style={{ color: 'var(--success)' }}>{fmt(previewInr)}</span>
-                      {camp && parsedViews > Number(camp.per_post_view_cap) && (
-                        <span className="faint ml-8">(capped at {new Intl.NumberFormat('en-IN').format(Number(camp.per_post_view_cap))} views)</span>
+                    <div className="row gap-12">
+                      <span className="text-xs">
+                        <span className="faint">Clipper earns: </span>
+                        <span className="med" style={{ color: 'var(--success)' }}>{fmt(previewInr)}</span>
+                        {camp && parsedViews > Number(camp.per_post_view_cap) && (
+                          <span className="faint"> (capped at {new Intl.NumberFormat('en-IN').format(Number(camp.per_post_view_cap))})</span>
+                        )}
+                      </span>
+                      {needsEscalation && (
+                        <span className="badge badge-warn" style={{ fontSize: 11 }}>
+                          ⚠ Escalation required — &gt;₹5,000
+                        </span>
+                      )}
+                      {deltaFromLive != null && deltaFromLive > 0.2 && (
+                        <span className="badge badge-danger" style={{ fontSize: 11 }}>
+                          {Math.round(deltaFromLive * 100)}% deviation from API
+                        </span>
                       )}
                     </div>
                   )}
                 </div>
+                <button
+                  onClick={submitApprove}
+                  disabled={!views || isPending}
+                  className="btn btn-success"
+                  style={{ marginTop: 24 }}
+                >
+                  {isPending ? 'Saving…' : needsEscalation ? '⚠ Escalate & Credit' : 'Confirm & Credit'}
+                </button>
               </div>
-              <button
-                onClick={submitApprove}
-                disabled={!views || isPending}
-                className="btn btn-success"
-                style={{ marginTop: 20 }}
-              >
-                {isPending ? 'Saving…' : 'Confirm & Credit'}
-              </button>
+
+              {/* Delta deviation warning dialog */}
+              {showDeltaWarn && liveViews != null && (
+                <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8, padding: '12px 16px' }}>
+                  <p className="med text-xs" style={{ color: 'var(--danger)', marginBottom: 6 }}>
+                    ⚠ Manual entry differs {Math.round((deltaFromLive ?? 0) * 100)}% from API count ({new Intl.NumberFormat('en-IN').format(liveViews)} views)
+                  </p>
+                  <p className="text-xs faint" style={{ marginBottom: 10 }}>
+                    You entered {new Intl.NumberFormat('en-IN').format(parsedViews)}. This is a large deviation from what the API returned. Are you sure this is correct?
+                  </p>
+                  <div className="row gap-8">
+                    <button onClick={doApprove} disabled={isPending} className="btn btn-sm btn-danger">
+                      Yes, use {new Intl.NumberFormat('en-IN').format(parsedViews)} views
+                    </button>
+                    <button onClick={() => { setViews(String(liveViews)); setShowDeltaWarn(false) }} className="btn btn-sm btn-secondary">
+                      Use API count instead
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {error && <p className="text-xs" style={{ color: 'var(--danger)' }}>{error}</p>}
             </div>
-            {error && <p className="text-xs mt-8" style={{ color: 'var(--danger)' }}>{error}</p>}
           </td>
         </tr>
       )}

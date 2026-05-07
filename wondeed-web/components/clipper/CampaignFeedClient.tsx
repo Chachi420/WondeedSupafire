@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { NICHES } from '@/components/client/CampaignForm'
+import { fmtRupee, fmtViews } from '@/lib/format'
 
 // ── Types ──────────────────────────────────────────────────────
 
@@ -43,19 +44,15 @@ const TIER_LABEL: Record<string, string> = {
   enterprise: 'Tier 3 – Enterprise',
 }
 
+const TIER_DESC: Record<string, string> = {
+  pro:        'Tier 1 – Pro: Open to all approved clippers. Campaigns with standard CPM rates.',
+  premium:    'Tier 2 – Premium: For clippers with a strong submission history and higher follower counts. Higher CPM campaigns.',
+  enterprise: 'Tier 3 – Enterprise: Top-tier clippers only. Exclusive brand deals and the highest CPM rates available.',
+}
+
 // ── Helpers ────────────────────────────────────────────────────
 
-function fmt(n: number) {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency', currency: 'INR', maximumFractionDigits: 0,
-  }).format(n)
-}
-
-function fmtViews(n: number) {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
-  if (n >= 1_000)     return `${(n / 1_000).toFixed(0)}K`
-  return String(n)
-}
+const fmt = fmtRupee
 
 function daysLeft(endDate: string | null): number | null {
   if (!endDate) return null
@@ -115,6 +112,8 @@ function CampaignCard({
 
   // CPM = rate_per_million_inr / 1000
   const cpm = Math.round(Number(campaign.rate_per_million_inr) / 1000)
+  // Max earnings per clip
+  const maxPerClip = Math.round((campaign.per_post_view_cap / 1_000_000) * campaign.rate_per_million_inr)
 
   // Which platforms does this campaign accept (for icons)
   const platforms: string[] = campaign.target_platforms?.length
@@ -137,7 +136,7 @@ function CampaignCard({
             {campaign.niche && <span className="badge badge-neutral">{NICHES.find(n => n.value === campaign.niche)?.label ?? campaign.niche}</span>}
             {isJoined && <span className="badge badge-success">Joined</span>}
           </div>
-          <div className="text-md mt-4 bold" style={{ lineHeight: 1.3 }}>{campaign.title}</div>
+          <a href={`/dashboard/clipper/campaigns/${campaign.id}`} className="text-md mt-4 bold" style={{ lineHeight: 1.3, color: 'var(--fg)', textDecoration: 'none' }}>{campaign.title}</a>
         </div>
       </div>
 
@@ -147,7 +146,11 @@ function CampaignCard({
             {p.charAt(0).toUpperCase() + p.slice(1)}
           </span>
         ))}
-        <span className="badge badge-neutral" style={{ marginLeft: 'auto' }}>
+        <span
+          className="badge badge-neutral"
+          style={{ marginLeft: 'auto', cursor: 'help' }}
+          title={TIER_DESC[campaign.min_clipper_tier] ?? campaign.min_clipper_tier}
+        >
           {TIER_LABEL[campaign.min_clipper_tier] ?? campaign.min_clipper_tier}
         </span>
       </div>
@@ -158,15 +161,12 @@ function CampaignCard({
           <div className="med tnum mt-4">₹{cpm} <span className="text-xs faint">/ 1K views</span></div>
         </div>
         <div>
-          <div className="text-xs faint">Per-post cap</div>
-          <div className="med tnum mt-4">{fmtViews(campaign.per_post_view_cap)} views</div>
+          <div className="text-xs faint">Max / clip</div>
+          <div className="med tnum mt-4" style={{ color: 'var(--primary)' }}>{fmt(maxPerClip)}</div>
         </div>
         <div>
           <div className="text-xs faint">Budget left</div>
-          <div className="med tnum mt-4">
-            ₹{Math.round(campaign.budget_remaining_inr / 1000)}K{' '}
-            <span className="text-xs faint">of ₹{Math.round(campaign.budget_inr / 1000)}K</span>
-          </div>
+          <div className="med tnum mt-4">{fmt(campaign.budget_remaining_inr)}</div>
         </div>
         <div>
           <div className="text-xs faint">Time left</div>
@@ -178,17 +178,12 @@ function CampaignCard({
 
       <div className="row gap-8">
         {isJoined ? (
-          <a href="/dashboard/clipper/my-campaigns" className="btn btn-secondary flex-1" style={{ justifyContent: 'center' }}>View Submissions</a>
+          <a href={`/dashboard/clipper/campaigns/${campaign.id}`} className="btn btn-secondary flex-1" style={{ justifyContent: 'center' }}>My Submissions</a>
         ) : !isEligible ? (
-          <span className="btn btn-secondary flex-1" style={{ justifyContent: 'center', opacity: 0.6, cursor: 'not-allowed' }}>🔒 Locked</span>
+          <span className="btn btn-secondary flex-1" style={{ justifyContent: 'center', opacity: 0.6, cursor: 'not-allowed' }}>🔒 Tier locked</span>
         ) : (
-          <a href="/dashboard/clipper/submit" className="btn btn-primary flex-1" style={{ justifyContent: 'center' }}>Join Campaign</a>
+          <a href={`/dashboard/clipper/campaigns/${campaign.id}`} className="btn btn-primary flex-1" style={{ justifyContent: 'center' }}>View Brief & Join</a>
         )}
-        <a href={`/dashboard/clipper/campaigns/${campaign.id}`} className="btn btn-secondary">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
-            <circle cx="12" cy="12" r="9"/><path d="M12 16v-5"/><circle cx="12" cy="8" r="0.6" fill="currentColor" stroke="none"/>
-          </svg>
-        </a>
       </div>
     </div>
   )
@@ -196,7 +191,7 @@ function CampaignCard({
 
 // ── Filter Bar ─────────────────────────────────────────────────
 
-type SortKey = 'newest' | 'budget_high' | 'deadline'
+type SortKey = 'newest' | 'budget_high' | 'deadline' | 'earnings_potential'
 type PlatformFilter = 'all' | 'instagram' | 'youtube' | 'x'
 type TierFilter = 'all' | 'eligible'
 type BudgetFilter = 'all' | 'under50k' | '50k_2l' | 'over2l'
@@ -251,8 +246,9 @@ function FilterBar({
         </div>
         <div className="col gap-6" style={{ marginLeft: 'auto' }}>
           <div className="text-xs faint med" style={{ textTransform: 'uppercase', letterSpacing: '0.06em' }}>Sort</div>
-          <select className="select" value={sort} onChange={e => setS(e.target.value as SortKey)} style={{ minWidth: 160 }}>
+          <select className="select" value={sort} onChange={e => setS(e.target.value as SortKey)} style={{ minWidth: 180 }}>
             <option value="newest">Newest</option>
+            <option value="earnings_potential">Best Earnings Potential</option>
             <option value="budget_high">Highest Budget</option>
             <option value="deadline">Soonest Deadline</option>
           </select>
@@ -311,6 +307,13 @@ export default function CampaignFeedClient({ campaigns, joinedCampaignIds, clipp
         const da = a.end_date ? new Date(a.end_date).getTime() : Infinity
         const db2 = b.end_date ? new Date(b.end_date).getTime() : Infinity
         return da - db2
+      })
+    } else if (sort === 'earnings_potential') {
+      // max earnings per clip = (per_post_view_cap / 1M) * rate_per_million_inr
+      list.sort((a, b) => {
+        const ea = (a.per_post_view_cap / 1_000_000) * a.rate_per_million_inr
+        const eb = (b.per_post_view_cap / 1_000_000) * b.rate_per_million_inr
+        return eb - ea
       })
     } else {
       list.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())

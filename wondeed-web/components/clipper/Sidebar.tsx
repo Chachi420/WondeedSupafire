@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import NotificationBell from '@/components/NotificationBell'
 
 const NAV = [
   { href: '/dashboard/clipper',              label: 'Home',           exact: true,  icon: 'home' },
@@ -66,7 +67,18 @@ export default function ClipperSidebar({ userName, userHandle, userTier, feedBad
         <div className="avatar avatar-rs">{initials}</div>
         <div className="col">
           <div className="user-name">{userName ?? 'Clipper'}</div>
-          <div className="user-meta">{userTier ?? 'Free'} · {userHandle ?? ''}</div>
+          <div
+            className="user-meta"
+            title={
+              userTier === 'pro' ? 'Tier 1 – Pro: Access to all standard campaigns' :
+              userTier === 'premium' ? 'Tier 2 – Premium: Access to higher CPM premium campaigns' :
+              userTier === 'enterprise' ? 'Tier 3 – Enterprise: Access to exclusive top-tier campaigns' :
+              'Your clipper tier determines which campaigns you can join'
+            }
+            style={{ cursor: 'help' }}
+          >
+            {userTier ?? 'Free'} · {userHandle ?? ''}
+          </div>
         </div>
       </div>
 
@@ -93,9 +105,12 @@ export default function ClipperSidebar({ userName, userHandle, userTier, feedBad
       </nav>
 
       <div className="sidebar-foot">
-        <div className="row gap-6">
-          <span className="badge-dot" style={{ background: '#22c55e' }} />
-          All systems normal
+        <div className="row between" style={{ alignItems: 'center' }}>
+          <div className="row gap-6">
+            <span className="badge-dot" style={{ background: '#22c55e' }} />
+            All systems normal
+          </div>
+          <NotificationBell />
         </div>
         <div className="mt-4 faint">v2.4.0 · Clipper</div>
       </div>

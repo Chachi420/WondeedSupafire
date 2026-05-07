@@ -560,3 +560,44 @@ CREATE POLICY "subscriptions: admin sees all"
   USING (get_my_role() = 'admin');
 
 -- INSERT/UPDATE only via service role (admin backend). No public policy.
+
+-- ┌─────────────────────────────────────────────────────────┐
+-- │  notifications                                          │
+-- └─────────────────────────────────────────────────────────┘
+CREATE TYPE notification_type AS ENUM (
+  'clip_approved',
+  'clip_rejected',
+  'payout_settled',
+  'campaign_joined',
+  'low_budget',
+  'new_campaign'
+);
+
+CREATE TABLE notifications (
+  id         UUID              PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id    UUID              NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  type       notification_type NOT NULL,
+  title      TEXT              NOT NULL,
+  body       TEXT              NOT NULL DEFAULT '',
+  read       BOOLEAN           NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ       NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_notifications_user_id_created ON notifications (user_id, created_at DESC);
+CREATE INDEX idx_notifications_user_id_read    ON notifications (user_id, read) WHERE read = FALSE;
+
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+
+-- Users can read their own notifications
+CREATE POLICY "notifications: self select"
+  ON notifications FOR SELECT
+  USING (user_id = auth.uid());
+
+-- Users can mark their own notifications as read
+CREATE POLICY "notifications: self update read"
+  ON notifications FOR UPDATE
+  USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
+
+-- Only service role (admin backend) may insert notifications
+-- No public INSERT policy — use createAdminClient() server-side

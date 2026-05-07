@@ -68,12 +68,38 @@ export async function rejectCampaign(campaignId: string) {
 export async function approveSubmission(submissionId: string, rawViewCount: number) {
   const user = await getAdminUser()
   const db = createAdminClient()
+
+  // Fetch before approval for notification payload
+  const { data: sub } = await db
+    .from('campaign_submissions')
+    .select('clipper_id, campaign_id, campaigns!campaign_id(title, rate_per_million_inr, per_post_view_cap, budget_remaining_inr)')
+    .eq('id', submissionId)
+    .single()
+
   const { error } = await db.rpc('approve_submission', {
     p_submission_id:  submissionId,
     p_raw_view_count: rawViewCount,
     p_reviewed_by:    user.id,
   })
   if (error) throw new Error(error.message)
+
+  if (sub) {
+    const camp = sub.campaigns as any
+    const capped   = Math.min(rawViewCount, Number(camp?.per_post_view_cap ?? 0))
+    const earnings = Math.min(
+      Math.floor(capped * Number(camp?.rate_per_million_inr ?? 0) / 1_000_000),
+      Number(camp?.budget_remaining_inr ?? 0)
+    )
+    const fmtInr = (n: number) =>
+      new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n)
+    await (db as any).from('notifications').insert({
+      user_id: sub.clipper_id,
+      type:    'clip_approved',
+      title:   'Clip approved!',
+      body:    `Your clip for "${camp?.title ?? 'the campaign'}" earned ${fmtInr(earnings)}.`,
+    })
+  }
+
   revalidatePath('/dashboard/admin')
   revalidatePath('/dashboard/admin/submissions')
 }
@@ -81,12 +107,31 @@ export async function approveSubmission(submissionId: string, rawViewCount: numb
 export async function rejectSubmission(submissionId: string, adminNotes: string) {
   const user = await getAdminUser()
   const db = createAdminClient()
+
+  const { data: sub } = await db
+    .from('campaign_submissions')
+    .select('clipper_id, campaigns!campaign_id(title)')
+    .eq('id', submissionId)
+    .single()
+
   await db.from('campaign_submissions').update({
     status:      'rejected',
     reviewed_by: user.id,
     reviewed_at: new Date().toISOString(),
     admin_notes: adminNotes || null,
   }).eq('id', submissionId)
+
+  if (sub) {
+    const camp = sub.campaigns as any
+    await (db as any).from('notifications').insert({
+      user_id: sub.clipper_id,
+      type:    'clip_rejected',
+      title:   'Clip not approved',
+      body:    adminNotes
+        ? `Your clip for "${camp?.title ?? 'the campaign'}" was rejected: ${adminNotes}`
+        : `Your clip for "${camp?.title ?? 'the campaign'}" did not meet the campaign requirements.`,
+    })
+  }
 
   revalidatePath('/dashboard/admin')
   revalidatePath('/dashboard/admin/submissions')
@@ -109,6 +154,13 @@ export async function markPayoutProcessing(payoutId: string) {
 export async function markPayoutCompleted(payoutId: string, razorpayPayoutId: string) {
   const user = await getAdminUser()
   const db = createAdminClient()
+
+  const { data: payout } = await db
+    .from('payouts')
+    .select('clipper_id, amount_inr')
+    .eq('id', payoutId)
+    .single()
+
   const { error } = await db.from('payouts').update({
     status:            'completed',
     razorpay_payout_id: razorpayPayoutId.trim(),
@@ -116,6 +168,18 @@ export async function markPayoutCompleted(payoutId: string, razorpayPayoutId: st
     processed_at:      new Date().toISOString(),
   }).eq('id', payoutId).in('status', ['requested', 'processing'])
   if (error) throw new Error(error.message)
+
+  if (payout) {
+    const fmtInr = (n: number) =>
+      new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n)
+    await (db as any).from('notifications').insert({
+      user_id: payout.clipper_id,
+      type:    'payout_settled',
+      title:   'Payout settled!',
+      body:    `${fmtInr(Number(payout.amount_inr))} has been sent to your UPI ID.`,
+    })
+  }
+
   revalidatePath('/dashboard/admin/payouts')
 }
 

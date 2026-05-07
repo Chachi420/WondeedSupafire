@@ -3,11 +3,12 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import NotificationBell from '@/components/NotificationBell'
 
 const NAV = [
   { href: '/dashboard/client',                  label: 'Dashboard',       exact: true,  icon: 'home' },
   { href: '/dashboard/client/create-campaign',  label: 'Create Campaign', exact: true,  icon: 'plus' },
-  { href: '/dashboard/client/campaigns',        label: 'My Campaigns',    exact: false, icon: 'folder', badge: '4' },
+  { href: '/dashboard/client/campaigns',        label: 'My Campaigns',    exact: false, icon: 'folder' },
   { href: '/dashboard/client/analytics',        label: 'Analytics',       exact: false, icon: 'chart' },
   { href: '/dashboard/client/billing',          label: 'Billing',         exact: false, icon: 'wallet' },
 ]
@@ -73,23 +74,22 @@ export default function ClientSidebar({ userName, brandName }: {
             <Link key={item.href} href={item.href} className={`nav-item ${active ? 'active' : ''}`}>
               <Icon name={item.icon} />
               {item.label}
-              {item.badge && <span className="nav-badge">{item.badge}</span>}
             </Link>
           )
         })}
         <div className="nav-section-label">Account</div>
-        <button className="nav-item">
-          <Icon name="settings" />Workspace settings
-        </button>
         <button className="nav-item" onClick={handleSignOut}>
           <Icon name="logout" />Sign out
         </button>
       </nav>
 
       <div className="sidebar-foot">
-        <div className="row gap-6">
-          <span className="badge-dot" style={{ background: '#22c55e' }} />
-          Verified Brand · Tier Pro
+        <div className="row between" style={{ alignItems: 'center' }}>
+          <div className="row gap-6">
+            <span className="badge-dot" style={{ background: '#22c55e' }} />
+            Verified Brand
+          </div>
+          <NotificationBell />
         </div>
         <div className="mt-4 faint">v2.4.0 · Brands</div>
       </div>

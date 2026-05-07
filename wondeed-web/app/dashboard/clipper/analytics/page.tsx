@@ -1,18 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import Link from 'next/link'
 import AnalyticsCharts from '@/components/clipper/AnalyticsCharts'
-
-function fmt(n: number) {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency', currency: 'INR', maximumFractionDigits: 0,
-  }).format(n)
-}
-
-function fmtViews(n: number) {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
-  if (n >= 1_000)     return `${(n / 1_000).toFixed(1)}K`
-  return `${n}`
-}
+import { fmtRupee as fmt, fmtViews } from '@/lib/format'
 
 export default async function AnalyticsPage() {
   const supabase = await createClient()
@@ -75,6 +65,8 @@ export default async function AnalyticsPage() {
   }
   const platformStats = Array.from(platformMap.entries()).map(([platform, stat]) => ({ platform, ...stat }))
 
+  const hasData = totalViews > 0 || totalEarnings > 0
+
   return (
     <>
       <div className="topbar">
@@ -84,7 +76,27 @@ export default async function AnalyticsPage() {
         </div>
       </div>
 
-      <div className="content fade-up">
+      {!hasData && (
+        <div className="content fade-up">
+          <div className="card" style={{ padding: '64px 28px', textAlign: 'center', borderStyle: 'dashed' }}>
+            <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} style={{ width: 32, height: 32, color: 'var(--fg-muted)' }}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 21h18M3 10h18M3 7l9-4 9 4M4 10h1v11H4zm6 0h1v11h-1zm5 0h1v11h-1zm5 0h1v11h-1z" />
+              </svg>
+            </div>
+            <p className="med" style={{ marginBottom: 8 }}>No data yet</p>
+            <p className="text-xs faint" style={{ marginBottom: 20, maxWidth: 320, margin: '0 auto 20px' }}>
+              Submit clips to campaigns and get them approved — your views and earnings will appear here once verified.
+            </p>
+            <div className="row gap-12 justify-center">
+              <Link href="/dashboard/clipper/feed" className="btn btn-primary">Browse Campaigns →</Link>
+              <Link href="/dashboard/clipper/submit" className="btn btn-secondary">Submit a Clip</Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {hasData && <div className="content fade-up">
         <div className="stat-grid mb-20" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
           <div className="stat-card">
             <div className="stat-ico ico-green">
@@ -120,7 +132,7 @@ export default async function AnalyticsPage() {
           cumulativeViews={cumulativeViews}
           platformStats={platformStats}
         />
-      </div>
+      </div>}
     </>
   )
 }

@@ -3,7 +3,12 @@ import SubmitClipClient from '@/components/clipper/SubmitClipClient'
 
 export const dynamic = 'force-dynamic'
 
-export default async function SubmitClipPage() {
+export default async function SubmitClipPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ campaign?: string }>
+}) {
+  const { campaign: preselectedId } = await searchParams
   const db = createAdminClient()
 
   const { data: raw, error } = await (db.from('campaigns') as any)
@@ -44,7 +49,7 @@ export default async function SubmitClipPage() {
       </div>
 
       <div className="content fade-up">
-        <SubmitClipClient campaigns={campaigns} />
+        <SubmitClipClient campaigns={campaigns} preselectedId={preselectedId} />
       </div>
     </>
   )

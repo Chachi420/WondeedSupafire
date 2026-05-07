@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import NotificationBell from '@/components/NotificationBell'
 
 const NAV = [
   { href: '/dashboard/admin',             label: 'Overview',          exact: true,  icon: 'home' },
@@ -85,9 +86,12 @@ export default function AdminSidebar({ adminName, pendingCount }: { adminName?: 
       </nav>
 
       <div className="sidebar-foot">
-        <div className="row gap-6">
-          <span className="badge-dot" style={{ background: '#f59e0b' }} />
-          {pendingCount ?? 0} in queue
+        <div className="row between" style={{ alignItems: 'center' }}>
+          <div className="row gap-6">
+            <span className="badge-dot" style={{ background: '#f59e0b' }} />
+            {pendingCount ?? 0} in queue
+          </div>
+          <NotificationBell />
         </div>
         <div className="mt-4 faint">v2.4.0-admin</div>
       </div>

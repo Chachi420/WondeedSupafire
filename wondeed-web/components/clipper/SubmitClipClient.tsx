@@ -19,8 +19,11 @@ type ClipResult = { url: string; success: boolean; viewCount?: number | null; er
 
 const MAX_CLIPS = 10
 
-export default function SubmitClipClient({ campaigns }: { campaigns: Campaign[] }) {
-  const [campaignId, setCampaignId] = useState(campaigns[0]?.id ?? '')
+export default function SubmitClipClient({ campaigns, preselectedId }: { campaigns: Campaign[]; preselectedId?: string }) {
+  const defaultId = preselectedId && campaigns.find(c => c.id === preselectedId)
+    ? preselectedId
+    : campaigns[0]?.id ?? ''
+  const [campaignId, setCampaignId] = useState(defaultId)
   const [platform, setPlatform]     = useState<'instagram' | 'youtube'>('instagram')
   const [urls, setUrls]             = useState<string[]>([''])
   const [isPending, startTransition] = useTransition()

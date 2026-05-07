@@ -1,19 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import EarningsClient from '@/components/clipper/EarningsClient'
-
-function fmt(n: number) {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency', currency: 'INR', maximumFractionDigits: 0,
-  }).format(n)
-}
-
-const PAYOUT_STATUS_STYLES: Record<string, string> = {
-  requested:  'bg-amber-100 text-amber-800',
-  processing: 'bg-blue-100 text-blue-700',
-  completed:  'bg-green-100 text-green-800',
-  failed:     'bg-red-100 text-red-700',
-}
+import { fmtRupeeFull as fmt } from '@/lib/format'
 
 export default async function EarningsPage() {
   const supabase = await createClient()
@@ -75,15 +63,13 @@ export default async function EarningsPage() {
             <div className="row between items-start">
               <div>
                 <div className="text-xs" style={{ color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
-                  Available Balance
+                  Available to Withdraw
                 </div>
                 <div className="mt-8" style={{ fontSize: 48, fontWeight: 600, letterSpacing: '-0.03em', lineHeight: 1 }}>
                   {fmt(balance)}
                 </div>
-                <div className="mt-12 row gap-12 text-md" style={{ color: 'rgba(255,255,255,0.85)' }}>
-                  <span>Lifetime: {fmt(totalCredited)}</span>
-                  <span style={{ opacity: 0.4 }}>·</span>
-                  <span>Paid out: {fmt(totalDebited)}</span>
+                <div className="mt-4 text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  = Total earned ({fmt(totalCredited)}) minus paid out ({fmt(totalDebited)})
                 </div>
               </div>
               {account?.is_verified && (
@@ -122,7 +108,7 @@ export default async function EarningsPage() {
                     <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>
                   </svg>
                 </div>
-                <div className="stat-label">Total Earned</div>
+                <div className="stat-label">Lifetime Earned</div>
                 <div className="stat-value">{fmt(totalCredited)}</div>
               </div>
             </div>

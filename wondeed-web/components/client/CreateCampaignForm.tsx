@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { createCampaignAndSubmit } from '@/app/dashboard/client/actions'
 import { NICHES } from '@/components/client/CampaignForm'
+import { fmtRupee as fmt, fmtViews } from '@/lib/format'
 
 const CLIP_LENGTHS = [
   { value: '30', label: '30s' },
@@ -44,17 +45,6 @@ const CLIPPER_TIERS = [
   { value: 'enterprise', label: 'Tier 3 – Enterprise', desc: 'Top-tier clippers only' },
 ]
 
-function fmt(n: number) {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency', currency: 'INR', maximumFractionDigits: 0,
-  }).format(n)
-}
-
-function fmtViews(n: number) {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
-  if (n >= 1_000)     return `${(n / 1_000).toFixed(0)}K`
-  return n.toString()
-}
 
 type FieldErrors = Partial<Record<string, string>>
 
@@ -151,6 +141,23 @@ export default function CreateCampaignForm({ walletBalance }: { walletBalance: n
 
   return (
     <form onSubmit={handleSubmit} className="col gap-16">
+
+      {/* ── Sticky stepper ── */}
+      <div style={{ position: 'sticky', top: 0, zIndex: 20, background: 'var(--bg)', padding: '10px 0 6px', marginBottom: 4, borderBottom: '1px solid var(--border)' }}>
+        <div className="row gap-0" style={{ background: 'var(--surface)', borderRadius: 10, padding: '6px 8px', display: 'flex', gap: 4 }}>
+          {[
+            { n: 1, label: 'Basics' },
+            { n: 2, label: 'Clip Specs' },
+            { n: 3, label: 'Platforms' },
+            { n: 4, label: 'Budget' },
+          ].map(({ n, label }) => (
+            <div key={n} className="row gap-6" style={{ flex: 1, justifyContent: 'center', padding: '5px 8px', borderRadius: 7, background: 'var(--surface-2)', opacity: 1 }}>
+              <span style={{ width: 18, height: 18, borderRadius: '50%', background: 'var(--primary)', color: '#0a0a0a', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{n}</span>
+              <span className="text-xs med" style={{ color: 'var(--fg)' }}>{label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* ── 1. Campaign Basics ── */}
       <div className="card">
@@ -524,6 +531,35 @@ export default function CreateCampaignForm({ walletBalance }: { walletBalance: n
         </div>
       )}
 
+      {/* ── Fee disclosure + Review summary ── */}
+      {budgetOk && (
+        <div className="card" style={{ padding: '20px 24px', background: 'rgba(132,204,22,0.04)', border: '1px solid rgba(132,204,22,0.2)' }}>
+          <div className="row gap-8 mb-12">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16, color: 'var(--primary)', flexShrink: 0 }}>
+              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <div className="bold text-xs">Campaign Cost Summary</div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+            {[
+              { label: 'Campaign budget', value: fmt(budgetNum), note: 'Locked in wallet escrow' },
+              { label: 'Platform fee', value: '20%', note: 'Included in CPM — ₹0 extra' },
+              { label: 'You pay today', value: fmt(budgetNum), note: 'Total wallet deduction' },
+              { label: 'Est. reach', value: maxViews > 0 ? fmtViews(maxViews) : '—', note: 'At indicative CPM' },
+            ].map(({ label, value, note }) => (
+              <div key={label}>
+                <div className="text-xs faint">{label}</div>
+                <div className="med" style={{ fontSize: 15, marginTop: 2 }}>{value}</div>
+                <div className="text-xs faint mt-2" style={{ fontSize: 11 }}>{note}</div>
+              </div>
+            ))}
+          </div>
+          <div className="text-xs faint mt-12" style={{ borderTop: '1px solid var(--border)', paddingTop: 10, lineHeight: 1.6 }}>
+            The 20% platform fee is built into the CPM rate — brands never pay extra. You&apos;re charged {fmt(budgetNum)} today; unspent budget is returned to your wallet after the campaign ends.
+          </div>
+        </div>
+      )}
+
       {/* Submit bar */}
       <div className="card" style={{ padding: '16px 24px' }}>
         <div className="row between items-center">
@@ -535,7 +571,7 @@ export default function CreateCampaignForm({ walletBalance }: { walletBalance: n
             </span>
             {budgetOk && (
               <span className="faint">
-                Will deduct: <span className="med">{fmt(budgetNum)}</span>
+                Will deduct: <span className="med" style={{ color: 'var(--primary)' }}>{fmt(budgetNum)}</span>
               </span>
             )}
           </div>
