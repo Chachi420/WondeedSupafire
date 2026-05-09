@@ -1,18 +1,27 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
-// Called by Supabase after email magic link (not used for phone OTP,
-// but required if you ever add magic link or OAuth flows).
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
-  const code  = searchParams.get('code')
-  const next  = searchParams.get('next') ?? '/dashboard'
+  const code = searchParams.get('code')
 
   if (code) {
     const supabase = await createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`)
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data: profile } = await (supabase as any)
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .maybeSingle()
+        const role = profile?.role
+        if (role === 'client')  return NextResponse.redirect(`${origin}/dashboard/client`)
+        if (role === 'clipper') return NextResponse.redirect(`${origin}/dashboard/clipper`)
+        if (role === 'admin')   return NextResponse.redirect(`${origin}/dashboard/admin`)
+        return NextResponse.redirect(`${origin}/onboard`)
+      }
     }
   }
 
