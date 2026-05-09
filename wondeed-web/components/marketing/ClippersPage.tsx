@@ -82,9 +82,9 @@ function ClippersHero() {
             </div>
             <div style={{ marginTop: 40, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', borderRadius: 18, overflow: 'hidden', border: '1px solid var(--hairline)' }}>
               {([
-                { tier: 'Standard', rate: '₹3.2', per: 'per 1K views' },
-                { tier: 'Medium',   rate: '₹5.5', per: 'per 1K views' },
-                { tier: 'High',     rate: '₹8.5', per: 'per 1K views' },
+                { tier: 'Standard', rate: '₹5',  per: 'per 1K views' },
+                { tier: 'Medium',   rate: '₹7',  per: 'per 1K views' },
+                { tier: 'High',     rate: '₹10', per: 'per 1K views' },
               ] as const).map((t, i) => (
                 <div key={i} style={{
                   background: i === 2 ? 'var(--green)' : i === 1 ? 'var(--ink-2)' : 'var(--ink)',
@@ -216,7 +216,7 @@ function EarningsCalculator() {
   const [tier, setTier]   = useState<'high' | 'medium' | 'standard'>('high')
   const [views, setViews] = useState(150000)
 
-  const mult: Record<string, number> = { high: 0.085, medium: 0.055, standard: 0.032 }
+  const mult: Record<string, number> = { high: 0.01, medium: 0.007, standard: 0.005 }
   const earnings = Math.round(views * mult[tier])
 
   const tiers = [
@@ -253,10 +253,10 @@ function EarningsCalculator() {
                 <span className="calc-label">Estimated views</span>
                 <span style={{ fontFamily: 'var(--display)', fontWeight: 700, fontSize: 22, letterSpacing: '-0.02em' }}>{fmtViews(views)}</span>
               </div>
-              <input type="range" className="range" min={10000} max={500000} step={5000}
+              <input type="range" className="range" min={10000} max={1000000} step={10000}
                 value={views} onChange={e => setViews(+e.target.value)} style={{ marginTop: 16 }} />
               <div className="range-row">
-                <span>10K</span><span>1L</span><span>3L</span><span>5L</span>
+                <span>10K</span><span>1L</span><span>5L</span><span>10L</span>
               </div>
             </div>
             <div style={{ fontSize: 13, color: 'var(--fg-faint)', lineHeight: 1.5 }}>
@@ -358,9 +358,10 @@ function ClipperLadder() {
 
 function EarningsPotential() {
   const rows = [
-    { label: '50,000 views',    std: 1600,  med: 2750,  high: 4250  },
-    { label: '1,00,000 views',  std: 3200,  med: 5500,  high: 8500  },
-    { label: '5,00,000 views',  std: 16000, med: 27500, high: 42500 },
+    { label: '50,000 views',    std: 250,  med: 350,  high: 500  },
+    { label: '1,00,000 views',  std: 500,  med: 700,  high: 1000  },
+    { label: '5,00,000 views',  std: 2500, med: 3500, high: 5000 },
+    { label: '10,00,000 views', std: 5000, med: 7000, high: 10000 },
   ]
   const fmt = (n: number) => '₹' + n.toLocaleString('en-IN')
   return (
@@ -390,7 +391,7 @@ function EarningsPotential() {
           ))}
         </div>
         <p style={{ marginTop: 20, fontSize: 13, color: 'var(--fg-faint)', maxWidth: '72ch' }}>
-          Rates: Standard ₹3.2 / 1K views · Medium ₹5.5 / 1K · High ₹8.5 / 1K. Actual rates vary by campaign. No ceiling — a viral clip keeps earning as long as views come in.
+          Rates: Standard ₹5 / 1K views · Medium ₹7 / 1K · High ₹10 / 1K. Actual rates vary by campaign. No ceiling — a viral clip keeps earning as long as views come in.
         </p>
       </div>
     </section>
