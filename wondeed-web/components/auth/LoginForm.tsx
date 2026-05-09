@@ -125,7 +125,7 @@ export default function LoginForm() {
 
   const canSubmit = method === 'email'    ? email.includes('@')
     : method === 'phone'    ? phone.replace(/\D/g, '').length >= 10
-    : email.includes('@') && password.length >= 6
+    : email.includes('@') && password.length > 0
 
   return (
     <div className="col" style={{ gap: 0 }}>
