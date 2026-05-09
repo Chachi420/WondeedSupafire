@@ -1,12 +1,11 @@
 import Nav from '@/components/marketing/Nav'
 import Footer from '@/components/marketing/Footer'
-import HomePage from '@/components/marketing/HomePage'
 
-export default function Home() {
+export default function MarketingLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="mkt-wrap">
       <Nav />
-      <HomePage />
+      {children}
       <Footer />
     </div>
   )
