@@ -16,7 +16,7 @@ const DASHBOARD_ROLE: Array<{ prefix: string; role: UserRole }> = [
   { prefix: '/dashboard/admin',   role: 'admin'   },
 ]
 
-const PUBLIC_PATHS = ['/', '/login']
+const PUBLIC_PATHS = ['/', '/login', '/brands', '/clippers', '/pricing', '/trust', '/faq']
 
 async function getRole(supabase: ReturnType<typeof createServerClient<Database>>, userId: string): Promise<UserRole | null> {
   const { data } = await supabase
