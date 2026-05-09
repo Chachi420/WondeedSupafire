@@ -34,6 +34,15 @@ async function getRole(supabase: ReturnType<typeof createServerClient<Database>>
 }
 
 export async function updateSession(request: NextRequest) {
+  // If Supabase lands the OAuth code anywhere other than the callback, forward it there
+  const code = request.nextUrl.searchParams.get('code')
+  if (code && !request.nextUrl.pathname.startsWith('/api/auth')) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/api/auth/callback'
+    url.searchParams.set('code', code)
+    return NextResponse.redirect(url)
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient<Database>(
