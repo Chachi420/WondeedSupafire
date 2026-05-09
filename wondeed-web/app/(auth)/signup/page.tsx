@@ -1,6 +1,6 @@
-import LoginForm from '@/components/auth/LoginForm'
+import SignupForm from '@/components/auth/SignupForm'
 
-export default function LoginPage() {
+export default function SignupPage() {
   return (
     <div className="card" style={{ width: '100%', maxWidth: 400, padding: '36px 32px' }}>
       <div style={{ marginBottom: 28 }}>
@@ -13,10 +13,10 @@ export default function LoginPage() {
           }}>W</div>
           <span style={{ fontSize: 18, fontWeight: 700 }}>Wondeed</span>
         </div>
-        <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>Welcome back</h1>
-        <p className="text-xs faint">Sign in to your account</p>
+        <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>Create an account</h1>
+        <p className="text-xs faint">Join India&apos;s performance-based clipping marketplace</p>
       </div>
-      <LoginForm />
+      <SignupForm />
     </div>
   )
 }

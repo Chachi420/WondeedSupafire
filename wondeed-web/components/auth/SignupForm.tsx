@@ -5,8 +5,13 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
-type Method = 'email' | 'phone' | 'password'
-type Step   = 'input' | 'otp'
+type Method = 'email' | 'phone'
+type Step   = 'input' | 'otp' | 'done'
+
+const ROLES = [
+  { value: 'client'  as const, label: 'Brand / Client', desc: 'Post clipping campaigns and fund them with a budget' },
+  { value: 'clipper' as const, label: 'Clipper',        desc: 'Join campaigns, post clips, and earn per view' },
+]
 
 function GoogleIcon() {
   return (
@@ -26,13 +31,7 @@ function toE164(raw: string): string {
   return `+${digits}`
 }
 
-const METHODS: { value: Method; label: string }[] = [
-  { value: 'email',    label: 'Email OTP' },
-  { value: 'phone',    label: 'Phone OTP' },
-  { value: 'password', label: 'Password'  },
-]
-
-export default function LoginForm() {
+export default function SignupForm() {
   const router   = useRouter()
   const supabase = createClient()
 
@@ -42,6 +41,7 @@ export default function LoginForm() {
   const [phone, setPhone]       = useState('')
   const [password, setPassword] = useState('')
   const [otp, setOtp]           = useState('')
+  const [role, setRole]         = useState<'client' | 'clipper'>('clipper')
   const [loading, setLoading]   = useState(false)
   const [gLoading, setGLoading] = useState(false)
   const [error, setError]       = useState<string | null>(null)
@@ -69,35 +69,31 @@ export default function LoginForm() {
     setLoading(true)
 
     if (method === 'email') {
-      const { error: otpError } = await supabase.auth.signInWithOtp({
+      const { error: signUpError } = await supabase.auth.signUp({
         email,
-        options: { shouldCreateUser: false },
+        password,
+        options: {
+          data: { role },
+          emailRedirectTo: `${window.location.origin}/api/auth/callback`,
+        },
       })
-      if (otpError) {
-        setError('No account found with this email. Sign up first.')
-      } else {
-        setStep('otp')
-      }
-    } else if (method === 'phone') {
+      if (signUpError) setError(signUpError.message)
+      else setStep('done')
+    } else {
       const e164 = toE164(phone)
       const { data: existing } = await supabase
         .from('profiles').select('role').eq('phone', e164).maybeSingle()
-      if (!existing) {
-        setError('No account found with this number. Sign up first.')
+      if (existing) {
+        setError('An account already exists with this number. Log in instead.')
         setLoading(false)
         return
       }
-      const { error: otpError } = await supabase.auth.signInWithOtp({ phone: e164 })
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        phone: e164,
+        options: { data: { role } },
+      })
       if (otpError) setError(otpError.message)
       else setStep('otp')
-    } else {
-      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
-      if (signInError) {
-        setError('Incorrect email or password.')
-      } else {
-        router.push('/dashboard')
-        router.refresh()
-      }
     }
     setLoading(false)
   }
@@ -107,25 +103,51 @@ export default function LoginForm() {
     setError(null)
     setLoading(true)
 
-    let verifyError: { message: string } | null = null
-    if (method === 'email') {
-      const { error } = await supabase.auth.verifyOtp({ email, token: otp, type: 'email' })
-      verifyError = error
-    } else {
-      const { error } = await supabase.auth.verifyOtp({ phone: toE164(phone), token: otp, type: 'sms' })
-      verifyError = error
-    }
+    const { error: verifyError } = await supabase.auth.verifyOtp({
+      phone: toE164(phone), token: otp, type: 'sms',
+    })
 
     if (verifyError) { setError(verifyError.message); setLoading(false); return }
     router.push('/dashboard')
     router.refresh()
   }
 
-  const dest = method === 'email' ? email : `+91 ${phone}`
+  if (step === 'done') {
+    return (
+      <div className="col gap-16" style={{ textAlign: 'center' }}>
+        <div style={{
+          width: 56, height: 56, borderRadius: '50%',
+          background: 'rgba(163,230,53,0.15)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto',
+        }}>
+          <svg width="28" height="28" fill="none" stroke="var(--primary)" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <div>
+          <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Check your email</h2>
+          <p className="text-xs faint" style={{ lineHeight: 1.6 }}>
+            We sent a confirmation link to <strong>{email}</strong>.
+            Click it to verify your account and get started.
+          </p>
+        </div>
+        <p className="text-xs faint" style={{ marginTop: 4 }}>
+          Wrong email?{' '}
+          <button
+            type="button"
+            onClick={() => { setStep('input'); setError(null) }}
+            style={{ color: 'var(--primary)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 12, padding: 0 }}
+          >
+            Go back
+          </button>
+        </p>
+      </div>
+    )
+  }
 
-  const canSubmit = method === 'email'    ? email.includes('@')
-    : method === 'phone'    ? phone.replace(/\D/g, '').length >= 10
-    : email.includes('@') && password.length >= 6
+  const canSubmit = method === 'email'
+    ? email.includes('@') && password.length >= 8
+    : phone.replace(/\D/g, '').length >= 10
 
   return (
     <div className="col" style={{ gap: 0 }}>
@@ -161,70 +183,85 @@ export default function LoginForm() {
         borderRadius: 8, padding: 3, marginBottom: 20,
         border: '1px solid var(--border)',
       }}>
-        {METHODS.map(m => (
+        {(['email', 'phone'] as Method[]).map(m => (
           <button
-            key={m.value}
+            key={m}
             type="button"
-            onClick={() => switchMethod(m.value)}
+            onClick={() => switchMethod(m)}
             style={{
-              flex: 1, padding: '7px 6px', borderRadius: 6,
-              background: method === m.value ? 'var(--surface)' : 'transparent',
-              border: method === m.value ? '1px solid var(--border)' : '1px solid transparent',
-              color: method === m.value ? 'var(--fg)' : 'var(--fg-muted)',
-              fontSize: 12, fontWeight: method === m.value ? 600 : 400,
+              flex: 1, padding: '7px 12px', borderRadius: 6,
+              background: method === m ? 'var(--surface)' : 'transparent',
+              border: method === m ? '1px solid var(--border)' : '1px solid transparent',
+              color: method === m ? 'var(--fg)' : 'var(--fg-muted)',
+              fontSize: 13, fontWeight: method === m ? 600 : 400,
               cursor: 'pointer', transition: 'all 0.15s',
             }}
           >
-            {m.label}
+            {m === 'email' ? 'Email' : 'Phone'}
           </button>
         ))}
       </div>
 
+      {/* Role selector */}
+      <div className="field" style={{ marginBottom: 16 }}>
+        <label className="field-label">I am a…</label>
+        <div className="col gap-8">
+          {ROLES.map(r => (
+            <label
+              key={r.value}
+              style={{
+                display: 'flex', alignItems: 'flex-start', gap: 12,
+                padding: '12px 14px', borderRadius: 8, cursor: 'pointer',
+                border: `1px solid ${role === r.value ? 'var(--primary)' : 'var(--border)'}`,
+                background: role === r.value ? 'rgba(163,230,53,0.06)' : 'var(--surface)',
+              }}
+            >
+              <input
+                type="radio" name="signup-role" value={r.value} checked={role === r.value}
+                onChange={() => setRole(r.value)}
+                style={{ marginTop: 2, accentColor: 'var(--primary)' }}
+              />
+              <div>
+                <p className="med text-xs">{r.label}</p>
+                <p className="text-xs faint mt-4">{r.desc}</p>
+              </div>
+            </label>
+          ))}
+        </div>
+      </div>
+
       {step === 'input' ? (
         <form onSubmit={handleSend} className="col gap-16">
-          {method === 'email' && (
-            <div className="field">
-              <label htmlFor="login-email" className="field-label">Email address</label>
-              <input
-                id="login-email" type="email" placeholder="you@example.com"
-                value={email} onChange={e => setEmail(e.target.value)}
-                required className="input"
-              />
-              <span className="field-hint">We'll send a 6-digit code to your inbox</span>
-            </div>
-          )}
-
-          {method === 'phone' && (
-            <div className="field">
-              <label htmlFor="login-phone" className="field-label">Phone number</label>
-              <input
-                id="login-phone" type="tel" placeholder="98765 43210"
-                value={phone} onChange={e => setPhone(e.target.value)}
-                required className="input"
-              />
-              <span className="field-hint">India (+91) only · SMS OTP</span>
-            </div>
-          )}
-
-          {method === 'password' && (
+          {method === 'email' ? (
             <>
               <div className="field">
-                <label htmlFor="login-pw-email" className="field-label">Email address</label>
+                <label htmlFor="signup-email" className="field-label">Email address</label>
                 <input
-                  id="login-pw-email" type="email" placeholder="you@example.com"
+                  id="signup-email" type="email" placeholder="you@example.com"
                   value={email} onChange={e => setEmail(e.target.value)}
                   required className="input"
                 />
               </div>
               <div className="field">
-                <label htmlFor="login-pw" className="field-label">Password</label>
+                <label htmlFor="signup-pw" className="field-label">Password</label>
                 <input
-                  id="login-pw" type="password" placeholder="••••••••"
+                  id="signup-pw" type="password" placeholder="Min. 8 characters"
                   value={password} onChange={e => setPassword(e.target.value)}
-                  required className="input"
+                  minLength={8} required className="input"
                 />
+                <span className="field-hint">A confirmation link will be sent to your email</span>
               </div>
             </>
+          ) : (
+            <div className="field">
+              <label htmlFor="signup-phone" className="field-label">Phone number</label>
+              <input
+                id="signup-phone" type="tel" placeholder="98765 43210"
+                value={phone} onChange={e => setPhone(e.target.value)}
+                required className="input"
+              />
+              <span className="field-hint">India (+91) only · OTP verification</span>
+            </div>
           )}
 
           {error && <p className="text-xs" style={{ color: 'var(--danger)' }}>{error}</p>}
@@ -235,23 +272,23 @@ export default function LoginForm() {
             className="btn btn-primary btn-block"
           >
             {loading
-              ? (method === 'password' ? 'Signing in…' : 'Sending…')
-              : method === 'password' ? 'Sign in' : 'Send code'}
+              ? (method === 'email' ? 'Creating account…' : 'Sending code…')
+              : method === 'email' ? 'Create account' : 'Send OTP'}
           </button>
         </form>
       ) : (
         <form onSubmit={handleVerify} className="col gap-16">
           <div className="field">
-            <label htmlFor="login-otp" className="field-label">Enter 6-digit code</label>
+            <label htmlFor="signup-otp" className="field-label">Enter 6-digit code</label>
             <input
-              id="login-otp" type="text" inputMode="numeric"
+              id="signup-otp" type="text" inputMode="numeric"
               pattern="[0-9]{6}" maxLength={6}
               placeholder="• • • • • •"
               value={otp} onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
               required autoFocus className="input"
               style={{ textAlign: 'center', letterSpacing: '0.35em', fontSize: 22 }}
             />
-            <span className="field-hint">Sent to {dest}</span>
+            <span className="field-hint">Sent to +91 {phone}</span>
           </div>
 
           {error && <p className="text-xs" style={{ color: 'var(--danger)' }}>{error}</p>}
@@ -261,7 +298,7 @@ export default function LoginForm() {
             disabled={loading || otp.length !== 6}
             className="btn btn-primary btn-block"
           >
-            {loading ? 'Verifying…' : 'Verify & sign in'}
+            {loading ? 'Verifying…' : 'Verify & create account'}
           </button>
 
           <button
@@ -269,14 +306,14 @@ export default function LoginForm() {
             onClick={() => { setStep('input'); setOtp(''); setError(null) }}
             className="btn btn-ghost btn-block"
           >
-            ← Change {method === 'email' ? 'email' : 'number'}
+            ← Change number
           </button>
         </form>
       )}
 
       <p className="text-xs" style={{ textAlign: 'center', marginTop: 24, color: 'var(--fg-muted)' }}>
-        Don&apos;t have an account?{' '}
-        <Link href="/signup" style={{ color: 'var(--primary)', fontWeight: 600 }}>Sign up →</Link>
+        Already have an account?{' '}
+        <Link href="/login" style={{ color: 'var(--primary)', fontWeight: 600 }}>Log in →</Link>
       </p>
     </div>
   )

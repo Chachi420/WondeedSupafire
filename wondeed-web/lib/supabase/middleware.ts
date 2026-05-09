@@ -17,7 +17,7 @@ const DASHBOARD_ROLE: Array<{ prefix: string; role: UserRole }> = [
 ]
 
 const PUBLIC_PATHS = [
-  '/', '/login',
+  '/', '/login', '/signup',
   '/brands', '/clippers', '/pricing', '/trust', '/faq',
   '/about', '/careers', '/blog', '/press',
   '/help', '/creator-guide', '/brand-playbook', '/developers',
