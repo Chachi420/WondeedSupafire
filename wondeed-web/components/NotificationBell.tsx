@@ -107,11 +107,12 @@ export default function NotificationBell() {
 
       {open && (
         <div style={{
-          position: 'absolute', bottom: 'calc(100% + 8px)', left: 0,
-          width: 320, background: 'var(--surface)',
+          position: 'fixed', bottom: 80, right: 12,
+          width: 'min(320px, calc(100vw - 24px))',
+          background: 'var(--surface)',
           border: '1px solid var(--border)', borderRadius: 12,
           boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
-          zIndex: 100, overflow: 'hidden',
+          zIndex: 300, overflow: 'hidden',
         }}>
           <div className="row between" style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)' }}>
             <span className="med" style={{ fontSize: 13 }}>Notifications</span>

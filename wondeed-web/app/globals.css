@@ -762,17 +762,90 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
 }
 ::-webkit-scrollbar-thumb:hover { background: var(--fg-faint); }
 
+/* ========== Mobile Nav Button & Overlay ========== */
+.mob-menu-btn {
+  display: none;
+}
+.mob-overlay {
+  display: none;
+}
+.mob-close-btn {
+  display: none;
+}
+
 /* ========== Responsive / Mobile ========== */
 @media (max-width: 768px) {
-  .sidebar { display: none; }
+  /* Sidebar hidden by default; shown as drawer when .sidebar-open */
+  .sidebar {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 280px;
+    z-index: 200;
+    box-shadow: 4px 0 32px rgba(0,0,0,0.35);
+    overflow-y: auto;
+  }
+  .sidebar.sidebar-open {
+    display: flex;
+  }
 
-  .content { padding: 16px 14px 40px; }
-  .topbar  { padding: 12px 14px; }
+  /* Hamburger button — fixed top-left */
+  .mob-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 150;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--sidebar);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--sidebar-fg);
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
 
-  /* Collapse all grid systems to single column */
+  /* Backdrop */
+  .mob-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 199;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+
+  /* Close button inside sidebar */
+  .mob-close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: flex-end;
+    margin: 10px 10px 0 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.08);
+    border: none;
+    color: var(--sidebar-fg);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  /* Push content so page title doesn't hide behind hamburger */
+  .topbar  { padding: 12px 14px 12px 62px; }
+  .content { padding: 16px 14px 60px; }
+
+  /* Grids: collapse to 1 column */
   .g2, .g3, .g4 { grid-template-columns: 1fr; gap: 12px; }
 
-  /* Tables scroll horizontally rather than overflow */
+  /* Tables scroll horizontally */
   .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
   /* Stat row wraps */
@@ -781,23 +854,26 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
   /* Filter bar stacks */
   .filter-bar-inner { flex-direction: column; gap: 14px; }
 
-  /* Campaign cards: 2-col grid for the brief detail page is fine on tablet */
-
   /* Wallet hero: reduce padding */
   .wallet-hero { padding: 20px 20px 28px; }
+
+  /* Row layouts that should stack on mobile */
+  .mob-stack { flex-direction: column !important; }
+  .mob-full  { width: 100% !important; }
 }
 
-@media (max-width: 560px) {
-  /* Collapse 2-col grids on very small screens */
-  .g2 { grid-template-columns: 1fr; }
-
+@media (max-width: 480px) {
   /* Scale down large type */
   .text-3xl { font-size: 22px; }
   .text-4xl { font-size: 26px; }
   .topbar h1 { font-size: 17px; }
 
-  /* Campaign card stats grid: 2-col is still fine at this width */
-
   /* Shrink content padding further */
-  .content { padding: 12px 10px 32px; }
+  .content { padding: 12px 10px 60px; }
+
+  /* Stat cards: 2 columns on small phones */
+  .stat-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px; }
+
+  /* Campaign feed: single column on phones */
+  .g3 { grid-template-columns: 1fr; }
 }

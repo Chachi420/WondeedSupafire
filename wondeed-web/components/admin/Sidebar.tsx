@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -34,9 +35,10 @@ function Icon({ name }: { name: string }) {
 }
 
 export default function AdminSidebar({ adminName, pendingCount }: { adminName?: string; pendingCount?: number }) {
-  const pathname = usePathname()
-  const router   = useRouter()
-  const supabase = createClient()
+  const pathname    = usePathname()
+  const router      = useRouter()
+  const supabase    = createClient()
+  const [open, setOpen] = useState(false)
 
   async function handleSignOut() {
     await supabase.auth.signOut()
@@ -49,7 +51,19 @@ export default function AdminSidebar({ adminName, pendingCount }: { adminName?: 
     : 'AD'
 
   return (
-    <aside className="sidebar">
+    <>
+      <button className="mob-menu-btn" onClick={() => setOpen(true)} aria-label="Open menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ width: 18, height: 18 }}>
+          <path d="M3 6h18M3 12h18M3 18h18"/>
+        </svg>
+      </button>
+      {open && <div className="mob-overlay" onClick={() => setOpen(false)} />}
+    <aside className={`sidebar${open ? ' sidebar-open' : ''}`}>
+      <button className="mob-close-btn" onClick={() => setOpen(false)} aria-label="Close menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ width: 16, height: 16 }}>
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
       <div className="sidebar-brand">
         <div className="brand-mark">W</div>
         <div className="brand-name">
@@ -72,7 +86,7 @@ export default function AdminSidebar({ adminName, pendingCount }: { adminName?: 
           const active = item.exact ? pathname === item.href : pathname.startsWith(item.href)
           const badge = (item as any).isSubmissions && pendingCount != null && pendingCount > 0 ? pendingCount : null
           return (
-            <Link key={item.href} href={item.href} className={`nav-item ${active ? 'active' : ''}`}>
+            <Link key={item.href} href={item.href} className={`nav-item ${active ? 'active' : ''}`} onClick={() => setOpen(false)}>
               <Icon name={item.icon} />
               {item.label}
               {badge != null && <span className="nav-badge-red">{badge}</span>}
@@ -96,5 +110,6 @@ export default function AdminSidebar({ adminName, pendingCount }: { adminName?: 
         <div className="mt-4 faint">v2.4.0-admin</div>
       </div>
     </aside>
+    </>
   )
 }
