@@ -9,7 +9,7 @@ import Icon from './Icon'
 export function fmtINR(n: number): string {
   if (n >= 1e7) return '₹' + (n / 1e7).toFixed(n >= 1e8 ? 0 : 2).replace(/\.0+$/, '') + ' Cr'
   if (n >= 1e5) return '₹' + (n / 1e5).toFixed(n >= 1e6 ? 0 : 2).replace(/\.0+$/, '') + ' L'
-  if (n >= 1e3) return '₹' + Math.round(n / 1e3) + 'K'
+  if (n >= 1e3) return '₹' + (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'
   return '₹' + Math.round(n)
 }
 
