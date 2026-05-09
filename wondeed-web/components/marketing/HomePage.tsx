@@ -117,60 +117,37 @@ function MarketplaceLoop() {
   )
 }
 
-function LiveCampaignsTeaser() {
+function NicheShowcase() {
   const router = useRouter()
-  const cards = [
-    { niche: 'Fintech App', tier: 'High earning', budget: 200000, spent: 124000, days: 8, clippers: 42, var: '' },
-    { niche: 'D2C Beauty', tier: 'High earning', budget: 150000, spent: 38000, days: 12, clippers: 18, var: 'var-2' },
-    { niche: 'EdTech', tier: 'Medium earning', budget: 80000, spent: 24000, days: 6, clippers: 11, var: 'var-3' },
+  const niches = [
+    { name: 'Fintech & Stock',    desc: 'UPI apps, neo-banking, investment, credit cards' },
+    { name: 'D2C Beauty',         desc: 'Skincare, haircare, cosmetics, wellness products' },
+    { name: 'EdTech',             desc: 'JEE, NEET, UPSC, coding bootcamps, skill courses' },
+    { name: 'Gaming & Esports',   desc: 'Mobile titles, fantasy sports, PC, casual gaming' },
+    { name: 'Quick Commerce',     desc: 'Grocery delivery, food apps, hyper-local brands' },
+    { name: 'Lifestyle & Apparel',desc: 'Fashion, homewear, travel, health & fitness' },
   ]
   return (
     <section className="section white">
       <div className="container">
-        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 24, marginBottom: 40 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 24, marginBottom: 48 }}>
           <div>
-            <span className="eyebrow"><span className="dot" /> Live campaigns</span>
-            <h2 className="display-2" style={{ marginTop: 14 }}>Real briefs.<br />Open to clip right now.</h2>
+            <span className="eyebrow"><span className="dot" /> Open for campaigns</span>
+            <h2 className="display-2" style={{ marginTop: 14 }}>One brief.<br />30+ angles. Every niche.</h2>
           </div>
           <button className="btn btn-ghost" onClick={() => router.push('/login')}>
-            See all campaigns <Icon name="arrow-right" />
+            Start a campaign <Icon name="arrow-right" />
           </button>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
-          {cards.map((c, i) => (
-            <button key={i} className="cmp-card" onClick={() => router.push('/login')}>
-              <div className={`cmp-thumb ${c.var}`}>
-                <span className="cmp-pill"><span className="dot" />{c.tier}</span>
-              </div>
-              <div className="cmp-row">
-                <div>
-                  <div className="cmp-niche">{c.niche}</div>
-                  <div className="cmp-title" style={{ marginTop: 4 }}>Campaign #{1240 + i}</div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div className="cmp-niche">Days left</div>
-                  <div className="cmp-title" style={{ marginTop: 4 }}>{c.days}</div>
-                </div>
-              </div>
-              <div>
-                <div className="cmp-bar"><div style={{ width: `${(c.spent / c.budget) * 100}%` }} /></div>
-                <div className="cmp-meta" style={{ marginTop: 8 }}>
-                  <span><b>{fmtINR(c.budget - c.spent)}</b> remaining</span>
-                  <span>of {fmtINR(c.budget)}</span>
-                </div>
-              </div>
-              <div className="cmp-foot">
-                <div className="cmp-clippers">
-                  <div className="av-stack">
-                    <span className="av">A</span><span className="av">M</span><span className="av">S</span><span className="av">+</span>
-                  </div>
-                  <span>{c.clippers} clippers joined</span>
-                </div>
-                <span style={{ fontSize: 13, fontWeight: 600 }}>Join <Icon name="arrow-right" width={12} height={12} /></span>
-              </div>
-            </button>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 12 }}>
+          {niches.map((n, i) => (
+            <div key={i} className="card" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ fontFamily: 'var(--display)', fontWeight: 700, fontSize: 18, letterSpacing: '-0.015em' }}>{n.name}</div>
+              <p style={{ color: 'var(--fg-mute)', fontSize: 14, margin: 0, lineHeight: 1.5 }}>{n.desc}</p>
+            </div>
           ))}
         </div>
+        <p style={{ marginTop: 20, fontSize: 13, color: 'var(--fg-faint)' }}>All niches accepted · Brief to live in 48 hours · Clipper depth grows with CPM tier</p>
       </div>
     </section>
   )
@@ -331,49 +308,45 @@ function WhyWondeed() {
   )
 }
 
-function SocialProof() {
-  const stats = [
-    { num: '₹2.4', unit: 'Cr', lbl: 'Paid to clippers' },
-    { num: '1,200', unit: '+', lbl: 'Campaigns run' },
-    { num: '18', unit: 'Cr+', lbl: 'Views generated' },
-    { num: '8,400', unit: '+', lbl: 'Clippers registered' },
+function BrandPromises() {
+  const promises = [
+    {
+      num: '₹0',
+      title: 'If a clip gets zero views',
+      body: 'You pay nothing for a clip that doesn\'t land. The clipper took the swing. Your budget stays intact.',
+    },
+    {
+      num: '100%',
+      title: 'Of your budget goes to clippers',
+      body: 'Wondeed earns from your subscription, never from your campaign spend. Every rupee you deposit reaches a clipper.',
+    },
+    {
+      num: '72h',
+      title: 'To reject any clip — no questions',
+      body: 'Off-brand? Wrong tone? Reject inside the window and the view payout reverses automatically.',
+    },
+    {
+      num: '7d',
+      title: 'UPI payout after views clear',
+      body: 'Verified views → 72-hour hold → UPI settled. Tier 3 clippers get 3-day fast-track. No delays, no exceptions.',
+    },
   ]
   return (
     <section className="section dark">
       <div className="container">
-        <div className="stat-row">
-          {stats.map((s, i) => (
-            <div className="stat-cell" key={i}>
-              <div className="stat-num">{s.num}<span className="unit">{s.unit}</span></div>
-              <div className="stat-lbl">{s.lbl}</div>
+        <div className="section-head">
+          <span className="eyebrow"><span className="dot" /> Four guarantees</span>
+          <h2 className="display-2" style={{ color: 'white' }}>The numbers that actually matter.</h2>
+          <p className="lead">No follower estimates. No deck metrics. Four product facts that define every campaign on Wondeed.</p>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 1, background: 'rgba(255,255,255,0.07)', borderRadius: 24, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.07)' }}>
+          {promises.map((p, i) => (
+            <div key={i} style={{ background: 'var(--ink)', padding: 36, display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ fontFamily: 'var(--display)', fontWeight: 800, fontSize: 'clamp(48px, 5.5vw, 68px)', letterSpacing: '-0.04em', lineHeight: 1, color: 'var(--green)' }}>{p.num}</div>
+              <div style={{ fontFamily: 'var(--display)', fontWeight: 600, fontSize: 17, letterSpacing: '-0.01em', color: 'white', lineHeight: 1.3 }}>{p.title}</div>
+              <p style={{ color: 'var(--on-dark-2)', fontSize: 14, lineHeight: 1.6, margin: 0 }}>{p.body}</p>
             </div>
           ))}
-        </div>
-        <div className="tm-grid" style={{ marginTop: 56 }}>
-          <div className="tm-card" style={{ background: 'var(--ink-2)', borderColor: 'var(--hairline-dark-2)', color: 'var(--on-dark)' }}>
-            <p className="tm-quote" style={{ color: 'white' }}>
-              &ldquo;We ran a ₹2L launch and got 47 clips across 31 different handles in 9 days. Our previous influencer agency got us 3 posts for the same budget.&rdquo;
-            </p>
-            <div className="tm-meta">
-              <span className="tm-mark">L</span>
-              <div>
-                <div className="tm-name" style={{ color: 'white' }}>Lakshya R.</div>
-                <div className="tm-role" style={{ color: 'var(--on-dark-mute)' }}>Growth Lead · D2C Beauty Brand</div>
-              </div>
-            </div>
-          </div>
-          <div className="tm-card">
-            <p className="tm-quote">
-              &ldquo;I&apos;m 21, in college, started with 280 followers. In four months I&apos;ve made over ₹40,000 just clipping during evening study breaks. UPI hits same week.&rdquo;
-            </p>
-            <div className="tm-meta">
-              <span className="tm-mark">A</span>
-              <div>
-                <div className="tm-name">Arjun M.</div>
-                <div className="tm-role">Clipper · @arjun.cuts</div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </section>
@@ -422,7 +395,7 @@ export default function HomePage() {
         <div className="container">
           <div className="hero-grid">
             <div>
-              <span className="eyebrow"><span className="dot" /> Live · 1,200+ campaigns to date</span>
+              <span className="eyebrow"><span className="dot" /> Performance clipping marketplace</span>
               <h1 className="display-1" style={{ marginTop: 22 }}>
                 Pay only for<br />
                 <span style={{ color: 'var(--green-2)' }}>views</span>. Reach<br />
@@ -439,10 +412,6 @@ export default function HomePage() {
                   I want to clip &amp; earn
                 </button>
               </div>
-              <div className="live-ticker">
-                <span className="live-pulse" />
-                <span><b style={{ color: 'var(--fg)' }}>₹4,820</b> just paid out to <b style={{ color: 'var(--fg)' }}>@arjun.cuts</b> · 2 min ago</span>
-              </div>
             </div>
             <HeroVisual />
           </div>
@@ -450,10 +419,10 @@ export default function HomePage() {
       </section>
 
       <MarketplaceLoop />
-      <LiveCampaignsTeaser />
+      <NicheShowcase />
       <HowItWorksTabs />
       <WhyWondeed />
-      <SocialProof />
+      <BrandPromises />
       <HomeFAQTeaser />
       <FinalSplitCTA />
     </>

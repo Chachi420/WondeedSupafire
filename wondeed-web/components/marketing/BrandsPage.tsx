@@ -68,10 +68,6 @@ function BrandsHero() {
                 Talk to sales
               </button>
             </div>
-            <div className="live-ticker">
-              <span className="live-pulse" />
-              <span style={{ color: 'var(--on-dark-2)' }}>Active right now: <b style={{ color: 'white' }}>184 campaigns</b> across 22 niches</span>
-            </div>
           </div>
           <BrandsHeroVisual />
         </div>

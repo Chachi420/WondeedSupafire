@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Icon from './Icon'
 import { FAQItem, fmtINR, fmtViews, FinalSplitCTA } from './shared'
@@ -57,27 +57,7 @@ function ClipperHeroVisual() {
 }
 
 function ClippersHero() {
-  const router  = useRouter()
-  const [count, setCount] = useState(0)
-  const target  = 240
-
-  useEffect(() => {
-    let raf: number
-    const start = performance.now()
-    const dur   = 1600
-    const tick  = (t: number) => {
-      const p     = Math.min(1, (t - start) / dur)
-      const eased = 1 - Math.pow(1 - p, 3)
-      setCount(Math.round(target * eased))
-      if (p < 1) raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
-  }, [])
-
-  const display = count >= 100
-    ? `₹${(count / 100).toFixed(2).replace(/\.?0+$/, '')} Cr`
-    : `₹${count} L`
+  const router = useRouter()
 
   return (
     <section className="hero">
@@ -100,12 +80,23 @@ function ClippersHero() {
                 See open campaigns
               </button>
             </div>
-            <div style={{ marginTop: 40, padding: '20px 24px', background: 'var(--ink)', color: 'white', borderRadius: 18 }}>
-              <div style={{ fontFamily: 'var(--mono)', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--green)' }}>Paid to clippers so far</div>
-              <div style={{ fontFamily: 'var(--display)', fontWeight: 700, fontSize: 'clamp(40px, 5.4vw, 64px)', letterSpacing: '-0.04em', lineHeight: 1, marginTop: 6, fontVariantNumeric: 'tabular-nums' }}>
-                {display}
-              </div>
-              <div style={{ fontSize: 13, color: 'var(--on-dark-2)', marginTop: 8 }}>Across 8,400+ clippers · 18 Cr+ verified views</div>
+            <div style={{ marginTop: 40, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', borderRadius: 18, overflow: 'hidden', border: '1px solid var(--hairline)' }}>
+              {([
+                { tier: 'Standard', rate: '₹3.2', per: 'per 1K views' },
+                { tier: 'Medium',   rate: '₹5.5', per: 'per 1K views' },
+                { tier: 'High',     rate: '₹8.5', per: 'per 1K views' },
+              ] as const).map((t, i) => (
+                <div key={i} style={{
+                  background: i === 2 ? 'var(--green)' : i === 1 ? 'var(--ink-2)' : 'var(--ink)',
+                  padding: '20px 16px',
+                  display: 'flex', flexDirection: 'column', gap: 4,
+                  borderRight: i < 2 ? '1px solid rgba(255,255,255,0.08)' : 'none',
+                }}>
+                  <div style={{ fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: i === 2 ? 'rgba(10,14,39,0.6)' : 'var(--on-dark-mute)' }}>{t.tier}</div>
+                  <div style={{ fontFamily: 'var(--display)', fontWeight: 800, fontSize: 'clamp(22px, 2.8vw, 30px)', letterSpacing: '-0.03em', color: i === 2 ? 'var(--ink)' : 'white', lineHeight: 1 }}>{t.rate}</div>
+                  <div style={{ fontSize: 11, color: i === 2 ? 'rgba(10,14,39,0.55)' : 'var(--on-dark-2)' }}>{t.per}</div>
+                </div>
+              ))}
             </div>
           </div>
           <ClipperHeroVisual />
@@ -365,38 +356,42 @@ function ClipperLadder() {
   )
 }
 
-function TopClippersBoard() {
+function EarningsPotential() {
   const rows = [
-    { rank: 1, h: '@arjun.cuts',     v: 14250000, e: 124000 },
-    { rank: 2, h: '@maya.edits',     v: 12180000, e: 108200 },
-    { rank: 3, h: '@reels_by_neo',   v:  9840000, e:  89500 },
-    { rank: 4, h: '@diya.shorts',    v:  8120000, e:  72100 },
-    { rank: 5, h: '@thecutboy',      v:  7460000, e:  65800 },
-    { rank: 6, h: '@pratham.studio', v:  6120000, e:  54300 },
+    { label: '50,000 views',    std: 1600,  med: 2750,  high: 4250  },
+    { label: '1,00,000 views',  std: 3200,  med: 5500,  high: 8500  },
+    { label: '5,00,000 views',  std: 16000, med: 27500, high: 42500 },
   ]
+  const fmt = (n: number) => '₹' + n.toLocaleString('en-IN')
   return (
     <section className="section white">
       <div className="container">
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, marginBottom: 32 }}>
           <div>
-            <span className="eyebrow"><span className="dot" /> Top this month</span>
-            <h2 className="display-2" style={{ marginTop: 14 }}>The clippers crushing it in October.</h2>
+            <span className="eyebrow"><span className="dot" /> Earnings potential</span>
+            <h2 className="display-2" style={{ marginTop: 14 }}>What one good clip can pay.</h2>
           </div>
-          <span style={{ fontSize: 13, color: 'var(--fg-mute)', fontFamily: 'var(--mono)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Updated daily · anonymized handles</span>
+          <span style={{ fontSize: 13, color: 'var(--fg-mute)', fontFamily: 'var(--mono)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Per verified view · no ceiling</span>
         </div>
         <div className="lb">
-          <div className="lb-row head">
-            <span>#</span><span>Handle</span><span>Verified views</span><span>Earnings</span>
+          <div className="lb-row head" style={{ gridTemplateColumns: '1.6fr 1fr 1fr 1fr' }}>
+            <span>Views on your clip</span>
+            <span>Standard</span>
+            <span>Medium</span>
+            <span style={{ color: 'var(--green)' }}>High earning</span>
           </div>
-          {rows.map(r => (
-            <div className="lb-row" key={r.rank}>
-              <span className={`lb-rank ${r.rank <= 3 ? 'gold' : ''}`}>{r.rank}</span>
-              <span className="lb-handle">{r.h}</span>
-              <span className="lb-num">{fmtViews(r.v)}</span>
-              <span className="lb-num" style={{ color: 'var(--green-2)', fontWeight: 700 }}>{fmtINR(r.e)}</span>
+          {rows.map((r, i) => (
+            <div className="lb-row" key={i} style={{ gridTemplateColumns: '1.6fr 1fr 1fr 1fr' }}>
+              <span className="lb-handle">{r.label}</span>
+              <span className="lb-num">{fmt(r.std)}</span>
+              <span className="lb-num">{fmt(r.med)}</span>
+              <span className="lb-num" style={{ color: 'var(--green-2)', fontWeight: 700 }}>{fmt(r.high)}</span>
             </div>
           ))}
         </div>
+        <p style={{ marginTop: 20, fontSize: 13, color: 'var(--fg-faint)', maxWidth: '72ch' }}>
+          Rates: Standard ₹3.2 / 1K views · Medium ₹5.5 / 1K · High ₹8.5 / 1K. Actual rates vary by campaign. No ceiling — a viral clip keeps earning as long as views come in.
+        </p>
       </div>
     </section>
   )
@@ -460,7 +455,7 @@ export default function ClippersPage() {
       <EarningsCalculator />
       <ClipperRequirements />
       <ClipperLadder />
-      <TopClippersBoard />
+      <EarningsPotential />
       <ClipperFAQ />
       <ClipperFinalCTA />
     </>
