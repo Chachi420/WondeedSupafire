@@ -34,9 +34,11 @@ async function getRole(supabase: ReturnType<typeof createServerClient<Database>>
 }
 
 export async function updateSession(request: NextRequest) {
-  // If Supabase lands the OAuth code anywhere other than the callback, forward it there
-  const code = request.nextUrl.searchParams.get('code')
-  if (code && !request.nextUrl.pathname.startsWith('/api/auth')) {
+  // Supabase OAuth sometimes lands ?code=&state= on the homepage — forward to the callback.
+  // Only intercept when both code and state are present (OAuth signature), not generic ?code= params.
+  const code  = request.nextUrl.searchParams.get('code')
+  const state = request.nextUrl.searchParams.get('state')
+  if (code && state && !request.nextUrl.pathname.startsWith('/api/auth')) {
     const url = request.nextUrl.clone()
     url.pathname = '/api/auth/callback'
     url.searchParams.set('code', code)
@@ -76,8 +78,9 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Authenticated on public paths → redirect to role dashboard
-  if (user && isPublic) {
+  // Authenticated on auth pages (/login, /signup) → redirect to role dashboard
+  const AUTH_PAGES = ['/login', '/signup']
+  if (user && AUTH_PAGES.includes(pathname)) {
     const role = await getRole(supabase, user.id)
     if (role) {
       const url = request.nextUrl.clone()

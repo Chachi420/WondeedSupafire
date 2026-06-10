@@ -61,10 +61,10 @@ function BrandsHero() {
               Set a budget. Approve a brief. Hundreds of clippers turn your content into Reels and Shorts. You&apos;re charged only when each view is verified by Instagram or YouTube.
             </p>
             <div className="hero-actions" style={{ marginTop: 36 }}>
-              <button className="btn btn-primary btn-lg" onClick={() => router.push('/login')}>
+              <button className="btn btn-primary btn-lg" onClick={() => router.push('/signup')}>
                 Run your first campaign <Icon name="arrow-right" />
               </button>
-              <button className="btn btn-ghost-dark btn-lg" onClick={() => router.push('/login')}>
+              <button className="btn btn-ghost-dark btn-lg" onClick={() => router.push('/signup')}>
                 Talk to sales
               </button>
             </div>
@@ -280,10 +280,10 @@ function BrandFinalCTA() {
           Free Pro plan. Pay only for verified views. Cancel anytime — your unspent wallet returns to your bank.
         </p>
         <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 36, flexWrap: 'wrap' }}>
-          <button className="btn btn-primary btn-lg" onClick={() => router.push('/login')}>
+          <button className="btn btn-primary btn-lg" onClick={() => router.push('/signup')}>
             Start free <Icon name="arrow-right" />
           </button>
-          <button className="btn btn-ghost-dark btn-lg" onClick={() => router.push('/login')}>
+          <button className="btn btn-ghost-dark btn-lg" onClick={() => router.push('/signup')}>
             Talk to sales
           </button>
         </div>

@@ -96,7 +96,7 @@ export function FinalSplitCTA() {
               </p>
             </div>
             <div>
-              <button className="btn btn-dark btn-lg" onClick={() => router.push('/login')}>
+              <button className="btn btn-dark btn-lg" onClick={() => router.push('/signup')}>
                 Run your first campaign <Icon name="arrow-right" />
               </button>
               <div style={{ fontSize: 13, color: 'var(--fg-mute)', marginTop: 10 }}>Minimum budget ₹20,000 · 100% goes to clippers</div>
@@ -111,7 +111,7 @@ export function FinalSplitCTA() {
               </p>
             </div>
             <div>
-              <button className="btn btn-primary btn-lg" onClick={() => router.push('/login')}>
+              <button className="btn btn-primary btn-lg" onClick={() => router.push('/signup')}>
                 Sign up with phone <Icon name="arrow-right" />
               </button>
               <div style={{ fontSize: 13, color: 'var(--on-dark-mute)', marginTop: 10 }}>0 followers needed · UPI payout in 7 days</div>

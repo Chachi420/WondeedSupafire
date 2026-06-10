@@ -17,10 +17,10 @@ function PricingHero() {
             <b style={{ color: 'var(--fg)' }}>100% of campaign budgets go to clippers.</b> Wondeed earns from subscriptions, never from your view payouts.
           </p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 36, flexWrap: 'wrap' }}>
-            <button className="btn btn-primary btn-lg" onClick={() => router.push('/login')}>
+            <button className="btn btn-primary btn-lg" onClick={() => router.push('/signup')}>
               Start free with Pro <Icon name="arrow-right" />
             </button>
-            <button className="btn btn-ghost btn-lg" onClick={() => router.push('/login')}>
+            <button className="btn btn-ghost btn-lg" onClick={() => router.push('/signup')}>
               Talk to sales
             </button>
           </div>
@@ -40,20 +40,20 @@ function PricingCards() {
             tier="Pro" price="Free" per="forever"
             features={['1 active campaign', 'Tier 1 clipper access', '72-hour content approval', 'Standard support (48-hour response)', 'Razorpay-backed escrow wallet', 'GST-compliant invoices']}
             cta="Start free"
-            onCta={() => router.push('/login')}
+            onCta={() => router.push('/signup')}
           />
           <PricingCard
             tier="Premium" price="₹8,000" per="/month"
             featured tag="Most popular"
             features={['5 active campaigns', 'Tier 1 + 2 clipper access', 'Custom do/don\'t rules per campaign', 'Daily view caps', 'Priority email support (24-hour SLA)', 'Monthly performance review call', 'Dedicated reporting dashboard']}
             cta="Choose Premium"
-            onCta={() => router.push('/login')}
+            onCta={() => router.push('/signup')}
           />
           <PricingCard
             tier="Enterprise" price="₹20,000" per="/month"
             features={['Unlimited active campaigns', 'All clipper tiers (1, 2 & 3)', 'Dedicated success manager', 'Custom CPM rates on request', '4-hour SLA support', 'Quarterly business review', 'API access for analytics', 'White-glove onboarding']}
             cta="Talk to sales"
-            onCta={() => router.push('/login')}
+            onCta={() => router.push('/signup')}
           />
         </div>
       </div>

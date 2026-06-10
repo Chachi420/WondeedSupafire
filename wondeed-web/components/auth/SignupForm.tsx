@@ -9,8 +9,18 @@ type Method = 'email' | 'phone'
 type Step   = 'input' | 'otp' | 'done'
 
 const ROLES = [
-  { value: 'client'  as const, label: 'Brand / Client', desc: 'Post clipping campaigns and fund them with a budget' },
-  { value: 'clipper' as const, label: 'Clipper',        desc: 'Join campaigns, post clips, and earn per view' },
+  {
+    value: 'client' as const,
+    label: 'Brand / Client',
+    desc: 'Post clipping campaigns and fund them with a budget',
+    icon: <path d="M3 7a2 2 0 012-2h14a2 2 0 012 2v11a2 2 0 01-2 2H5a2 2 0 01-2-2V7zM8 5V3.5A1.5 1.5 0 019.5 2h5A1.5 1.5 0 0116 3.5V5M3 11h18" />,
+  },
+  {
+    value: 'clipper' as const,
+    label: 'Clipper',
+    desc: 'Join campaigns, post clips, and earn per view',
+    icon: <path d="M6 9a3 3 0 100-6 3 3 0 000 6zM6 21a3 3 0 100-6 3 3 0 000 6zM20 4L8.5 15.5M14.5 14.5L20 20M8.5 8.5l3.5 3.5" />,
+  },
 ]
 
 function GoogleIcon() {
@@ -117,26 +127,26 @@ export default function SignupForm() {
       <div className="col gap-16" style={{ textAlign: 'center' }}>
         <div style={{
           width: 56, height: 56, borderRadius: '50%',
-          background: 'rgba(163,230,53,0.15)',
+          background: 'var(--primary-100)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto',
         }}>
-          <svg width="28" height="28" fill="none" stroke="var(--primary)" strokeWidth={2} viewBox="0 0 24 24">
+          <svg width="28" height="28" fill="none" stroke="var(--primary-700)" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
           </svg>
         </div>
         <div>
           <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Check your email</h2>
-          <p className="text-xs faint" style={{ lineHeight: 1.6 }}>
+          <p className="text-sm muted" style={{ lineHeight: 1.6 }}>
             We sent a confirmation link to <strong>{email}</strong>.
             Click it to verify your account and get started.
           </p>
         </div>
-        <p className="text-xs faint" style={{ marginTop: 4 }}>
+        <p className="text-sm muted" style={{ marginTop: 4 }}>
           Wrong email?{' '}
           <button
             type="button"
             onClick={() => { setStep('input'); setError(null) }}
-            style={{ color: 'var(--primary)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 12, padding: 0 }}
+            style={{ color: 'var(--primary-600)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 12, padding: 0 }}
           >
             Go back
           </button>
@@ -156,46 +166,23 @@ export default function SignupForm() {
         type="button"
         onClick={handleGoogle}
         disabled={gLoading}
-        style={{
-          width: '100%', display: 'flex', alignItems: 'center',
-          justifyContent: 'center', gap: 10,
-          padding: '11px 20px', borderRadius: 8,
-          background: '#fff', border: '1.5px solid #e5e7eb',
-          color: '#111827', fontSize: 14, fontWeight: 600,
-          cursor: gLoading ? 'default' : 'pointer',
-          opacity: gLoading ? 0.7 : 1,
-          marginBottom: 20,
-        }}
+        className="btn-google"
+        style={{ marginBottom: 4 }}
       >
         <GoogleIcon />
         {gLoading ? 'Redirecting…' : 'Continue with Google'}
       </button>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-        <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
-        <span style={{ fontSize: 12, color: 'var(--fg-muted)' }}>or</span>
-        <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
-      </div>
+      <div className="auth-divider">or</div>
 
       {/* Method tabs */}
-      <div style={{
-        display: 'flex', gap: 4, background: 'rgba(255,255,255,0.04)',
-        borderRadius: 8, padding: 3, marginBottom: 20,
-        border: '1px solid var(--border)',
-      }}>
+      <div className="auth-tabs">
         {(['email', 'phone'] as Method[]).map(m => (
           <button
             key={m}
             type="button"
             onClick={() => switchMethod(m)}
-            style={{
-              flex: 1, padding: '7px 12px', borderRadius: 6,
-              background: method === m ? 'var(--surface)' : 'transparent',
-              border: method === m ? '1px solid var(--border)' : '1px solid transparent',
-              color: method === m ? 'var(--fg)' : 'var(--fg-muted)',
-              fontSize: 13, fontWeight: method === m ? 600 : 400,
-              cursor: 'pointer', transition: 'all 0.15s',
-            }}
+            className={`auth-tab ${method === m ? 'active' : ''}`}
           >
             {m === 'email' ? 'Email' : 'Phone'}
           </button>
@@ -203,28 +190,30 @@ export default function SignupForm() {
       </div>
 
       {/* Role selector */}
-      <div className="field" style={{ marginBottom: 16 }}>
+      <div className="field" style={{ marginBottom: 18 }}>
         <label className="field-label">I am a…</label>
         <div className="col gap-8">
           {ROLES.map(r => (
-            <label
-              key={r.value}
-              style={{
-                display: 'flex', alignItems: 'flex-start', gap: 12,
-                padding: '12px 14px', borderRadius: 8, cursor: 'pointer',
-                border: `1px solid ${role === r.value ? 'var(--primary)' : 'var(--border)'}`,
-                background: role === r.value ? 'rgba(163,230,53,0.06)' : 'var(--surface)',
-              }}
-            >
+            <label key={r.value} className={`role-pick ${role === r.value ? 'selected' : ''}`}>
               <input
                 type="radio" name="signup-role" value={r.value} checked={role === r.value}
                 onChange={() => setRole(r.value)}
-                style={{ marginTop: 2, accentColor: 'var(--primary)' }}
+                className="sr-only"
               />
-              <div>
-                <p className="med text-xs">{r.label}</p>
-                <p className="text-xs faint mt-4">{r.desc}</p>
+              <span className="rp-ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  {r.icon}
+                </svg>
+              </span>
+              <div style={{ paddingRight: 22 }}>
+                <p className="med text-md" style={{ margin: 0 }}>{r.label}</p>
+                <p className="text-sm muted" style={{ margin: '3px 0 0' }}>{r.desc}</p>
               </div>
+              <span className="rp-check">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 13l4 4L19 7" />
+                </svg>
+              </span>
             </label>
           ))}
         </div>
@@ -264,12 +253,12 @@ export default function SignupForm() {
             </div>
           )}
 
-          {error && <p className="text-xs" style={{ color: 'var(--danger)' }}>{error}</p>}
+          {error && <p className="auth-error">{error}</p>}
 
           <button
             type="submit"
             disabled={loading || !canSubmit}
-            className="btn btn-primary btn-block"
+            className="btn-auth-submit"
           >
             {loading
               ? (method === 'email' ? 'Creating account…' : 'Sending code…')
@@ -291,12 +280,12 @@ export default function SignupForm() {
             <span className="field-hint">Sent to +91 {phone}</span>
           </div>
 
-          {error && <p className="text-xs" style={{ color: 'var(--danger)' }}>{error}</p>}
+          {error && <p className="auth-error">{error}</p>}
 
           <button
             type="submit"
             disabled={loading || otp.length !== 6}
-            className="btn btn-primary btn-block"
+            className="btn-auth-submit"
           >
             {loading ? 'Verifying…' : 'Verify & create account'}
           </button>
@@ -311,9 +300,9 @@ export default function SignupForm() {
         </form>
       )}
 
-      <p className="text-xs" style={{ textAlign: 'center', marginTop: 24, color: 'var(--fg-muted)' }}>
+      <p className="text-sm" style={{ textAlign: 'center', marginTop: 26, color: 'var(--fg-muted)' }}>
         Already have an account?{' '}
-        <Link href="/login" style={{ color: 'var(--primary)', fontWeight: 600 }}>Log in →</Link>
+        <Link href="/login" style={{ color: 'var(--primary-600)', fontWeight: 600 }}>Log in →</Link>
       </p>
     </div>
   )

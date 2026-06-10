@@ -10,7 +10,7 @@ function WondeedLogo() {
       <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none', color: 'var(--fg)' }}>
         <div style={{
           width: 28, height: 28, borderRadius: 7,
-          background: 'linear-gradient(135deg, #a3e635, #65a30d)',
+          background: 'linear-gradient(135deg, #00E876, #00B85C)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontWeight: 800, fontSize: 14, color: '#0a0a0a',
         }}>W</div>

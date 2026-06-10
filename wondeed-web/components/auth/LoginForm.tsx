@@ -134,46 +134,23 @@ export default function LoginForm() {
         type="button"
         onClick={handleGoogle}
         disabled={gLoading}
-        style={{
-          width: '100%', display: 'flex', alignItems: 'center',
-          justifyContent: 'center', gap: 10,
-          padding: '11px 20px', borderRadius: 8,
-          background: '#fff', border: '1.5px solid #e5e7eb',
-          color: '#111827', fontSize: 14, fontWeight: 600,
-          cursor: gLoading ? 'default' : 'pointer',
-          opacity: gLoading ? 0.7 : 1,
-          marginBottom: 20,
-        }}
+        className="btn-google"
+        style={{ marginBottom: 4 }}
       >
         <GoogleIcon />
         {gLoading ? 'Redirecting…' : 'Continue with Google'}
       </button>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-        <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
-        <span style={{ fontSize: 12, color: 'var(--fg-muted)' }}>or</span>
-        <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
-      </div>
+      <div className="auth-divider">or</div>
 
       {/* Method tabs */}
-      <div style={{
-        display: 'flex', gap: 4, background: 'rgba(255,255,255,0.04)',
-        borderRadius: 8, padding: 3, marginBottom: 20,
-        border: '1px solid var(--border)',
-      }}>
+      <div className="auth-tabs">
         {METHODS.map(m => (
           <button
             key={m.value}
             type="button"
             onClick={() => switchMethod(m.value)}
-            style={{
-              flex: 1, padding: '7px 6px', borderRadius: 6,
-              background: method === m.value ? 'var(--surface)' : 'transparent',
-              border: method === m.value ? '1px solid var(--border)' : '1px solid transparent',
-              color: method === m.value ? 'var(--fg)' : 'var(--fg-muted)',
-              fontSize: 12, fontWeight: method === m.value ? 600 : 400,
-              cursor: 'pointer', transition: 'all 0.15s',
-            }}
+            className={`auth-tab ${method === m.value ? 'active' : ''}`}
           >
             {m.label}
           </button>
@@ -190,7 +167,7 @@ export default function LoginForm() {
                 value={email} onChange={e => setEmail(e.target.value)}
                 required className="input"
               />
-              <span className="field-hint">We'll send a 6-digit code to your inbox</span>
+              <span className="field-hint">We&apos;ll send a 6-digit code to your inbox</span>
             </div>
           )}
 
@@ -227,12 +204,12 @@ export default function LoginForm() {
             </>
           )}
 
-          {error && <p className="text-xs" style={{ color: 'var(--danger)' }}>{error}</p>}
+          {error && <p className="auth-error">{error}</p>}
 
           <button
             type="submit"
             disabled={loading || !canSubmit}
-            className="btn btn-primary btn-block"
+            className="btn-auth-submit"
           >
             {loading
               ? (method === 'password' ? 'Signing in…' : 'Sending…')
@@ -254,12 +231,12 @@ export default function LoginForm() {
             <span className="field-hint">Sent to {dest}</span>
           </div>
 
-          {error && <p className="text-xs" style={{ color: 'var(--danger)' }}>{error}</p>}
+          {error && <p className="auth-error">{error}</p>}
 
           <button
             type="submit"
             disabled={loading || otp.length !== 6}
-            className="btn btn-primary btn-block"
+            className="btn-auth-submit"
           >
             {loading ? 'Verifying…' : 'Verify & sign in'}
           </button>
@@ -274,9 +251,9 @@ export default function LoginForm() {
         </form>
       )}
 
-      <p className="text-xs" style={{ textAlign: 'center', marginTop: 24, color: 'var(--fg-muted)' }}>
+      <p className="text-sm" style={{ textAlign: 'center', marginTop: 26, color: 'var(--fg-muted)' }}>
         Don&apos;t have an account?{' '}
-        <Link href="/signup" style={{ color: 'var(--primary)', fontWeight: 600 }}>Sign up →</Link>
+        <Link href="/signup" style={{ color: 'var(--primary-600)', fontWeight: 600 }}>Sign up →</Link>
       </p>
     </div>
   )

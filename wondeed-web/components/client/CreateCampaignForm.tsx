@@ -533,7 +533,7 @@ export default function CreateCampaignForm({ walletBalance }: { walletBalance: n
 
       {/* ── Fee disclosure + Review summary ── */}
       {budgetOk && (
-        <div className="card" style={{ padding: '20px 24px', background: 'rgba(132,204,22,0.04)', border: '1px solid rgba(132,204,22,0.2)' }}>
+        <div className="card" style={{ padding: '20px 24px', background: 'rgba(0,210,106,0.04)', border: '1px solid rgba(0,210,106,0.2)' }}>
           <div className="row gap-8 mb-12">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16, color: 'var(--primary)', flexShrink: 0 }}>
               <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>

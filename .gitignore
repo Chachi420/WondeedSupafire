@@ -41,3 +41,11 @@ yarn-error.log*
 
 # Misc
 .claude/
+
+# Build artifacts
+*.tsbuildinfo
+
+# Design references / archives (local only)
+*.zip
+WondeedWEBSITE_extracted/
+Wondeed_design/

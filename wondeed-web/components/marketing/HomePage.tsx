@@ -135,7 +135,7 @@ function NicheShowcase() {
             <span className="eyebrow"><span className="dot" /> Open for campaigns</span>
             <h2 className="display-2" style={{ marginTop: 14 }}>One brief.<br />30+ angles. Every niche.</h2>
           </div>
-          <button className="btn btn-ghost" onClick={() => router.push('/login')}>
+          <button className="btn btn-ghost" onClick={() => router.push('/signup')}>
             Start a campaign <Icon name="arrow-right" />
           </button>
         </div>
@@ -405,12 +405,16 @@ export default function HomePage() {
                 Wondeed is India&apos;s first performance-based clipping marketplace. Brands fund video campaigns. Clippers turn them into Reels and Shorts. You only pay when views are verified.
               </p>
               <div className="hero-actions" style={{ marginTop: 36 }}>
-                <button className="btn btn-primary btn-lg" onClick={() => router.push('/login')}>
+                <button className="btn btn-primary btn-lg" onClick={() => router.push('/signup')}>
                   Start a campaign <Icon name="arrow-right" />
                 </button>
                 <button className="btn btn-ghost btn-lg" onClick={() => router.push('/clippers')}>
                   I want to clip &amp; earn
                 </button>
+              </div>
+              <div className="live-ticker">
+                <span className="live-pulse" />
+                Campaigns open now · 100% of budgets reach clippers · UPI payouts in 7 days
               </div>
             </div>
             <HeroVisual />

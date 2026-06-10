@@ -73,10 +73,10 @@ function ClippersHero() {
               No agencies. No fixed-pay editing gigs. No follower minimum. Pick a campaign, cut a Reel or Short, post on your handle. Earn for every verified view via UPI.
             </p>
             <div className="hero-actions" style={{ marginTop: 36 }}>
-              <button className="btn btn-primary btn-lg" onClick={() => router.push('/login')}>
+              <button className="btn btn-primary btn-lg" onClick={() => router.push('/signup')}>
                 Sign up with phone <Icon name="arrow-right" />
               </button>
-              <button className="btn btn-ghost btn-lg" onClick={() => router.push('/login')}>
+              <button className="btn btn-ghost btn-lg" onClick={() => router.push('/signup')}>
                 See open campaigns
               </button>
             </div>
@@ -438,7 +438,7 @@ function ClipperFinalCTA() {
           OTP login. Add UPI. Pick a campaign. That&apos;s the whole onboarding.
         </p>
         <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 36, flexWrap: 'wrap' }}>
-          <button className="btn btn-primary btn-lg" onClick={() => router.push('/login')}>
+          <button className="btn btn-primary btn-lg" onClick={() => router.push('/signup')}>
             Start clipping <Icon name="arrow-right" />
           </button>
         </div>

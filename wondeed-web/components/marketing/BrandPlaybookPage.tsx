@@ -96,7 +96,7 @@ export default function BrandPlaybookPage() {
             Minimum ₹20,000 budget. 100% goes to clippers. Pay only for verified views.
           </p>
           <div style={{ marginTop: 28, display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
-            <button className="btn btn-primary btn-lg" onClick={() => router.push('/login')}>
+            <button className="btn btn-primary btn-lg" onClick={() => router.push('/signup')}>
               Start a campaign <Icon name="arrow-right" />
             </button>
             <button className="btn btn-ghost btn-lg" onClick={() => router.push('/brands')}>

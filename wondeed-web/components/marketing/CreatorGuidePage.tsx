@@ -137,7 +137,7 @@ export default function CreatorGuidePage() {
           <h2 className="display-2" style={{ color: 'white', maxWidth: '20ch', margin: '0 auto' }}>Ready to start clipping?</h2>
           <p className="lead" style={{ marginTop: 16, marginInline: 'auto', maxWidth: '46ch' }}>Sign up in 30 seconds. Pick your first campaign. Post. Get paid.</p>
           <div style={{ marginTop: 28, display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
-            <button className="btn btn-primary btn-lg" onClick={() => router.push('/login')}>
+            <button className="btn btn-primary btn-lg" onClick={() => router.push('/signup')}>
               Sign up with phone <Icon name="arrow-right" />
             </button>
             <button className="btn btn-ghost btn-lg" onClick={() => router.push('/help')}>

@@ -9,11 +9,13 @@ const ROLES = [
     value: 'client' as const,
     label: 'Brand / Client',
     desc: 'Post clipping campaigns, set budgets, and get your content amplified by clippers',
+    icon: <path d="M3 7a2 2 0 012-2h14a2 2 0 012 2v11a2 2 0 01-2 2H5a2 2 0 01-2-2V7zM8 5V3.5A1.5 1.5 0 019.5 2h5A1.5 1.5 0 0116 3.5V5M3 11h18" />,
   },
   {
     value: 'clipper' as const,
     label: 'Clipper',
     desc: 'Join campaigns, create and post clips to your social pages, and earn per view',
+    icon: <path d="M6 9a3 3 0 100-6 3 3 0 000 6zM6 21a3 3 0 100-6 3 3 0 000 6zM20 4L8.5 15.5M14.5 14.5L20 20M8.5 8.5l3.5 3.5" />,
   },
 ]
 
@@ -51,35 +53,36 @@ export default function OnboardForm() {
     <form onSubmit={handleSubmit} className="col gap-16">
       <div className="col gap-10">
         {ROLES.map(r => (
-          <label
-            key={r.value}
-            style={{
-              display: 'flex', alignItems: 'flex-start', gap: 14,
-              padding: '16px', borderRadius: 10, cursor: 'pointer',
-              border: `1.5px solid ${role === r.value ? 'var(--primary)' : 'var(--border)'}`,
-              background: role === r.value ? 'rgba(163,230,53,0.06)' : 'var(--surface)',
-              transition: 'border-color 0.15s, background 0.15s',
-            }}
-          >
+          <label key={r.value} className={`role-pick ${role === r.value ? 'selected' : ''}`}>
             <input
               type="radio" name="role" value={r.value} checked={role === r.value}
               onChange={() => setRole(r.value)}
-              style={{ marginTop: 3, accentColor: 'var(--primary)', flexShrink: 0 }}
+              className="sr-only"
             />
-            <div>
-              <p className="med" style={{ fontSize: 14, marginBottom: 5 }}>{r.label}</p>
-              <p className="faint text-xs" style={{ lineHeight: 1.5 }}>{r.desc}</p>
+            <span className="rp-ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                {r.icon}
+              </svg>
+            </span>
+            <div style={{ paddingRight: 22 }}>
+              <p className="med text-md" style={{ margin: 0 }}>{r.label}</p>
+              <p className="text-sm muted" style={{ margin: '3px 0 0', lineHeight: 1.5 }}>{r.desc}</p>
             </div>
+            <span className="rp-check">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 13l4 4L19 7" />
+              </svg>
+            </span>
           </label>
         ))}
       </div>
 
-      {error && <p className="text-xs" style={{ color: 'var(--danger)' }}>{error}</p>}
+      {error && <p className="auth-error">{error}</p>}
 
       <button
         type="submit"
         disabled={loading}
-        className="btn btn-primary btn-block"
+        className="btn-auth-submit"
         style={{ marginTop: 4 }}
       >
         {loading ? 'Setting up your account…' : 'Continue'}

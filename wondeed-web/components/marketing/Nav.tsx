@@ -46,7 +46,7 @@ export default function Nav() {
 
           <div className="nav-cta">
             <button className="nav-text" onClick={() => router.push('/login')}>Login</button>
-            <button className="btn btn-primary btn-sm" onClick={() => router.push('/login')}>
+            <button className="btn btn-primary btn-sm" onClick={() => router.push('/signup')}>
               {ctaLabel}
               <Icon name="arrow-right" />
             </button>
@@ -74,7 +74,7 @@ export default function Nav() {
           ))}
           <div className="mobile-menu-cta">
             <button className="btn btn-ghost btn-block" onClick={() => { router.push('/login'); setOpen(false) }}>Login</button>
-            <button className="btn btn-primary btn-block" onClick={() => { router.push('/login'); setOpen(false) }}>
+            <button className="btn btn-primary btn-block" onClick={() => { router.push('/signup'); setOpen(false) }}>
               {ctaLabel} <Icon name="arrow-right" />
             </button>
           </div>
