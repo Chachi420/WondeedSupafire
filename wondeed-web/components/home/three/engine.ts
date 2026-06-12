@@ -211,6 +211,24 @@ export function createExperience(
     0.18
   )
 
+  /** map a world z on the path to eased-progress (0..1) for scroll-driven scene anims */
+  const uSamples: { u: number; z: number }[] = []
+  for (let i = 0; i <= 240; i++) {
+    const u = i / 240
+    uSamples.push({ u, z: curve.getPointAt(u).z })
+  }
+  function progressAtZ(z: number): number {
+    for (let i = 1; i < uSamples.length; i++) {
+      if (uSamples[i].z <= z) {
+        const a = uSamples[i - 1]
+        const b = uSamples[i]
+        const f = (a.z - z) / (a.z - b.z || 1)
+        return (a.u + (b.u - a.u) * f) / 0.985
+      }
+    }
+    return 1
+  }
+
   /* shared resources for disposal */
   const textures: THREE.Texture[] = []
   const geometries: THREE.BufferGeometry[] = []
@@ -336,27 +354,249 @@ export function createExperience(
     for (const [x, y, z, s] of cluster) addFloatingCard(x, y, z, s)
   }
 
-  /* later stages add: stream tunnel, the cut, swarm, verification, payout, horizon */
+  /* ── scene 1: the stream — tunnel of clip frames ── */
+  {
+    const rings = Math.max(8, Math.floor(16 * Q))
+    for (let r = 0; r < rings; r++) {
+      const z = -22 - (r / (rings - 1)) * 48 // -22 .. -70
+      const perRing = lowPower ? 4 : 6
+      for (let i = 0; i < perRing; i++) {
+        const ang = (i / perRing) * Math.PI * 2 + rand(-0.4, 0.4) + r * 0.65
+        const radius = rand(3.8, 6.8)
+        const x = Math.cos(ang) * radius
+        const y = Math.sin(ang) * radius * 0.72
+        const mesh = addFloatingCard(x, y, z + rand(-1.2, 1.2), rand(0.8, 1.4), 0, 0.18)
+        mesh.lookAt(0, y * 0.3, z) // face the flight axis
+        mesh.rotation.z += rand(-0.18, 0.18)
+      }
+    }
+
+    // streaking light lines for motion
+    const N = Math.floor(46 * Q)
+    const pos = new Float32Array(N * 2 * 3)
+    for (let i = 0; i < N; i++) {
+      const ang = rand(0, Math.PI * 2)
+      const radius = rand(5.5, 9)
+      const x = Math.cos(ang) * radius
+      const y = Math.sin(ang) * radius * 0.72
+      const z = rand(-74, -18)
+      const len = rand(2, 7)
+      pos.set([x, y, z, x, y, z - len], i * 6)
+    }
+    const geo = track(new THREE.BufferGeometry())
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3))
+    const mat = track(
+      new THREE.LineBasicMaterial({
+        color: GREEN,
+        transparent: true,
+        opacity: 0.22,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      })
+    )
+    scene.add(new THREE.LineSegments(geo, mat))
+  }
+
+  /* ── scene 2: the cut — a filmstrip splits open ── */
+  {
+    const CUT_Z = -96
+    const pStart = progressAtZ(-80)
+    const pEnd = progressAtZ(-100)
+
+    const left = new THREE.Group()
+    const right = new THREE.Group()
+    left.position.z = right.position.z = CUT_Z
+    scene.add(left, right)
+
+    const frames = 9 // per side
+    const fw = 1.5
+    const gap = 0.14
+    const railGeo = track(new THREE.PlaneGeometry(frames * (fw + gap), 0.16))
+    const railMat = track(
+      new THREE.MeshBasicMaterial({
+        color: INK_2,
+        transparent: true,
+        opacity: 0.95,
+        side: THREE.DoubleSide,
+      })
+    )
+    for (const side of [-1, 1]) {
+      const group = side < 0 ? left : right
+      for (let i = 0; i < frames; i++) {
+        const x = side * (0.9 + i * (fw + gap))
+        const mesh = new THREE.Mesh(cardGeo, pick(cardMats))
+        mesh.position.set(x, 0, 0)
+        mesh.scale.set(1.55, 1.35, 1)
+        group.add(mesh)
+      }
+      for (const ry of [-1.25, 1.25]) {
+        const rail = new THREE.Mesh(railGeo, railMat)
+        rail.position.set(side * (0.9 + (frames * (fw + gap)) / 2 - (fw + gap) / 2), ry, 0)
+        group.add(rail)
+      }
+    }
+
+    // glowing cut line + sparks at the seam
+    const lineGeo = track(new THREE.PlaneGeometry(0.07, 13))
+    const lineMat = track(
+      new THREE.MeshBasicMaterial({
+        color: GREEN_BRIGHT,
+        transparent: true,
+        opacity: 0,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+      })
+    )
+    const cutLine = new THREE.Mesh(lineGeo, lineMat)
+    cutLine.position.set(0, 0, CUT_Z + 0.1)
+    scene.add(cutLine)
+
+    const SPARKS = Math.floor(90 * Q)
+    const sPos = new Float32Array(SPARKS * 3)
+    const sSeed: number[] = []
+    for (let i = 0; i < SPARKS; i++) {
+      sPos[i * 3] = rand(-0.3, 0.3)
+      sPos[i * 3 + 1] = rand(-5, 5)
+      sPos[i * 3 + 2] = CUT_Z + rand(-0.4, 0.4)
+      sSeed.push(rand(0, Math.PI * 2))
+    }
+    const sGeo = track(new THREE.BufferGeometry())
+    sGeo.setAttribute('position', new THREE.BufferAttribute(sPos, 3))
+    const sMat = track(
+      new THREE.PointsMaterial({
+        color: GREEN_BRIGHT,
+        size: 0.12,
+        transparent: true,
+        opacity: 0,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      })
+    )
+    scene.add(new THREE.Points(sGeo, sMat))
+
+    updaters.push((t, p) => {
+      const local = THREE.MathUtils.smoothstep(p, pStart, pEnd)
+      const split = local * local * 7.5
+      left.position.x = -split
+      right.position.x = split
+      left.rotation.z = local * 0.10
+      right.rotation.z = -local * 0.10
+
+      const flare = Math.sin(Math.min(local * 1.45, 1) * Math.PI)
+      ;(lineMat as THREE.MeshBasicMaterial).opacity = flare * 0.9
+      cutLine.scale.y = 0.25 + flare * 0.75
+      ;(sMat as THREE.PointsMaterial).opacity = flare * 0.95
+      const arr = sGeo.attributes.position.array as Float32Array
+      for (let i = 0; i < SPARKS; i++) {
+        arr[i * 3] = Math.sin(t * 9 + sSeed[i]) * 0.35 * flare + rand(-0.04, 0.04)
+        arr[i * 3 + 1] = ((sSeed[i] * 3 + t * (1.5 + (i % 5))) % 10) - 5
+      }
+      sGeo.attributes.position.needsUpdate = true
+    })
+  }
+
+  /* ── scene 3: the swarm — clips multiply into a galaxy ── */
+  {
+    const COUNT = Math.floor(110 * Q)
+    const pStart = progressAtZ(-104)
+    const pMid = progressAtZ(-126)
+    interface SwarmCard {
+      mesh: THREE.Mesh
+      target: THREE.Vector3
+      origin: THREE.Vector3
+      spin: number
+      seed: number
+    }
+    const cards: SwarmCard[] = []
+    for (let i = 0; i < COUNT; i++) {
+      const z = rand(-156, -108)
+      const ang = rand(0, Math.PI * 2)
+      const radius = rand(2.5, 15)
+      const target = new THREE.Vector3(
+        Math.cos(ang) * radius,
+        Math.sin(ang) * radius * 0.7,
+        z
+      )
+      const mesh = new THREE.Mesh(cardGeo, pick(cardMats))
+      mesh.scale.setScalar(rand(0.28, 0.7))
+      mesh.rotation.set(rand(0, Math.PI), rand(0, Math.PI), rand(0, Math.PI))
+      mesh.position.set(0, 0, z)
+      scene.add(mesh)
+      cards.push({
+        mesh,
+        target,
+        origin: new THREE.Vector3(0, 0, z),
+        spin: rand(0.08, 0.4),
+        seed: rand(0, Math.PI * 2),
+      })
+    }
+
+    // faint network lines between nearby clips
+    const pairs: number[] = []
+    for (let i = 0; i < COUNT && pairs.length < 70 * 6; i++) {
+      for (let j = i + 1; j < COUNT; j++) {
+        if (cards[i].target.distanceTo(cards[j].target) < 5.5 && Math.random() < 0.18) {
+          pairs.push(
+            cards[i].target.x, cards[i].target.y, cards[i].target.z,
+            cards[j].target.x, cards[j].target.y, cards[j].target.z
+          )
+          break
+        }
+      }
+    }
+    const lGeo = track(new THREE.BufferGeometry())
+    lGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(pairs), 3))
+    const lMat = track(
+      new THREE.LineBasicMaterial({
+        color: GREEN,
+        transparent: true,
+        opacity: 0,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      })
+    )
+    scene.add(new THREE.LineSegments(lGeo, lMat))
+
+    updaters.push((t, p) => {
+      const burst = THREE.MathUtils.smoothstep(p, pStart, pMid)
+      for (const c of cards) {
+        const e = THREE.MathUtils.clamp(burst * 1.6 - (c.seed / (Math.PI * 2)) * 0.6, 0, 1)
+        const k = 1 - Math.pow(1 - e, 3)
+        c.mesh.position.lerpVectors(c.origin, c.target, k)
+        c.mesh.position.y += Math.sin(t * 0.6 + c.seed) * 0.18
+        c.mesh.rotation.y += c.spin * 0.004
+        c.mesh.rotation.z += c.spin * 0.002
+      }
+      ;(lMat as THREE.LineBasicMaterial).opacity =
+        burst * (0.10 + Math.sin(t * 1.4) * 0.04)
+    })
+  }
+
+  /* stage 3 adds: verification corridor, payout rain, horizon portal */
 
   /* ───────────────── camera + render loop ───────────────── */
 
   let rawProgress = 0
   let eased = 0
   const pointer = { x: 0, y: 0, sx: 0, sy: 0 }
-  const clock = new THREE.Clock()
   let raf = 0
   let disposed = false
+  let last = performance.now()
+  let elapsed = 0
 
   const camPos = new THREE.Vector3()
   const camLook = new THREE.Vector3()
 
-  function frame() {
+  function frame(now: number) {
     if (disposed) return
     raf = requestAnimationFrame(frame)
-    if (document.hidden) return
+    if (document.hidden) { last = now; return }
 
-    const dt = Math.min(clock.getDelta(), 0.05)
-    const t = clock.elapsedTime
+    const dt = Math.min((now - last) / 1000, 0.05)
+    last = now
+    elapsed += dt
+    const t = elapsed
 
     // critically-damped-ish easing toward scroll target
     eased += (rawProgress - eased) * (1 - Math.exp(-dt * 4.5))

@@ -96,10 +96,16 @@ export default function ImmersiveHome() {
     let cancelled = false
     let cleanupFns: (() => void)[] = []
 
-    // dark chrome while travelling
-    const prevBg = document.documentElement.style.background
-    document.documentElement.style.background = '#06091B'
-    cleanupFns.push(() => { document.documentElement.style.background = prevBg })
+    // dark chrome while travelling + native scroll (smooth-scroll fights the camera rig)
+    const root = document.documentElement
+    const prevBg = root.style.background
+    const prevScrollBehavior = root.style.scrollBehavior
+    root.style.background = '#06091B'
+    root.style.scrollBehavior = 'auto'
+    cleanupFns.push(() => {
+      root.style.background = prevBg
+      root.style.scrollBehavior = prevScrollBehavior
+    })
 
     import('./three/engine').then(({ createExperience }) => {
       if (cancelled || !canvasRef.current) return
