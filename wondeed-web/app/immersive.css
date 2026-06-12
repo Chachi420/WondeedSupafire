@@ -228,8 +228,11 @@ html:has(.imm-root) {
 .imm-hint {
   position: fixed;
   bottom: 26px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: max-content;
+  max-width: 90vw;
   z-index: 12;
   display: flex;
   flex-direction: column;
