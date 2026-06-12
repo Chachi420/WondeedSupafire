@@ -74,6 +74,7 @@ export default function ImmersiveHome() {
   const hintRef = useRef<HTMLDivElement>(null)
   const barRef = useRef<HTMLDivElement>(null)
   const ctaRef = useRef<HTMLDivElement>(null)
+  const counterRef = useRef<HTMLDivElement>(null)
   const overlayRefs = useRef<(HTMLDivElement | null)[]>([])
 
   useEffect(() => {
@@ -144,6 +145,14 @@ export default function ImmersiveHome() {
         }
         if (hintRef.current) {
           hintRef.current.style.opacity = String(1 - ss(0.005, 0.05, p))
+        }
+        if (counterRef.current) {
+          const local = ss(0.565, 0.655, p)
+          const views = Math.floor(local * local * 12_400_000)
+          const text = views.toLocaleString('en-IN')
+          if (counterRef.current.textContent !== text) {
+            counterRef.current.textContent = text
+          }
         }
         OVERLAYS.forEach((ov, i) => {
           const el = overlayRefs.current[i]
@@ -236,6 +245,12 @@ export default function ImmersiveHome() {
         >
           <div className="imm-copy">
             {ov.eyebrow && <span className="imm-eyebrow"><span className="dot" /> {ov.eyebrow}</span>}
+            {ov.id === 'verify' && (
+              <div className="imm-counter" aria-hidden="true">
+                <span ref={counterRef}>0</span>
+                <small>verified views</small>
+              </div>
+            )}
             <h2 className="imm-title">{ov.title}</h2>
             {ov.body && <p className="imm-body">{ov.body}</p>}
           </div>

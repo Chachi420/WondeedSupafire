@@ -573,7 +573,211 @@ export function createExperience(
     })
   }
 
-  /* stage 3 adds: verification corridor, payout rain, horizon portal */
+  /* ── scene 4: verification corridor — rising ticks + data pillars ── */
+  {
+    // ✓ tick sprite texture
+    const tc = document.createElement('canvas')
+    tc.width = tc.height = 64
+    const tctx = tc.getContext('2d')!
+    tctx.beginPath()
+    tctx.arc(32, 32, 26, 0, Math.PI * 2)
+    tctx.fillStyle = 'rgba(0,210,106,0.92)'
+    tctx.fill()
+    tctx.strokeStyle = '#06091B'
+    tctx.lineWidth = 7
+    tctx.lineCap = 'round'
+    tctx.lineJoin = 'round'
+    tctx.beginPath()
+    tctx.moveTo(19, 33)
+    tctx.lineTo(28, 42)
+    tctx.lineTo(46, 23)
+    tctx.stroke()
+    const tickTex = track(new THREE.CanvasTexture(tc))
+    tickTex.colorSpace = THREE.SRGBColorSpace
+
+    const N = Math.floor(120 * Q)
+    const pos = new Float32Array(N * 3)
+    const speed: number[] = []
+    for (let i = 0; i < N; i++) {
+      pos[i * 3] = rand(-7, 7)
+      pos[i * 3 + 1] = rand(-7, 7)
+      pos[i * 3 + 2] = rand(-196, -158)
+      speed.push(rand(0.6, 2.2))
+    }
+    const geo = track(new THREE.BufferGeometry())
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3))
+    const mat = track(
+      new THREE.PointsMaterial({
+        map: tickTex,
+        size: 0.34,
+        transparent: true,
+        opacity: 0.9,
+        depthWrite: false,
+        sizeAttenuation: true,
+      })
+    )
+    scene.add(new THREE.Points(geo, mat))
+    updaters.push((t, _p) => {
+      const arr = geo.attributes.position.array as Float32Array
+      for (let i = 0; i < N; i++) {
+        arr[i * 3 + 1] += speed[i] * 0.016
+        if (arr[i * 3 + 1] > 7) arr[i * 3 + 1] = -7
+      }
+      geo.attributes.position.needsUpdate = true
+    })
+
+    // light pillars
+    const pillarGeo = track(new THREE.PlaneGeometry(0.08, 12))
+    for (let i = 0; i < Math.floor(14 * Q); i++) {
+      const m = track(
+        new THREE.MeshBasicMaterial({
+          color: i % 3 === 0 ? GREEN : INK_2,
+          transparent: true,
+          opacity: rand(0.18, 0.5),
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+          side: THREE.DoubleSide,
+        })
+      ) as THREE.MeshBasicMaterial
+      const pillar = new THREE.Mesh(pillarGeo, m)
+      const side = Math.random() < 0.5 ? -1 : 1
+      pillar.position.set(side * rand(3.2, 7.5), rand(-2, 2), rand(-198, -156))
+      scene.add(pillar)
+      const base = m.opacity
+      const seed = rand(0, Math.PI * 2)
+      updaters.push(t => {
+        m.opacity = base * (0.7 + Math.sin(t * 1.8 + seed) * 0.3)
+      })
+    }
+  }
+
+  /* ── scene 5: payout — rupee rain into a portal ── */
+  {
+    // ₹ glyph texture
+    const rc = document.createElement('canvas')
+    rc.width = rc.height = 64
+    const rctx = rc.getContext('2d')!
+    rctx.font = '800 44px system-ui, sans-serif'
+    rctx.textAlign = 'center'
+    rctx.textBaseline = 'middle'
+    rctx.shadowColor = 'rgba(0,232,118,0.9)'
+    rctx.shadowBlur = 10
+    rctx.fillStyle = '#7CFFC2'
+    rctx.fillText('₹', 32, 36)
+    const rupeeTex = track(new THREE.CanvasTexture(rc))
+    rupeeTex.colorSpace = THREE.SRGBColorSpace
+
+    const PORTAL = new THREE.Vector3(0, -3.2, -234)
+    const N = Math.floor(150 * Q)
+    const pos = new Float32Array(N * 3)
+    const vel: number[] = []
+    for (let i = 0; i < N; i++) {
+      pos[i * 3] = rand(-6, 6)
+      pos[i * 3 + 1] = rand(-4, 8)
+      pos[i * 3 + 2] = rand(-236, -204)
+      vel.push(rand(1.2, 3.2))
+    }
+    const geo = track(new THREE.BufferGeometry())
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3))
+    const mat = track(
+      new THREE.PointsMaterial({
+        map: rupeeTex,
+        size: 0.42,
+        transparent: true,
+        opacity: 0.95,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+      })
+    )
+    scene.add(new THREE.Points(geo, mat))
+    updaters.push((t, _p) => {
+      const arr = geo.attributes.position.array as Float32Array
+      for (let i = 0; i < N; i++) {
+        let y = arr[i * 3 + 1] - vel[i] * 0.016
+        // gentle funnel toward the portal as the glyph falls
+        const pull = THREE.MathUtils.clamp((2 - y) / 10, 0, 0.035)
+        arr[i * 3] += (PORTAL.x - arr[i * 3]) * pull
+        arr[i * 3 + 2] += (PORTAL.z - arr[i * 3 + 2]) * pull * 0.5
+        if (y < PORTAL.y) {
+          y = rand(6, 9)
+          arr[i * 3] = rand(-6, 6)
+          arr[i * 3 + 2] = rand(-236, -204)
+        }
+        arr[i * 3 + 1] = y
+      }
+      geo.attributes.position.needsUpdate = true
+    })
+
+    // the portal ring
+    const ringGeo = track(new THREE.TorusGeometry(2.6, 0.07, 12, 72))
+    const ringMat = track(
+      new THREE.MeshBasicMaterial({
+        color: GREEN_BRIGHT,
+        transparent: true,
+        opacity: 0.85,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      })
+    )
+    const ring = new THREE.Mesh(ringGeo, ringMat)
+    ring.position.copy(PORTAL)
+    ring.rotation.x = Math.PI / 2
+    scene.add(ring)
+
+    const ringGlowMat = track(
+      new THREE.SpriteMaterial({
+        map: track(glowTexture('rgba(0,232,118,0.7)')),
+        transparent: true,
+        opacity: 0.55,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+      })
+    )
+    const ringGlow = new THREE.Sprite(ringGlowMat)
+    ringGlow.position.copy(PORTAL)
+    ringGlow.scale.setScalar(9)
+    scene.add(ringGlow)
+
+    updaters.push(t => {
+      ring.rotation.z = t * 0.4
+      const pulse = 1 + Math.sin(t * 2.2) * 0.06
+      ring.scale.setScalar(pulse)
+      ringGlow.scale.setScalar(9 * pulse)
+    })
+  }
+
+  /* ── scene 6: horizon — the ecosystem seen from above ── */
+  {
+    const N = Math.floor(700 * Q)
+    const pos = new Float32Array(N * 3)
+    const col = new Float32Array(N * 3)
+    const cGreen = new THREE.Color(GREEN)
+    const cWhite = new THREE.Color(WHITE_SOFT)
+    for (let i = 0; i < N; i++) {
+      pos[i * 3] = rand(-55, 55)
+      pos[i * 3 + 1] = rand(-9, -4)
+      pos[i * 3 + 2] = rand(-340, -240)
+      const c = Math.random() < 0.4 ? cGreen : cWhite
+      const dim = rand(0.3, 1)
+      col[i * 3] = c.r * dim
+      col[i * 3 + 1] = c.g * dim
+      col[i * 3 + 2] = c.b * dim
+    }
+    const geo = track(new THREE.BufferGeometry())
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3))
+    geo.setAttribute('color', new THREE.BufferAttribute(col, 3))
+    const mat = track(
+      new THREE.PointsMaterial({
+        size: 0.14,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.9,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+      })
+    )
+    scene.add(new THREE.Points(geo, mat))
+  }
 
   /* ───────────────── camera + render loop ───────────────── */
 
