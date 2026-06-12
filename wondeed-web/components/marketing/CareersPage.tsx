@@ -62,7 +62,7 @@ export default function CareersPage() {
                   style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '22px 24px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
                 >
                   <div>
-                    <div style={{ fontFamily: 'var(--display)', fontWeight: 700, fontSize: 18, letterSpacing: '-0.015em', color: 'var(--ink)' }}>{r.title}</div>
+                    <div style={{ fontFamily: 'var(--display)', fontWeight: 700, fontSize: 18, letterSpacing: '-0.015em', color: 'var(--fg)' }}>{r.title}</div>
                     <div style={{ marginTop: 4, fontSize: 13, color: 'var(--fg-mute)', display: 'flex', gap: 10 }}>
                       <span style={{ fontFamily: 'var(--mono)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{r.team}</span>
                       <span>·</span><span>{r.type}</span>
@@ -87,7 +87,7 @@ export default function CareersPage() {
           </div>
           <p style={{ marginTop: 20, fontSize: 14, color: 'var(--fg-mute)' }}>
             Don&apos;t see your role?{' '}
-            <a href="mailto:team@wondeed.com" style={{ color: 'var(--ink)', fontWeight: 600 }}>Email us</a>
+            <a href="mailto:team@wondeed.com" style={{ color: 'var(--fg)', fontWeight: 600 }}>Email us</a>
             {' '}with what you&apos;d build.
           </p>
         </div>

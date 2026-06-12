@@ -187,7 +187,7 @@ export function createExperience(
   const isCoarse = window.matchMedia('(pointer: coarse)').matches
   const isSmall = window.innerWidth < 768
   const lowPower = isCoarse || isSmall
-  const Q = lowPower ? 0.55 : 1 // quality multiplier for counts
+  const Q = lowPower ? 0.4 : 1 // quality multiplier for counts
 
   const renderer = new THREE.WebGLRenderer({
     canvas,
@@ -196,8 +196,11 @@ export function createExperience(
     powerPreference: 'high-performance',
   })
   renderer.setClearColor(INK, 1)
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, lowPower ? 1.5 : 2))
-  renderer.setSize(window.innerWidth, window.innerHeight)
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, lowPower ? 1.35 : 2))
+  // updateStyle=false: CSS keeps the canvas at 100% of the viewport, so
+  // mobile URL-bar show/hide stretches it for free instead of re-allocating
+  // the drawing buffer on every height tick
+  renderer.setSize(window.innerWidth, window.innerHeight, false)
 
   const scene = new THREE.Scene()
   scene.fog = new THREE.FogExp2(INK, 0.011)
@@ -228,7 +231,7 @@ export function createExperience(
         const a = uSamples[i - 1]
         const b = uSamples[i]
         const f = (a.z - z) / (a.z - b.z || 1)
-        return (a.u + (b.u - a.u) * f) / 0.985
+        return THREE.MathUtils.clamp((a.u + (b.u - a.u) * f) / 0.985, 0, 1)
       }
     }
     return 1
@@ -245,9 +248,13 @@ export function createExperience(
     return x
   }
 
-  /** per-frame updaters: fn(elapsed, sceneProgress map) */
-  type Updater = (t: number, p: number) => void
-  const updaters: Updater[] = []
+  /**
+   * Per-frame updaters, gated by an eased-progress window so off-screen
+   * scenes cost nothing — crucial for mobile smoothness.
+   */
+  type UpdaterFn = (t: number, p: number) => void
+  const updaters: { a: number; b: number; fn: UpdaterFn }[] = []
+  const addUpdater = (fn: UpdaterFn, a = 0, b = 1) => updaters.push({ a, b, fn })
 
   /* ── starfield ── */
   {
@@ -328,7 +335,7 @@ export function createExperience(
     )
   }
 
-  /** floating card with gentle bob + sway */
+  /** floating card with gentle bob + sway — animated only while near the camera */
   function addFloatingCard(
     x: number, y: number, z: number,
     scale = 1, ry = 0, drift = 0.25
@@ -341,10 +348,10 @@ export function createExperience(
     const speed = rand(0.4, 0.8)
     const baseY = y
     const baseRz = mesh.rotation.z
-    updaters.push(t => {
+    addUpdater(t => {
       mesh.position.y = baseY + Math.sin(t * speed + seed) * drift
       mesh.rotation.z = baseRz + Math.sin(t * speed * 0.7 + seed) * 0.05
-    })
+    }, progressAtZ(z + 50), progressAtZ(z - 16))
     scene.add(mesh)
     return mesh
   }
@@ -480,7 +487,7 @@ export function createExperience(
     )
     scene.add(new THREE.Points(sGeo, sMat))
 
-    updaters.push((t, p) => {
+    addUpdater((t, p) => {
       const local = THREE.MathUtils.smoothstep(p, pStart, pEnd)
       const split = local * local * 7.5
       left.position.x = -split
@@ -498,7 +505,7 @@ export function createExperience(
         arr[i * 3 + 1] = ((sSeed[i] * 3 + t * (1.5 + (i % 5))) % 10) - 5
       }
       sGeo.attributes.position.needsUpdate = true
-    })
+    }, pStart - 0.05, pEnd + 0.08)
   }
 
   /* ── scene 3: the swarm — clips multiply into a galaxy ── */
@@ -563,7 +570,7 @@ export function createExperience(
     )
     scene.add(new THREE.LineSegments(lGeo, lMat))
 
-    updaters.push((t, p) => {
+    addUpdater((t, p) => {
       const burst = THREE.MathUtils.smoothstep(p, pStart, pMid)
       for (const c of cards) {
         const e = THREE.MathUtils.clamp(burst * 1.6 - (c.seed / (Math.PI * 2)) * 0.6, 0, 1)
@@ -575,7 +582,7 @@ export function createExperience(
       }
       ;(lMat as THREE.LineBasicMaterial).opacity =
         burst * (0.10 + Math.sin(t * 1.4) * 0.04)
-    })
+    }, pStart - 0.05, progressAtZ(-162) + 0.04)
   }
 
   /* ── scene 4: verification corridor — rising ticks + data pillars ── */
@@ -622,14 +629,16 @@ export function createExperience(
       })
     )
     scene.add(new THREE.Points(geo, mat))
-    updaters.push((t, _p) => {
+    const verifyA = progressAtZ(-148)
+    const verifyB = progressAtZ(-202)
+    addUpdater((t, _p) => {
       const arr = geo.attributes.position.array as Float32Array
       for (let i = 0; i < N; i++) {
         arr[i * 3 + 1] += speed[i] * 0.016
         if (arr[i * 3 + 1] > 7) arr[i * 3 + 1] = -7
       }
       geo.attributes.position.needsUpdate = true
-    })
+    }, verifyA, verifyB)
 
     // light pillars
     const pillarGeo = track(new THREE.PlaneGeometry(0.08, 12))
@@ -650,9 +659,9 @@ export function createExperience(
       scene.add(pillar)
       const base = m.opacity
       const seed = rand(0, Math.PI * 2)
-      updaters.push(t => {
+      addUpdater(t => {
         m.opacity = base * (0.7 + Math.sin(t * 1.8 + seed) * 0.3)
-      })
+      }, verifyA, verifyB)
     }
   }
 
@@ -695,7 +704,9 @@ export function createExperience(
       })
     )
     scene.add(new THREE.Points(geo, mat))
-    updaters.push((t, _p) => {
+    const payoutA = progressAtZ(-190)
+    const payoutB = progressAtZ(-248)
+    addUpdater((t, _p) => {
       const arr = geo.attributes.position.array as Float32Array
       for (let i = 0; i < N; i++) {
         let y = arr[i * 3 + 1] - vel[i] * 0.016
@@ -711,7 +722,7 @@ export function createExperience(
         arr[i * 3 + 1] = y
       }
       geo.attributes.position.needsUpdate = true
-    })
+    }, payoutA, payoutB)
 
     // the portal ring
     const ringGeo = track(new THREE.TorusGeometry(2.6, 0.07, 12, 72))
@@ -743,12 +754,12 @@ export function createExperience(
     ringGlow.scale.setScalar(9)
     scene.add(ringGlow)
 
-    updaters.push(t => {
+    addUpdater(t => {
       ring.rotation.z = t * 0.4
       const pulse = 1 + Math.sin(t * 2.2) * 0.06
       ring.scale.setScalar(pulse)
       ringGlow.scale.setScalar(9 * pulse)
-    })
+    }, payoutA, payoutB)
   }
 
   /* ── scene 6: horizon — the ecosystem seen from above ── */
@@ -827,7 +838,9 @@ export function createExperience(
       THREE.MathUtils.clamp((camLook.x - camPos.x) * -0.055 - pointer.sx * 0.02, -0.12, 0.12)
     )
 
-    for (const fn of updaters) fn(t, eased)
+    for (const u of updaters) {
+      if (eased >= u.a && eased <= u.b) u.fn(t, eased)
+    }
     opts.onProgress?.(eased)
 
     renderer.render(scene, camera)
@@ -845,7 +858,7 @@ export function createExperience(
     resize() {
       camera.aspect = window.innerWidth / window.innerHeight
       camera.updateProjectionMatrix()
-      renderer.setSize(window.innerWidth, window.innerHeight)
+      renderer.setSize(window.innerWidth, window.innerHeight, false)
     },
     dispose() {
       disposed = true

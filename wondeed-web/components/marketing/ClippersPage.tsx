@@ -300,7 +300,7 @@ function ClipperRequirements() {
             <h2 className="display-2" style={{ marginTop: 14 }}>Almost nothing.</h2>
             <p className="lead" style={{ marginTop: 16 }}>If you have a phone and you can use any video editor, you can clip on Wondeed.</p>
             <div style={{ marginTop: 32, padding: '24px 28px', background: 'var(--ink)', color: 'white', borderRadius: 18, display: 'inline-flex', alignItems: 'center', gap: 16 }}>
-              <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--green)', color: 'var(--ink)', display: 'grid', placeItems: 'center', fontFamily: 'var(--display)', fontWeight: 800, fontSize: 22, letterSpacing: '-0.04em' }}>0</div>
+              <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--green)', color: 'var(--fg)', display: 'grid', placeItems: 'center', fontFamily: 'var(--display)', fontWeight: 800, fontSize: 22, letterSpacing: '-0.04em' }}>0</div>
               <div>
                 <div style={{ fontFamily: 'var(--display)', fontWeight: 700, fontSize: 20, letterSpacing: '-0.015em' }}>Followers required</div>
                 <div style={{ color: 'var(--on-dark-2)', fontSize: 14 }}>Brand-new accounts can join today.</div>
@@ -310,7 +310,7 @@ function ClipperRequirements() {
           <div style={{ flex: 1, minWidth: 320, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             {items.map((it, i) => (
               <div className="card" key={i} style={{ padding: 22 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--paper)', display: 'grid', placeItems: 'center', color: 'var(--ink)', marginBottom: 14 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--paper)', display: 'grid', placeItems: 'center', color: 'var(--fg)', marginBottom: 14 }}>
                   <Icon name={it.icon} width={18} height={18} />
                 </div>
                 <div style={{ fontFamily: 'var(--display)', fontWeight: 600, fontSize: 17, letterSpacing: '-0.015em' }}>{it.t}</div>

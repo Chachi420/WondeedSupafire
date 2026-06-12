@@ -6,6 +6,7 @@ import Nav from '@/components/marketing/Nav'
 import Footer from '@/components/marketing/Footer'
 import HomePage from '@/components/marketing/HomePage'
 import ScrollReveal from '@/components/marketing/ScrollReveal'
+import BrandMark from '@/components/BrandMark'
 import type { ExperienceHandle } from './three/engine'
 
 /** total scroll length of the journey */
@@ -121,9 +122,19 @@ export default function ImmersiveHome() {
       const engine = createExperience(canvas)
       engineRef.current = engine
 
-      const onResize = () => engine.resize()
+      // Debounced: mobile URL-bar show/hide fires resize storms; the canvas
+      // stretches via CSS in the meantime, so we only rebuild the buffer once
+      // the viewport settles.
+      let resizeTimer: ReturnType<typeof setTimeout> | undefined
+      const onResize = () => {
+        clearTimeout(resizeTimer)
+        resizeTimer = setTimeout(() => engine.resize(), 180)
+      }
       window.addEventListener('resize', onResize)
-      cleanupFns.push(() => window.removeEventListener('resize', onResize))
+      cleanupFns.push(() => {
+        clearTimeout(resizeTimer)
+        window.removeEventListener('resize', onResize)
+      })
 
       const onPointer = (e: PointerEvent) => {
         if (e.pointerType !== 'mouse') return
@@ -214,7 +225,7 @@ export default function ImmersiveHome() {
       {/* chrome */}
       <header className="imm-chrome">
         <Link href="/" className="imm-logo">
-          <span className="mark">W</span> Wondeed
+          <BrandMark size={28} /> Wondeed
         </Link>
         <div className="imm-chrome-right">
           <Link href="/login" className="imm-chrome-link">Log in</Link>

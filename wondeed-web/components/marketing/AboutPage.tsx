@@ -28,7 +28,7 @@ function AboutStory() {
         <h2 className="display-2" style={{ marginTop: 16 }}>The creator economy is broken for everyone except the top 0.1%.</h2>
         <div style={{ marginTop: 28, display: 'flex', flexDirection: 'column', gap: 18, color: 'var(--fg-mute)', fontSize: 17, lineHeight: 1.75 }}>
           <p>Brands spend millions on influencer deals — most of it wasted on reach that doesn&apos;t convert. Clippers spend hours editing for fixed fees that don&apos;t scale. Nobody in the middle is accountable for actual views.</p>
-          <p>Wondeed fixes this with one rule: <strong style={{ color: 'var(--ink)' }}>pay only for verified views.</strong> Brands deposit a budget and set a CPM. Clippers pick campaigns, post Reels and Shorts on their own accounts, and get paid via UPI based on views confirmed by official platform APIs — not screenshots, not self-reported numbers.</p>
+          <p>Wondeed fixes this with one rule: <strong style={{ color: 'var(--fg)' }}>pay only for verified views.</strong> Brands deposit a budget and set a CPM. Clippers pick campaigns, post Reels and Shorts on their own accounts, and get paid via UPI based on views confirmed by official platform APIs — not screenshots, not self-reported numbers.</p>
           <p>No agencies. No retainers. No minimums. A marketplace where performance is the only currency that matters.</p>
         </div>
       </div>
