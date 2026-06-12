@@ -97,6 +97,14 @@ export default function ImmersiveHome() {
     let cancelled = false
     let cleanupFns: (() => void)[] = []
 
+    // GPU context lost (tab restore, driver reset) → graceful classic fallback
+    const onContextLost = (e: Event) => {
+      e.preventDefault()
+      setMode('classic')
+    }
+    canvas.addEventListener('webglcontextlost', onContextLost)
+    cleanupFns.push(() => canvas.removeEventListener('webglcontextlost', onContextLost))
+
     // dark chrome while travelling + native scroll (smooth-scroll fights the camera rig)
     const root = document.documentElement
     const prevBg = root.style.background
@@ -231,7 +239,8 @@ export default function ImmersiveHome() {
         </div>
       </div>
       <div className="imm-hint" ref={hintRef} aria-hidden="true">
-        <span>Scroll to begin</span>
+        <span className="imm-hint-mouse">Scroll to begin</span>
+        <span className="imm-hint-touch">Swipe up to begin</span>
         <span className="chev" />
       </div>
 

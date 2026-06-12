@@ -189,9 +189,14 @@ export function createExperience(
   const lowPower = isCoarse || isSmall
   const Q = lowPower ? 0.55 : 1 // quality multiplier for counts
 
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: !lowPower, alpha: false })
+  const renderer = new THREE.WebGLRenderer({
+    canvas,
+    antialias: !lowPower,
+    alpha: false,
+    powerPreference: 'high-performance',
+  })
   renderer.setClearColor(INK, 1)
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, lowPower ? 1.75 : 2))
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, lowPower ? 1.5 : 2))
   renderer.setSize(window.innerWidth, window.innerHeight)
 
   const scene = new THREE.Scene()
@@ -817,6 +822,10 @@ export function createExperience(
       camPos.z
     )
     camera.lookAt(camLook.x + pointer.sx * 0.8, camLook.y - pointer.sy * 0.6, camLook.z)
+    // subtle banking into turns — makes the flight feel piloted
+    camera.rotateZ(
+      THREE.MathUtils.clamp((camLook.x - camPos.x) * -0.055 - pointer.sx * 0.02, -0.12, 0.12)
+    )
 
     for (const fn of updaters) fn(t, eased)
     opts.onProgress?.(eased)
