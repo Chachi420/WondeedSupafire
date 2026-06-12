@@ -5,14 +5,14 @@ import Icon from './Icon'
 import { FinalSplitCTA } from './shared'
 
 const FAQ_BRANDS = [
-  { q: 'How is my campaign budget charged?', a: 'You fund a Wondeed wallet via UPI, NEFT, RTGS or card (Razorpay). Money sits in escrow against your account. We deduct only after a view passes verification and clears the 72-hour holding window. Unspent budget is yours — withdraw it anytime.' },
+  { q: 'How is my campaign budget charged?', a: 'You fund a Wondeed wallet via UPI, NEFT, RTGS or card. Money sits in escrow against your account. We deduct only after a view passes verification and clears the 72-hour holding window. Unspent budget is yours — withdraw it anytime.' },
   { q: 'What happens if a clip gets zero views?', a: 'You pay nothing for that clip. Performance-based means exactly that. The clipper takes the swing; you keep the budget for clips that land.' },
   { q: 'Can I cancel a campaign mid-flight?', a: 'Yes. Pause or end any campaign from your dashboard. Active clips already posted continue to earn against your wallet for 7 more days, then stop. Remaining budget returns instantly.' },
-  { q: 'How do I fund my wallet?', a: 'UPI (recommended for speed), NEFT, RTGS, or card via Razorpay. UPI top-ups reflect within 60 seconds. NEFT/RTGS within banking hours. No top-up fees.' },
+  { q: 'How do I fund my wallet?', a: 'UPI (recommended for speed), NEFT, RTGS, or card. UPI top-ups reflect within 60 seconds. NEFT/RTGS within banking hours. No top-up fees.' },
   { q: 'Which niches get the most clipper traction?', a: 'Lifestyle, fintech, edtech, gaming and D2C beauty have the deepest clipper supply. Niche tightness depends on the brief, source content quality and earning tier — we\'ll preview expected coverage before you launch.' },
   { q: 'Can I see who\'s clipping for me?', a: 'Yes. The campaign dashboard shows every clipper, their handles, their submitted clips and per-clip performance. Anonymity is opt-in for clippers — most go public once they trust the brand.' },
   { q: 'What if a clipper misrepresents my brand?', a: 'Reject the clip inside the 72-hour window. The payout reverses, the views don\'t deduct, and our trust team reviews the clipper for repeat behaviour. You can also block specific clippers from your future campaigns.' },
-  { q: 'Do you handle GST invoices?', a: 'Yes. Subscription invoices include GSTIN, HSN code and a clean breakdown — eligible for input tax credit. Invoices auto-generate on the 1st of every month.' },
+  { q: 'Do you handle GST invoices?', a: 'Yes. Yes — every subscription charge comes with a tax invoice for your records.' },
   { q: 'What\'s the minimum budget to start?', a: '₹20,000 per campaign. There is no minimum on subscription tier — Pro is free.' },
   { q: 'Can I run multiple campaigns at once?', a: 'Pro: 1 active campaign. Premium: 5 active. Enterprise: unlimited. All tiers can queue drafts; only active campaigns count toward the limit.' },
 ]
@@ -46,7 +46,7 @@ function FAQList({ items, query }: { items: typeof FAQ_BRANDS; query: string }) 
           <div className="card" style={{ textAlign: 'center', padding: 48 }}>
             <div className="display-4">No questions match &ldquo;{query}&rdquo;.</div>
             <p style={{ color: 'var(--fg-mute)', marginTop: 8 }}>
-              Try fewer words, or write to us at <span style={{ color: 'var(--ink)', fontWeight: 600 }}>hello@wondeed.com</span>.
+              Try fewer words, or write to us at <span style={{ color: 'var(--fg)', fontWeight: 600 }}>hello@wondeed.com</span>.
             </p>
           </div>
         ) : (

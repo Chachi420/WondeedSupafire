@@ -1,6 +1,6 @@
 export const metadata = {
   title: 'Grievance Officer — Wondeed',
-  description: 'Grievance redressal contact for Wondeed Technologies Pvt. Ltd. under the IT Act 2000 and DPDP Act 2023.',
+  description: 'Grievance redressal contact for Wondeed under the IT Act 2000 and DPDP Act 2023.',
 }
 
 export default function GrievancePage() {
@@ -19,7 +19,7 @@ export default function GrievancePage() {
               {[
                 { l: 'Name',         v: 'Grievance Officer, Wondeed' },
                 { l: 'Designation',  v: 'Grievance Officer' },
-                { l: 'Company',      v: 'Wondeed Technologies Pvt. Ltd.' },
+                { l: 'Company',      v: 'Wondeed' },
                 { l: 'Email',        v: 'grievance@wondeed.com' },
                 { l: 'Response time', v: 'Within 24 hours (acknowledgment)' },
                 { l: 'Resolution',   v: 'Within 30 days of receipt' },
@@ -27,7 +27,7 @@ export default function GrievancePage() {
                 <div key={i}>
                   <div style={{ fontSize: 11, fontFamily: 'var(--mono)', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--fg-mute)', marginBottom: 4 }}>{f.l}</div>
                   <div style={{ fontFamily: 'var(--display)', fontWeight: 600, fontSize: 15 }}>
-                    {f.l === 'Email' ? <a href="mailto:grievance@wondeed.com" style={{ color: 'var(--ink)' }}>{f.v}</a> : f.v}
+                    {f.l === 'Email' ? <a href="mailto:grievance@wondeed.com" style={{ color: 'var(--fg)' }}>{f.v}</a> : f.v}
                   </div>
                 </div>
               ))}
@@ -36,7 +36,7 @@ export default function GrievancePage() {
 
           <section>
             <h2 style={{ fontFamily: 'var(--display)', fontWeight: 700, fontSize: 20, letterSpacing: '-0.015em', marginBottom: 10 }}>How to File a Grievance</h2>
-            <p style={{ color: 'var(--fg-mute)', lineHeight: 1.8 }}>You may file a grievance regarding: (a) content moderation decisions; (b) account suspension or termination; (c) data privacy concerns; (d) payment disputes; or (e) any other issue with the Wondeed platform. Email <a href="mailto:grievance@wondeed.com" style={{ color: 'var(--ink)', fontWeight: 600 }}>grievance@wondeed.com</a> with your registered mobile number, a description of your grievance, and any supporting evidence.</p>
+            <p style={{ color: 'var(--fg-mute)', lineHeight: 1.8 }}>You may file a grievance regarding: (a) content moderation decisions; (b) account suspension or termination; (c) data privacy concerns; (d) payment disputes; or (e) any other issue with the Wondeed platform. Email <a href="mailto:grievance@wondeed.com" style={{ color: 'var(--fg)', fontWeight: 600 }}>grievance@wondeed.com</a> with your registered mobile number, a description of your grievance, and any supporting evidence.</p>
           </section>
 
           <section>

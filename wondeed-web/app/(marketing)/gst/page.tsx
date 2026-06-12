@@ -1,6 +1,6 @@
 export const metadata = {
   title: 'GST Information — Wondeed',
-  description: 'GST details for Wondeed Technologies Pvt. Ltd. — GSTIN, tax invoices, and billing information.',
+  description: 'GST details for Wondeed — tax invoices, and billing information.',
 }
 
 export default function GSTPage() {
@@ -15,7 +15,7 @@ export default function GSTPage() {
 
           <div style={{ background: 'var(--paper)', borderRadius: 16, padding: '28px 32px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20 }}>
             {[
-              { l: 'Legal entity', v: 'Wondeed Technologies Pvt. Ltd.' },
+              { l: 'Legal entity', v: 'Wondeed' },
               { l: 'GSTIN', v: 'To be updated' },
               { l: 'HSN / SAC code', v: '998361 (Online marketplace services)' },
               { l: 'GST rate', v: '18% on platform fees' },
@@ -36,7 +36,7 @@ export default function GSTPage() {
 
           <section>
             <h2 style={{ fontFamily: 'var(--display)', fontWeight: 700, fontSize: 20, letterSpacing: '-0.015em', marginBottom: 10 }}>Invoices for Brands</h2>
-            <p style={{ color: 'var(--fg-mute)', lineHeight: 1.8 }}>GST-compliant tax invoices are generated automatically after each campaign deposit and platform fee payment. Invoices are available for download from your Brand dashboard under Billing. For invoice corrections or missing invoices, email <a href="mailto:billing@wondeed.com" style={{ color: 'var(--ink)', fontWeight: 600 }}>billing@wondeed.com</a>.</p>
+            <p style={{ color: 'var(--fg-mute)', lineHeight: 1.8 }}>GST-compliant tax invoices are generated automatically after each campaign deposit and platform fee payment. Invoices are available for download from your Brand dashboard under Billing. For invoice corrections or missing invoices, email <a href="mailto:billing@wondeed.com" style={{ color: 'var(--fg)', fontWeight: 600 }}>billing@wondeed.com</a>.</p>
           </section>
 
           <section>
@@ -46,7 +46,7 @@ export default function GSTPage() {
 
           <section>
             <h2 style={{ fontFamily: 'var(--display)', fontWeight: 700, fontSize: 20, letterSpacing: '-0.015em', marginBottom: 10 }}>Contact</h2>
-            <p style={{ color: 'var(--fg-mute)', lineHeight: 1.8 }}>For GST and billing queries, email <a href="mailto:billing@wondeed.com" style={{ color: 'var(--ink)', fontWeight: 600 }}>billing@wondeed.com</a>.</p>
+            <p style={{ color: 'var(--fg-mute)', lineHeight: 1.8 }}>For GST and billing queries, email <a href="mailto:billing@wondeed.com" style={{ color: 'var(--fg)', fontWeight: 600 }}>billing@wondeed.com</a>.</p>
           </section>
 
         </div>

@@ -86,7 +86,7 @@ export default async function BillingPage() {
             </div>
           </div>
           <div className="row gap-12 mt-16" style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>
-            <span>Top-up via Razorpay coming in Phase 2</span>
+            <span>Online top-up coming soon</span>
             <span>·</span>
             <span>Contact admin to add funds now</span>
           </div>

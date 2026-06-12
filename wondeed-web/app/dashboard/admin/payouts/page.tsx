@@ -51,7 +51,7 @@ export default async function AdminPayoutsPage() {
       <div className="topbar">
         <div className="col">
           <h1>Payout Requests</h1>
-          <div className="topbar-sub">Review clipper payout requests and update Razorpay transfer status</div>
+          <div className="topbar-sub">Review clipper payout requests and update transfer status</div>
         </div>
       </div>
 

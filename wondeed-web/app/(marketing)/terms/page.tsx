@@ -1,6 +1,6 @@
 export const metadata = {
   title: 'Terms of Service — Wondeed',
-  description: 'Terms governing the use of Wondeed Technologies Pvt. Ltd. platform.',
+  description: 'Terms governing the use of Wondeed platform.',
 }
 
 export default function TermsPage() {
@@ -15,7 +15,7 @@ export default function TermsPage() {
 
           <section>
             <h2 style={{ fontFamily: 'var(--display)', fontWeight: 700, fontSize: 20, letterSpacing: '-0.015em', marginBottom: 10 }}>1. About Wondeed</h2>
-            <p style={{ color: 'var(--fg-mute)', lineHeight: 1.8 }}>Wondeed is operated by <strong>Wondeed Technologies Pvt. Ltd.</strong> ("Wondeed", "we", "us", "our"), a company incorporated in India. Wondeed operates a performance-based short-form video marketplace that connects brands ("Brands") with content creators ("Clippers"). By accessing or using the platform, you agree to these Terms.</p>
+            <p style={{ color: 'var(--fg-mute)', lineHeight: 1.8 }}>Wondeed is operated by <strong>Wondeed</strong> ("we", "us", "our"). Wondeed operates a performance-based short-form video marketplace that connects brands ("Brands") with content creators ("Clippers"). By accessing or using the platform, you agree to these Terms.</p>
           </section>
 
           <section>
@@ -40,7 +40,7 @@ export default function TermsPage() {
 
           <section>
             <h2 style={{ fontFamily: 'var(--display)', fontWeight: 700, fontSize: 20, letterSpacing: '-0.015em', marginBottom: 10 }}>6. Payments</h2>
-            <p style={{ color: 'var(--fg-mute)', lineHeight: 1.8 }}>Brand deposits are processed via Razorpay. Clipper payouts are issued via UPI within 7 business days of a payout request, subject to a minimum balance of ₹500. Wondeed charges a platform fee to Brands, separate from the campaign budget deposited. The full deposited campaign budget is distributed to Clippers. All amounts are in Indian Rupees (INR).</p>
+            <p style={{ color: 'var(--fg-mute)', lineHeight: 1.8 }}>Brand deposits are processed through secure payment channels. Clipper payouts are issued via UPI within 7 business days of a payout request, subject to a minimum balance of ₹500. Wondeed charges a platform fee to Brands, separate from the campaign budget deposited. The full deposited campaign budget is distributed to Clippers. All amounts are in Indian Rupees (INR).</p>
           </section>
 
           <section>
@@ -65,7 +65,7 @@ export default function TermsPage() {
 
           <section>
             <h2 style={{ fontFamily: 'var(--display)', fontWeight: 700, fontSize: 20, letterSpacing: '-0.015em', marginBottom: 10 }}>11. Contact</h2>
-            <p style={{ color: 'var(--fg-mute)', lineHeight: 1.8 }}>For questions about these Terms, email <a href="mailto:legal@wondeed.com" style={{ color: 'var(--ink)', fontWeight: 600 }}>legal@wondeed.com</a>.</p>
+            <p style={{ color: 'var(--fg-mute)', lineHeight: 1.8 }}>For questions about these Terms, email <a href="mailto:legal@wondeed.com" style={{ color: 'var(--fg)', fontWeight: 600 }}>legal@wondeed.com</a>.</p>
           </section>
 
         </div>

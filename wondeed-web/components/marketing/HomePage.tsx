@@ -100,7 +100,7 @@ function MarketplaceLoop() {
             </p>
             <div style={{ marginTop: 28, display: 'flex', flexDirection: 'column', gap: 10 }}>
               {[
-                { l: 'Clip posted', r: '@arjun.cuts' },
+                { l: 'Clip posted', r: '@creator.cuts' },
                 { l: 'Verified views', r: '1,24,560' },
                 { l: 'Earned this month', r: '₹4,820' },
               ].map((row, i) => (
@@ -356,7 +356,7 @@ function BrandPromises() {
 function HomeFAQTeaser() {
   const router = useRouter()
   const faqs = [
-    { q: 'How is my campaign budget charged?', a: 'Funds sit in your Wondeed wallet (Razorpay escrow). We deduct only after a clip\'s views are verified through the Instagram or YouTube API and clear the 72-hour holding period.' },
+    { q: 'How is my campaign budget charged?', a: 'Funds sit in your Wondeed escrow wallet. We deduct only after a clip\'s views are verified through the Instagram or YouTube API and clear the 72-hour holding period.' },
     { q: 'What counts as a verified view?', a: 'A view counted by Instagram Graph API or YouTube Data API on a public Reel or Short, after our anomaly check. Watch-time floors apply on Shorts.' },
     { q: 'Do clippers need a minimum follower count?', a: 'No. Zero followers is fine. Distribution comes from clip volume across many handles, not from any one creator\'s reach.' },
     { q: 'How fast do clippers get paid?', a: 'Earnings are released after a 72-hour holding period. UPI payouts settle within 7 days of release. Minimum payout is ₹500.' },

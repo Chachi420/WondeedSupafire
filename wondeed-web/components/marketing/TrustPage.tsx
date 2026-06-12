@@ -28,7 +28,7 @@ function TrustDiagram() {
     { x: 230, label: 'Wondeed Tracker',           sub: 'API snapshots every 6h', alt: true },
     { x: 430, label: 'Anomaly Engine',             sub: 'Engagement-rate gates', alt: true },
     { x: 630, label: '72-hour Hold',               sub: 'Brand approval window', alt: true },
-    { x: 830, label: 'UPI Payout',                 sub: 'Razorpay rails',        green: true },
+    { x: 830, label: 'UPI Payout',                 sub: 'Direct to UPI ID',        green: true },
   ]
   return (
     <div style={{ background: 'var(--white)', border: '1px solid var(--hairline)', borderRadius: 22, padding: 32, overflowX: 'auto' }}>
@@ -101,7 +101,7 @@ function TrustForBrands() {
     { icon: 'shield-check', t: 'Content approval window', d: '72 hours to review every clip before it gets paid. Reject anything that doesn\'t fit and the payout is reversed automatically.' },
     { icon: 'flag', t: 'Brand safety review', d: 'Every clipper\'s first submission per campaign goes through manual review. Repeat offenders are auto-blocked from your campaigns.' },
     { icon: 'wallet', t: 'Refund on rejected clips', d: 'Reject a clip → its views never deduct from your wallet. Refunds are instant inside the holding period.' },
-    { icon: 'lock', t: 'Escrow wallet model', d: 'Funds sit in a Razorpay-backed escrow against your account. We move money only after each view passes all three verification layers.' },
+    { icon: 'lock', t: 'Escrow wallet model', d: 'Funds sit in an escrow wallet against your account. We move money only after each view passes all three verification layers.' },
   ]
   return (
     <section className="section white">
@@ -113,7 +113,7 @@ function TrustForBrands() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
           {cards.map((c, i) => (
             <div className="card" key={i}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--paper)', display: 'grid', placeItems: 'center', color: 'var(--ink)', marginBottom: 14 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--paper)', display: 'grid', placeItems: 'center', color: 'var(--fg)', marginBottom: 14 }}>
                 <Icon name={c.icon} width={20} height={20} />
               </div>
               <div className="display-4">{c.t}</div>
@@ -158,8 +158,8 @@ function TrustForClippers() {
 
 function TrustCompliance() {
   const items = [
-    { t: 'Razorpay payment partner', d: 'All wallets and payouts are processed via Razorpay. PCI-DSS compliant. Indian banking regulations honoured.' },
-    { t: 'GST-compliant invoicing', d: 'Subscription invoices include GSTIN, HSN code and breakdown. Eligible for input tax credit.' },
+    { t: 'UPI payouts', d: 'Clipper payouts go directly to verified UPI IDs — no middlemen, no wallets to cash out.' },
+    { t: 'Clean invoicing', d: 'Every subscription charge comes with a clear tax invoice.' },
     { t: 'MeitY content moderation', d: 'Wondeed follows MeitY guidelines for intermediary platforms. Grievance officer is publicly listed.' },
     { t: 'Data residency in India', d: 'User data, campaign content and payment logs are stored on Indian-region cloud infrastructure.' },
   ]

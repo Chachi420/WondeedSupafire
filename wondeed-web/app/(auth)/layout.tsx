@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import BrandMark from '@/components/BrandMark'
 
 function PointIcon({ d }: { d: string }) {
   return (
@@ -31,7 +32,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     <main className="auth-shell">
       <aside className="auth-brand-panel">
         <Link href="/" className="auth-logo">
-          <span className="mark">W</span>
+          <BrandMark size={30} />
           Wondeed
         </Link>
 
@@ -77,7 +78,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <section className="auth-form-panel">
         <div className="auth-form-head">
           <Link href="/" className="auth-mobile-logo">
-            <span className="mark">W</span>
+            <BrandMark size={26} />
             Wondeed
           </Link>
           <span>Back to</span>

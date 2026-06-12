@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Icon from './Icon'
+import BrandMark from '@/components/BrandMark'
 
 const LINKS = [
   { href: '/brands',   label: 'For Brands' },
@@ -28,7 +29,7 @@ export default function Nav() {
       <div className="container">
         <div className="nav-row">
           <button className="brand" onClick={() => router.push('/')} aria-label="Wondeed home">
-            <span className="brand-mark">W</span>
+            <BrandMark size={28} />
             <span>Wondeed</span>
           </button>
 

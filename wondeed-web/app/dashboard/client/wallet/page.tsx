@@ -27,7 +27,7 @@ export default async function ClientWalletPage() {
       <div className="topbar">
         <div className="col">
           <h1>Wallet</h1>
-          <div className="topbar-sub">Fund your campaigns via Razorpay · Balance debited on campaign approval</div>
+          <div className="topbar-sub">Fund your campaigns via UPI · Balance debited on campaign approval</div>
         </div>
       </div>
 
@@ -54,7 +54,7 @@ export default async function ClientWalletPage() {
           <div className="card-head">
             <div>
               <h2>Top Up Wallet</h2>
-              <div className="sub">Razorpay UPI / card payments — coming soon in Phase 2</div>
+              <div className="sub">UPI / card top-ups — coming soon</div>
             </div>
             <div className="card-head-right">
               <span className="badge badge-warn">Phase 2</span>
@@ -75,7 +75,7 @@ export default async function ClientWalletPage() {
               ))}
             </div>
             <button disabled className="btn btn-primary" style={{ opacity: 0.4, cursor: 'not-allowed', width: '100%' }}>
-              Pay via Razorpay
+              Top up wallet
             </button>
           </div>
         </div>

@@ -112,7 +112,7 @@ function BrandMath() {
 
 function BrandHowItWorks() {
   const steps = [
-    { n: '1', t: 'Deposit your budget', d: 'Add ₹20K or more via UPI, NEFT, RTGS or card. Funds sit in your Razorpay-backed escrow wallet.' },
+    { n: '1', t: 'Deposit your budget', d: 'Add ₹20K or more via UPI, NEFT, RTGS or card. Funds sit in your campaign escrow wallet.' },
     { n: '2', t: 'Upload source content', d: 'Drop in long-form videos, raw clips, ad scripts. We package a brief pack for clippers.' },
     { n: '3', t: 'Approve the brief', d: 'Set niche, daily caps, do/don\'t rules. Approve clips inside a 72-hour window before they go live.' },
     { n: '4', t: 'Clippers post on their handles', d: 'Real Instagram and YouTube creator accounts. Tracked by post URL with API verification.' },
@@ -161,7 +161,7 @@ function BrandControl() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
           {features.map((f, i) => (
             <div className="card card-hover" key={i}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--paper)', display: 'grid', placeItems: 'center', color: 'var(--ink)', marginBottom: 16 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--paper)', display: 'grid', placeItems: 'center', color: 'var(--fg)', marginBottom: 16 }}>
                 <Icon name={f.icon} width={20} height={20} />
               </div>
               <div className="display-4">{f.t}</div>
@@ -187,7 +187,7 @@ function BrandPricingTeaser() {
         <div className="price-grid">
           <PricingCard
             tier="Pro" price="Free" per="forever"
-            features={['1 active campaign', 'Tier 1 clipper access', '72-hour content approval', 'Standard support', 'Razorpay-backed escrow']}
+            features={['1 active campaign', 'Tier 1 clipper access', '72-hour content approval', 'Standard support', 'Escrow-protected budget']}
             cta="Start free"
             onCta={() => router.push('/pricing')}
           />
@@ -244,11 +244,11 @@ function BrandUseCases() {
 function BrandFAQ() {
   const router = useRouter()
   const faqs = [
-    { q: 'How is my campaign budget charged?', a: 'Funds sit in your Razorpay escrow wallet. Verified views are deducted only after the 72-hour holding period clears. You can withdraw an unspent balance anytime.' },
+    { q: 'How is my campaign budget charged?', a: 'Funds sit in your campaign escrow wallet. Verified views are deducted only after the 72-hour holding period clears. You can withdraw an unspent balance anytime.' },
     { q: 'What happens if a clip gets zero views?', a: 'Nothing is charged. The clipper invested time but earned no payout. You owe nothing. This is the entire point of the model.' },
     { q: 'Which niches get the most clipper traction?', a: 'Fintech, D2C beauty, edtech and quick-commerce currently see the fastest clip pickup. Niche traction also depends on your earning tier and source content quality.' },
     { q: 'Can I see who\'s clipping for me?', a: 'Yes. Each campaign dashboard shows clipper handles, view counts, engagement, and clip URLs. You can block any clipper from your campaign in one click.' },
-    { q: 'Do you handle GST invoicing?', a: 'Yes. Wondeed issues GST-compliant invoices for subscription fees. Razorpay handles the wallet top-ups separately.' },
+    { q: 'Do you handle GST invoicing?', a: 'Yes. Wondeed issues tax invoices for all subscription charges.' },
   ]
   return (
     <section className="section paper">

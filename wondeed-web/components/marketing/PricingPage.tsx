@@ -38,7 +38,7 @@ function PricingCards() {
         <div className="price-grid">
           <PricingCard
             tier="Pro" price="Free" per="forever"
-            features={['1 active campaign', 'Tier 1 clipper access', '72-hour content approval', 'Standard support (48-hour response)', 'Razorpay-backed escrow wallet', 'GST-compliant invoices']}
+            features={['1 active campaign', 'Tier 1 clipper access', '72-hour content approval', 'Standard support (48-hour response)', 'Escrow-protected wallet', 'Tax invoices for every charge']}
             cta="Start free"
             onCta={() => router.push('/signup')}
           />
@@ -115,7 +115,7 @@ function PricingTable() {
 
 function WhatYouDontPay() {
   const items = [
-    { t: 'No platform fee on payouts', d: '0% taken from clippers. 0% taken from your campaign budget. Razorpay UPI rails are absorbed by us.' },
+    { t: 'No platform fee on payouts', d: '0% taken from clippers. 0% taken from your campaign budget. UPI transfer costs are absorbed by us.' },
     { t: 'No setup fees', d: 'Sign up, fund your wallet, run a campaign. No onboarding fee, no implementation cost.' },
     { t: 'No per-campaign charges', d: 'Run as many campaigns as your tier allows. The subscription is the only recurring cost.' },
     { t: 'No long-term contracts', d: 'Monthly billing on Premium and Enterprise. Cancel any time — wallet balance returns to your bank.' },
@@ -130,7 +130,7 @@ function WhatYouDontPay() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
           {items.map((it, i) => (
             <div key={i} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--hairline-dark-2)', borderRadius: 18, padding: 28, display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--green)', color: 'var(--ink)', display: 'grid', placeItems: 'center' }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--green)', color: 'var(--fg)', display: 'grid', placeItems: 'center' }}>
                 <Icon name="check" width={18} height={18} />
               </div>
               <div className="display-4" style={{ color: 'white' }}>{it.t}</div>
@@ -203,7 +203,7 @@ function PricingCalculator() {
 
 function PricingFAQ() {
   const faqs = [
-    { q: 'How is the campaign budget held?', a: 'Funds sit in a Razorpay-backed escrow wallet under your account. Verified views deduct only after the 72-hour holding period. Unspent balance can be withdrawn back to your registered bank account anytime.' },
+    { q: 'How is the campaign budget held?', a: 'Funds sit in an escrow wallet under your account. Verified views deduct only after the 72-hour holding period. Unspent balance can be withdrawn back to your registered bank account anytime.' },
     { q: 'What if a clip gets no views?', a: 'You pay nothing. The clipper invested time but earned no payout. The clip can stay live; it might earn views later, in which case you\'d pay the verified-view rate at that time.' },
     { q: 'Can I cancel anytime?', a: 'Yes. Premium and Enterprise are monthly. Cancel any time — your subscription continues until the end of the paid period, then stops. No early-termination fees.' },
     { q: 'Do unused campaigns roll over?', a: 'No. The active-campaign count resets each subscription period. But there\'s no "unused" cost — the subscription pays for unlimited use up to that count.' },

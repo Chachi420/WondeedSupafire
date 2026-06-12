@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import Icon from './Icon'
+import BrandMark from '@/components/BrandMark'
 
 export default function Footer() {
   const router = useRouter()
@@ -12,12 +13,8 @@ export default function Footer() {
       <div className="container">
         <div className="footer-grid">
           <div className="footer-brand">
-            <div className="brand"><span className="brand-mark">W</span><span>Wondeed</span></div>
+            <div className="brand"><BrandMark size={28} /><span>Wondeed</span></div>
             <p className="footer-tag">India&apos;s first performance-based short-form video clipping marketplace. Pay per view. Built in India.</p>
-            <div className="footer-trust">
-              <span className="trust-badge"><Icon name="shield-check" /> Razorpay Verified</span>
-              <span className="trust-badge"><Icon name="badge-check" /> MSME Registered</span>
-            </div>
           </div>
 
           <div className="footer-col">
@@ -64,7 +61,7 @@ export default function Footer() {
         </div>
 
         <div className="footer-strip">
-          <div>© 2026 Wondeed Technologies Pvt. Ltd. · Made in India 🇮🇳</div>
+          <div>© 2026 Wondeed · Made in India 🇮🇳</div>
           <div className="footer-socials">
             <a href="https://instagram.com/wondeed" target="_blank" rel="noreferrer" aria-label="Instagram"><Icon name="instagram" /></a>
             <a href="https://youtube.com/@wondeed" target="_blank" rel="noreferrer" aria-label="YouTube"><Icon name="youtube" /></a>

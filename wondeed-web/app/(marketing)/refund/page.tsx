@@ -20,12 +20,12 @@ export default function RefundPage() {
 
           <section>
             <h2 style={{ fontFamily: 'var(--display)', fontWeight: 700, fontSize: 20, letterSpacing: '-0.015em', marginBottom: 10 }}>2. Pre-Campaign Cancellation</h2>
-            <p style={{ color: 'var(--fg-mute)', lineHeight: 1.8 }}>If you cancel a campaign before any clip has been approved and views tracked, a refund of 90% of the deposited amount will be issued. The remaining 10% covers payment processing and platform setup costs. Cancellation must be requested by emailing <a href="mailto:support@wondeed.com" style={{ color: 'var(--ink)', fontWeight: 600 }}>support@wondeed.com</a> within 48 hours of deposit.</p>
+            <p style={{ color: 'var(--fg-mute)', lineHeight: 1.8 }}>If you cancel a campaign before any clip has been approved and views tracked, a refund of 90% of the deposited amount will be issued. The remaining 10% covers payment processing and platform setup costs. Cancellation must be requested by emailing <a href="mailto:support@wondeed.com" style={{ color: 'var(--fg)', fontWeight: 600 }}>support@wondeed.com</a> within 48 hours of deposit.</p>
           </section>
 
           <section>
             <h2 style={{ fontFamily: 'var(--display)', fontWeight: 700, fontSize: 20, letterSpacing: '-0.015em', marginBottom: 10 }}>3. No-Clip Campaigns</h2>
-            <p style={{ color: 'var(--fg-mute)', lineHeight: 1.8 }}>If a campaign receives no clip submissions within 14 days of going live, Brands may request a full refund minus Razorpay transaction fees (typically 2%). This request must be made within 7 days of the campaign expiry.</p>
+            <p style={{ color: 'var(--fg-mute)', lineHeight: 1.8 }}>If a campaign receives no clip submissions within 14 days of going live, Brands may request a full refund minus payment-gateway transaction fees (typically 2%). This request must be made within 7 days of the campaign expiry.</p>
           </section>
 
           <section>
@@ -40,7 +40,7 @@ export default function RefundPage() {
 
           <section>
             <h2 style={{ fontFamily: 'var(--display)', fontWeight: 700, fontSize: 20, letterSpacing: '-0.015em', marginBottom: 10 }}>6. Contact</h2>
-            <p style={{ color: 'var(--fg-mute)', lineHeight: 1.8 }}>For refund requests, email <a href="mailto:support@wondeed.com" style={{ color: 'var(--ink)', fontWeight: 600 }}>support@wondeed.com</a> with your campaign ID and the reason for cancellation.</p>
+            <p style={{ color: 'var(--fg-mute)', lineHeight: 1.8 }}>For refund requests, email <a href="mailto:support@wondeed.com" style={{ color: 'var(--fg)', fontWeight: 600 }}>support@wondeed.com</a> with your campaign ID and the reason for cancellation.</p>
           </section>
 
         </div>

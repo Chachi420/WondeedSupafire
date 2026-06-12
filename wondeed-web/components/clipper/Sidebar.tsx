@@ -1,5 +1,6 @@
 'use client'
 
+import BrandMark from '@/components/BrandMark'
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
@@ -70,7 +71,7 @@ export default function ClipperSidebar({ userName, userHandle, userTier, feedBad
         </svg>
       </button>
       <div className="sidebar-brand">
-        <div className="brand-mark">W</div>
+        <BrandMark size={32} radius={8} />
         <div className="brand-name">
           Wondeed
           <span>Clipper</span>

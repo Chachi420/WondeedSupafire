@@ -23,7 +23,7 @@ const CATEGORIES = [
     items: [
       { q: 'When and how do I get paid?', a: 'Views go through a 72-hour hold period. Once views are confirmed and your balance crosses ₹500, you can request a payout. It lands in your linked UPI ID within 7 days. Tier 3 clippers get 3-day fast-track payouts.' },
       { q: 'What is the minimum payout?', a: 'The minimum payout request is ₹500. Earnings below this threshold accumulate until you cross it.' },
-      { q: 'How do brands pay?', a: 'Brands deposit a campaign budget via Razorpay (UPI, net banking, or credit card). 100% of the deposited amount goes into the campaign pool for clipper payouts.' },
+      { q: 'How do brands pay?', a: 'Brands deposit a campaign budget via UPI, net banking, or card. 100% of the deposited amount goes into the campaign pool for clipper payouts.' },
       { q: 'Can I change my UPI ID?', a: 'Yes. Go to Account Settings and update your UPI ID at any time. Any pending payout will go to the UPI ID that was active when the payout was requested.' },
     ],
   },
@@ -93,7 +93,7 @@ export default function HelpPage() {
               </p>
               {filtered.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--fg-mute)' }}>
-                  <p>No results. <a href="mailto:help@wondeed.com" style={{ color: 'var(--ink)', fontWeight: 600 }}>Email us</a> and we&apos;ll help directly.</p>
+                  <p>No results. <a href="mailto:help@wondeed.com" style={{ color: 'var(--fg)', fontWeight: 600 }}>Email us</a> and we&apos;ll help directly.</p>
                 </div>
               ) : (
                 <div className="faq-list">
