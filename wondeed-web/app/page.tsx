@@ -1,15 +1,5 @@
-import Nav from '@/components/marketing/Nav'
-import Footer from '@/components/marketing/Footer'
-import HomePage from '@/components/marketing/HomePage'
-import ScrollReveal from '@/components/marketing/ScrollReveal'
+import ImmersiveHome from '@/components/home/ImmersiveHome'
 
 export default function Home() {
-  return (
-    <div className="mkt-wrap">
-      <Nav />
-      <HomePage />
-      <Footer />
-      <ScrollReveal />
-    </div>
-  )
+  return <ImmersiveHome />
 }
