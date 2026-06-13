@@ -317,6 +317,7 @@ html { scroll-behavior: smooth; }
   font-weight: 700;
   font-size: 18px;
   letter-spacing: -0.02em;
+  color: var(--fg);
 }
 .brand-mark {
   width: 28px; height: 28px;
@@ -988,7 +989,7 @@ html { scroll-behavior: smooth; }
   .footer-grid { grid-template-columns: 1fr; }
   .footer-brand { grid-column: span 1; }
 }
-.footer-brand .brand { color: var(--white); margin-bottom: 14px; }
+.footer-brand .brand { color: var(--fg); margin-bottom: 14px; }
 .footer-tag { font-size: 14px; line-height: 1.6; max-width: 28ch; }
 .footer-col h5 {
   font-family: var(--mono);
