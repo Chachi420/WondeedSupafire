@@ -387,6 +387,21 @@ function HomeFAQTeaser() {
   )
 }
 
+/** everything below the hero — reused by the story landing */
+export function HomeSections() {
+  return (
+    <>
+      <MarketplaceLoop />
+      <NicheShowcase />
+      <HowItWorksTabs />
+      <WhyWondeed />
+      <BrandPromises />
+      <HomeFAQTeaser />
+      <FinalSplitCTA />
+    </>
+  )
+}
+
 export default function HomePage() {
   const router = useRouter()
   return (
@@ -422,13 +437,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <MarketplaceLoop />
-      <NicheShowcase />
-      <HowItWorksTabs />
-      <WhyWondeed />
-      <BrandPromises />
-      <HomeFAQTeaser />
-      <FinalSplitCTA />
+      <HomeSections />
     </>
   )
 }

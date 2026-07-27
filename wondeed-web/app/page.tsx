@@ -1,5 +1,5 @@
-import ImmersiveHome from '@/components/home/ImmersiveHome'
+import StoryHome from '@/components/home/StoryHome'
 
 export default function Home() {
-  return <ImmersiveHome />
+  return <StoryHome />
 }

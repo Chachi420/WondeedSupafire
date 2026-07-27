@@ -5,6 +5,10 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Nothing may push the page sideways — clip (not hidden) so position:sticky
+   keeps working against the viewport. */
+html, body { overflow-x: clip; }
+
 /* ========== Wondeed Design System ========== */
 /* Unified with the marketing identity: ink navy + emerald green */
 :root {
