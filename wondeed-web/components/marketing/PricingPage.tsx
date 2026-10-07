@@ -181,7 +181,7 @@ function PricingCalculator() {
               </ul>
             </div>
             <div style={{ padding: 32, background: 'var(--ink)', color: 'white', display: 'flex', flexDirection: 'column', gap: 18, position: 'relative', overflow: 'hidden' }}>
-              <div style={{ position: 'absolute', top: -80, right: -80, width: 240, height: 240, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,210,106,0.18), transparent 70%)' }} />
+              <div style={{ position: 'absolute', top: -80, right: -80, width: 240, height: 240, borderRadius: '50%', background: 'radial-gradient(circle, rgba(240,78,35,0.18), transparent 70%)' }} />
               <div style={{ fontFamily: 'var(--mono)', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--green)', fontWeight: 600, position: 'relative' }}>Same budget on Wondeed</div>
               <div className="display-3" style={{ color: 'white', position: 'relative' }}>{fixedClippers}+ clippers</div>
               <p style={{ color: 'var(--on-dark-2)', fontSize: 14, margin: 0, position: 'relative' }}>Distributed across niches. Per-view payouts. You only pay for verified views.</p>

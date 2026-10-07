@@ -35,17 +35,17 @@ function TrustDiagram() {
       <svg viewBox="0 0 1000 220" style={{ width: '100%', minWidth: 720, height: 'auto', display: 'block' }}>
         <defs>
           <marker id="td-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
-            <path d="M0 0 L10 5 L0 10 z" fill="#0A0E27" />
+            <path d="M0 0 L10 5 L0 10 z" fill="#1C1530" />
           </marker>
         </defs>
         {stages.map((n, i, arr) => (
           <g key={i}>
             <rect x={n.x} y="60" width="160" height="100" rx="14"
-              fill={n.green ? '#00D26A' : (n.alt ? '#11163A' : '#FAFAF7')}
+              fill={n.green ? '#F04E23' : (n.alt ? '#2A2044' : '#FAF6EE')}
               stroke={n.alt || n.green ? 'none' : '#ECECE6'} strokeWidth="1" />
             <text x={n.x + 80} y="100" textAnchor="middle"
-              fontFamily="Manrope" fontWeight="700" fontSize="14"
-              fill={n.alt ? 'white' : '#0A0E27'} letterSpacing="-0.3">
+              fontFamily="Fraunces, serif" fontWeight="700" fontSize="14"
+              fill={n.alt ? 'white' : '#1C1530'} letterSpacing="-0.3">
               {n.label}
             </text>
             <text x={n.x + 80} y="124" textAnchor="middle"
@@ -55,7 +55,7 @@ function TrustDiagram() {
             </text>
             {i < arr.length - 1 && (
               <line x1={n.x + 162} y1="110" x2={arr[i + 1].x - 4} y2="110"
-                stroke="#0A0E27" strokeWidth="1.6" markerEnd="url(#td-arrow)" />
+                stroke="#1C1530" strokeWidth="1.6" markerEnd="url(#td-arrow)" />
             )}
           </g>
         ))}
