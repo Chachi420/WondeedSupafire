@@ -10,35 +10,35 @@ function BrandsHeroVisual() {
       <svg viewBox="0 0 560 560" width="100%" height="100%">
         <defs>
           <linearGradient id="bg-card" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0" stopColor="#11163A" />
-            <stop offset="1" stopColor="#0A0E27" />
+            <stop offset="0" stopColor="#2A2044" />
+            <stop offset="1" stopColor="#1C1530" />
           </linearGradient>
         </defs>
-        <circle cx="280" cy="280" r="220" fill="rgba(0,210,106,0.05)" />
+        <circle cx="280" cy="280" r="220" fill="rgba(240,78,35,0.06)" />
         <g transform="translate(60, 80)">
           <rect width="440" height="280" rx="22" fill="white" stroke="#ECECE6" />
-          <rect x="24" y="24" width="120" height="14" rx="3" fill="#0A0E27" />
+          <rect x="24" y="24" width="120" height="14" rx="3" fill="#1C1530" />
           <rect x="24" y="46" width="200" height="10" rx="3" fill="#5A607A" opacity="0.4" />
-          <rect x="370" y="24" width="46" height="22" rx="11" fill="#00D26A" />
-          <text x="393" y="38" textAnchor="middle" fontFamily="JetBrains Mono" fontSize="9" fontWeight="700" fill="#0A0E27">LIVE</text>
+          <rect x="370" y="24" width="46" height="22" rx="11" fill="#F04E23" />
+          <text x="393" y="38" textAnchor="middle" fontFamily="JetBrains Mono" fontSize="9" fontWeight="700" fill="#1C1530">LIVE</text>
           <text x="24" y="100" fontFamily="JetBrains Mono" fontSize="9" fill="#5A607A" letterSpacing="1">VERIFIED VIEWS · 30D</text>
-          <text x="24" y="138" fontFamily="Manrope" fontSize="36" fontWeight="800" fill="#0A0E27" letterSpacing="-1">12,84,420</text>
-          <polyline points="24,200 70,180 116,190 162,160 208,170 254,140 300,150 346,120 392,130 416,90" fill="none" stroke="#0A0E27" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          <polyline points="24,200 70,180 116,190 162,160 208,170 254,140 300,150 346,120 392,130 416,90 416,232 24,232" fill="rgba(0,210,106,0.12)" stroke="none" />
-          <circle cx="416" cy="90" r="5" fill="#00D26A" />
+          <text x="24" y="138" fontFamily="Fraunces, serif" fontSize="36" fontWeight="800" fill="#1C1530" letterSpacing="-1">12,84,420</text>
+          <polyline points="24,200 70,180 116,190 162,160 208,170 254,140 300,150 346,120 392,130 416,90" fill="none" stroke="#1C1530" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <polyline points="24,200 70,180 116,190 162,160 208,170 254,140 300,150 346,120 392,130 416,90 416,232 24,232" fill="rgba(240,78,35,0.12)" stroke="none" />
+          <circle cx="416" cy="90" r="5" fill="#F04E23" />
           <line x1="24" y1="232" x2="416" y2="232" stroke="#ECECE6" />
           <text x="24" y="252" fontFamily="JetBrains Mono" fontSize="9" fill="#5A607A">SPENT</text>
-          <text x="24" y="270" fontFamily="Manrope" fontSize="16" fontWeight="700" fill="#0A0E27">₹1.84 L</text>
+          <text x="24" y="270" fontFamily="Fraunces, serif" fontSize="16" fontWeight="700" fill="#1C1530">₹1.84 L</text>
           <text x="160" y="252" fontFamily="JetBrains Mono" fontSize="9" fill="#5A607A">CLIPPERS</text>
-          <text x="160" y="270" fontFamily="Manrope" fontSize="16" fontWeight="700" fill="#0A0E27">38</text>
+          <text x="160" y="270" fontFamily="Fraunces, serif" fontSize="16" fontWeight="700" fill="#1C1530">38</text>
           <text x="280" y="252" fontFamily="JetBrains Mono" fontSize="9" fill="#5A607A">CPM</text>
-          <text x="280" y="270" fontFamily="Manrope" fontSize="16" fontWeight="700" fill="#00B85C">↘ 14%</text>
+          <text x="280" y="270" fontFamily="Fraunces, serif" fontSize="16" fontWeight="700" fill="#1E9E6A">↘ 14%</text>
         </g>
         <g transform="translate(380, 380)">
-          <rect width="156" height="68" rx="14" fill="#0A0E27" />
-          <circle cx="20" cy="34" r="10" fill="#00D26A" />
+          <rect width="156" height="68" rx="14" fill="#1C1530" />
+          <circle cx="20" cy="34" r="10" fill="#F04E23" />
           <text x="38" y="30" fontFamily="JetBrains Mono" fontSize="9" fill="#8087A6">@maya.edits</text>
-          <text x="38" y="48" fontFamily="Manrope" fontSize="14" fontWeight="700" fill="white">+1.2L views</text>
+          <text x="38" y="48" fontFamily="Fraunces, serif" fontSize="14" fontWeight="700" fill="white">+1.2L views</text>
         </g>
       </svg>
     </div>

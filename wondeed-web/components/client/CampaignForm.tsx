@@ -223,7 +223,7 @@ export default function CampaignForm() {
                 style={{
                   display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px',
                   borderRadius: 8, border: `1px solid ${selectedPlatforms.includes(p.id) ? 'var(--primary)' : 'var(--border)'}`,
-                  background: selectedPlatforms.includes(p.id) ? 'rgba(0,210,106,0.06)' : 'var(--surface)',
+                  background: selectedPlatforms.includes(p.id) ? 'rgba(240,78,35,0.06)' : 'var(--surface)',
                   cursor: 'pointer',
                 }}
               >
