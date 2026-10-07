@@ -14,42 +14,42 @@ function ClipperHeroVisual() {
             <line x1="0" y1="0" x2="0" y2="20" stroke="rgba(255,255,255,0.06)" strokeWidth="8" />
           </pattern>
         </defs>
-        <circle cx="280" cy="280" r="240" fill="rgba(0,210,106,0.06)" />
+        <circle cx="280" cy="280" r="240" fill="rgba(240,78,35,0.06)" />
         <g transform="translate(60, 110) rotate(-9 110 200)">
-          <rect width="220" height="400" rx="38" fill="#0A0E27" stroke="#11163A" strokeWidth="2" />
-          <rect x="10" y="10" width="200" height="380" rx="32" fill="#11163A" />
+          <rect width="220" height="400" rx="38" fill="#1C1530" stroke="#2A2044" strokeWidth="2" />
+          <rect x="10" y="10" width="200" height="380" rx="32" fill="#2A2044" />
           <rect x="10" y="10" width="200" height="380" rx="32" fill="url(#cg-stripes)" />
-          <rect x="86" y="18" width="48" height="8" rx="4" fill="#06091B" />
+          <rect x="86" y="18" width="48" height="8" rx="4" fill="#120C22" />
           <circle cx="110" cy="190" r="36" fill="rgba(255,255,255,0.95)" />
-          <path d="M101 174 v32 l24 -16 z" fill="#0A0E27" />
+          <path d="M101 174 v32 l24 -16 z" fill="#1C1530" />
           <rect x="22" y="320" width="124" height="14" rx="3" fill="rgba(255,255,255,0.7)" />
           <rect x="22" y="340" width="80" height="10" rx="3" fill="rgba(255,255,255,0.4)" />
-          <circle cx="200" cy="332" r="10" fill="rgba(0,210,106,0.2)" />
+          <circle cx="200" cy="332" r="10" fill="rgba(240,78,35,0.2)" />
         </g>
         <g transform="translate(290, 80)">
           <rect width="240" height="120" rx="18" fill="white" stroke="#ECECE6" />
           <text x="20" y="36" fontFamily="JetBrains Mono" fontSize="10" fill="#5A607A" letterSpacing="0.6" fontWeight="600">EARNINGS · OCT</text>
-          <text x="20" y="80" fontFamily="Manrope" fontSize="36" fontWeight="800" fill="#0A0E27" letterSpacing="-1">₹12,840</text>
-          <rect x="20" y="92" width="84" height="20" rx="10" fill="rgba(0,210,106,0.16)" />
-          <text x="62" y="106" textAnchor="middle" fontFamily="Manrope" fontSize="11" fontWeight="700" fill="#00B85C">+₹2,180 this week</text>
+          <text x="20" y="80" fontFamily="Fraunces, serif" fontSize="36" fontWeight="800" fill="#1C1530" letterSpacing="-1">₹12,840</text>
+          <rect x="20" y="92" width="84" height="20" rx="10" fill="rgba(240,78,35,0.16)" />
+          <text x="62" y="106" textAnchor="middle" fontFamily="Fraunces, serif" fontSize="11" fontWeight="700" fill="#1E9E6A">+₹2,180 this week</text>
           <rect x="160" y="40" width="10" height="56" rx="3" fill="#ECECE6" />
           <rect x="174" y="50" width="10" height="46" rx="3" fill="#ECECE6" />
           <rect x="188" y="34" width="10" height="62" rx="3" fill="#ECECE6" />
-          <rect x="202" y="22" width="10" height="74" rx="3" fill="#0A0E27" />
-          <rect x="216" y="44" width="10" height="52" rx="3" fill="#00D26A" />
+          <rect x="202" y="22" width="10" height="74" rx="3" fill="#1C1530" />
+          <rect x="216" y="44" width="10" height="52" rx="3" fill="#F04E23" />
         </g>
         <g transform="translate(330, 240)">
-          <rect width="200" height="76" rx="14" fill="#0A0E27" />
-          <circle cx="22" cy="38" r="14" fill="rgba(0,210,106,0.18)" />
-          <path d="M16 36 v-4 m0 12 v4 m0 -8 a4 4 0 1 0 0 4" stroke="#00D26A" strokeWidth="2" fill="none" strokeLinecap="round" />
+          <rect width="200" height="76" rx="14" fill="#1C1530" />
+          <circle cx="22" cy="38" r="14" fill="rgba(240,78,35,0.18)" />
+          <path d="M16 36 v-4 m0 12 v4 m0 -8 a4 4 0 1 0 0 4" stroke="#F04E23" strokeWidth="2" fill="none" strokeLinecap="round" />
           <text x="46" y="32" fontFamily="JetBrains Mono" fontSize="9" fill="#8087A6">UPI · just paid</text>
-          <text x="46" y="54" fontFamily="Manrope" fontSize="18" fontWeight="800" fill="white">₹4,820 ↗</text>
+          <text x="46" y="54" fontFamily="Fraunces, serif" fontSize="18" fontWeight="800" fill="white">₹4,820 ↗</text>
         </g>
         <g transform="translate(80, 480)">
           <rect width="220" height="50" rx="14" fill="white" stroke="#ECECE6" />
-          <circle cx="22" cy="25" r="6" fill="#00D26A" />
+          <circle cx="22" cy="25" r="6" fill="#F04E23" />
           <text x="42" y="22" fontFamily="JetBrains Mono" fontSize="9" fill="#5A607A" letterSpacing="0.5">VERIFIED VIEWS · LIVE</text>
-          <text x="42" y="40" fontFamily="Manrope" fontSize="14" fontWeight="700" fill="#0A0E27">1,24,560 → 1,24,720</text>
+          <text x="42" y="40" fontFamily="Fraunces, serif" fontSize="14" fontWeight="700" fill="#1C1530">1,24,560 → 1,24,720</text>
         </g>
       </svg>
     </div>
@@ -142,20 +142,20 @@ function VsTable() {
 function PhoneStep({ idx }: { idx: number }) {
   return (
     <svg viewBox="0 0 200 160" width="78%" height="92%" style={{ marginTop: 8 }}>
-      <rect x="62" y="14" width="76" height="142" rx="14" fill="#0A0E27" stroke="#1A2050" />
-      <rect x="68" y="22" width="64" height="124" rx="10" fill="#11163A" />
+      <rect x="62" y="14" width="76" height="142" rx="14" fill="#1C1530" stroke="#3A2D5C" />
+      <rect x="68" y="22" width="64" height="124" rx="10" fill="#2A2044" />
       {idx === 0 && (<>
         <rect x="74" y="40" width="52" height="14" rx="3" fill="rgba(255,255,255,0.06)" />
         <text x="100" y="50" textAnchor="middle" fontFamily="JetBrains Mono" fontSize="7" fill="rgba(255,255,255,0.5)">+91 ___ ___ ___</text>
-        <rect x="74" y="60" width="52" height="14" rx="3" fill="#00D26A" />
-        <text x="100" y="70" textAnchor="middle" fontFamily="Manrope" fontSize="7" fontWeight="700" fill="#0A0E27">SEND OTP</text>
+        <rect x="74" y="60" width="52" height="14" rx="3" fill="#F04E23" />
+        <text x="100" y="70" textAnchor="middle" fontFamily="Fraunces, serif" fontSize="7" fontWeight="700" fill="#1C1530">SEND OTP</text>
         <text x="100" y="100" textAnchor="middle" fontFamily="JetBrains Mono" fontSize="7" fill="rgba(255,255,255,0.4)">No email · No password</text>
       </>)}
       {idx === 1 && (<>
         {[0, 1, 2].map(i => (
           <g key={i} transform={`translate(74, ${30 + i * 36})`}>
             <rect width="52" height="30" rx="4" fill="rgba(255,255,255,0.04)" />
-            <rect x="4" y="4" width="14" height="22" rx="2" fill={i === 0 ? '#00D26A' : 'rgba(0,210,106,0.2)'} />
+            <rect x="4" y="4" width="14" height="22" rx="2" fill={i === 0 ? '#F04E23' : 'rgba(240,78,35,0.2)'} />
             <rect x="22" y="6" width="22" height="4" rx="2" fill="rgba(255,255,255,0.6)" />
             <rect x="22" y="14" width="14" height="3" rx="1.5" fill="rgba(255,255,255,0.3)" />
             <rect x="22" y="20" width="18" height="3" rx="1.5" fill="rgba(255,255,255,0.2)" />
@@ -163,19 +163,19 @@ function PhoneStep({ idx }: { idx: number }) {
         ))}
       </>)}
       {idx === 2 && (<>
-        <rect x="74" y="30" width="52" height="80" rx="6" fill="rgba(0,210,106,0.16)" />
-        <path d="M88 60 v20 l24 -10 z" fill="#00D26A" />
+        <rect x="74" y="30" width="52" height="80" rx="6" fill="rgba(240,78,35,0.16)" />
+        <path d="M88 60 v20 l24 -10 z" fill="#F04E23" />
         <line x1="74" y1="116" x2="126" y2="116" stroke="rgba(255,255,255,0.3)" strokeWidth="2" />
-        <circle cx="86" cy="116" r="3" fill="#00D26A" />
+        <circle cx="86" cy="116" r="3" fill="#F04E23" />
         <rect x="74" y="124" width="20" height="12" rx="2" fill="rgba(255,255,255,0.06)" />
-        <rect x="98" y="124" width="28" height="12" rx="2" fill="#00D26A" />
+        <rect x="98" y="124" width="28" height="12" rx="2" fill="#F04E23" />
       </>)}
       {idx === 3 && (<>
         <text x="100" y="50" textAnchor="middle" fontFamily="JetBrains Mono" fontSize="7" fill="rgba(255,255,255,0.5)">UPI PAYOUT</text>
-        <text x="100" y="78" textAnchor="middle" fontFamily="Manrope" fontSize="14" fontWeight="800" fill="#00D26A">₹4,820</text>
-        <rect x="74" y="92" width="52" height="22" rx="4" fill="rgba(0,210,106,0.16)" />
-        <path d="M86 102 l4 4 8 -8" stroke="#00D26A" strokeWidth="2" fill="none" strokeLinecap="round" />
-        <text x="106" y="106" fontFamily="Manrope" fontSize="6" fontWeight="700" fill="#00D26A">SETTLED</text>
+        <text x="100" y="78" textAnchor="middle" fontFamily="Fraunces, serif" fontSize="14" fontWeight="800" fill="#F04E23">₹4,820</text>
+        <rect x="74" y="92" width="52" height="22" rx="4" fill="rgba(240,78,35,0.16)" />
+        <path d="M86 102 l4 4 8 -8" stroke="#F04E23" strokeWidth="2" fill="none" strokeLinecap="round" />
+        <text x="106" y="106" fontFamily="Fraunces, serif" fontSize="6" fontWeight="700" fill="#F04E23">SETTLED</text>
       </>)}
     </svg>
   )
