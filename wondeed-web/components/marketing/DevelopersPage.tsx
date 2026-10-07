@@ -40,7 +40,7 @@ export default function DevelopersPage() {
             <div style={{ marginTop: 28, border: '1px solid var(--hairline)', borderRadius: 12, overflow: 'hidden' }}>
               {ENDPOINTS.map((e, i) => (
                 <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '13px 18px', borderBottom: i < ENDPOINTS.length - 1 ? '1px solid var(--hairline)' : 'none', background: i % 2 === 0 ? 'var(--paper)' : 'white' }}>
-                  <span style={{ fontFamily: 'var(--mono)', fontSize: 10, padding: '3px 7px', borderRadius: 5, background: e.method === 'GET' ? 'rgba(0,210,106,0.12)' : 'rgba(80,100,255,0.1)', color: e.method === 'GET' ? 'var(--green-2)' : '#5060ff', fontWeight: 700, letterSpacing: '0.04em', flexShrink: 0, marginTop: 2 }}>{e.method}</span>
+                  <span style={{ fontFamily: 'var(--mono)', fontSize: 10, padding: '3px 7px', borderRadius: 5, background: e.method === 'GET' ? 'rgba(240,78,35,0.12)' : 'rgba(80,100,255,0.1)', color: e.method === 'GET' ? 'var(--green-2)' : '#5060ff', fontWeight: 700, letterSpacing: '0.04em', flexShrink: 0, marginTop: 2 }}>{e.method}</span>
                   <div>
                     <div style={{ fontFamily: 'var(--mono)', fontSize: 13, color: 'var(--fg)' }}>{e.path}</div>
                     <div style={{ fontSize: 12, color: 'var(--fg-mute)', marginTop: 3 }}>{e.desc}</div>

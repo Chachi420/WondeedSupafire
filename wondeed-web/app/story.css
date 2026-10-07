@@ -6,8 +6,8 @@
 
 /* dark canvas behind every marketing page — no cream flash on
    overscroll or before paint (body defaults to the dashboard bg) */
-html:has(.mkt-wrap) { background: #06091B; }
-html:has(.mkt-wrap) body { background: #06091B; }
+html:has(.mkt-wrap) { background: #FAF6EE; }
+html:has(.mkt-wrap) body { background: #FAF6EE; }
 
 .story-root {
   overflow-x: clip; /* nothing escapes the viewport, sticky still works */
@@ -38,8 +38,8 @@ html:has(.mkt-wrap) body { background: #06091B; }
   position: relative;
   padding-block: 96px 72px;
   background:
-    radial-gradient(90% 60% at 50% 0%, rgba(0, 210, 106, 0.07), transparent 65%),
-    radial-gradient(70% 50% at 80% 100%, rgba(0, 210, 106, 0.04), transparent 70%);
+    radial-gradient(90% 60% at 50% 0%, rgba(240, 78, 35, 0.07), transparent 65%),
+    radial-gradient(70% 50% at 80% 100%, rgba(240, 78, 35, 0.04), transparent 70%);
   text-align: center;
 }
 .story-hero .container { width: 100%; }
@@ -55,7 +55,7 @@ html:has(.mkt-wrap) body { background: #06091B; }
   text-wrap: balance;
 }
 .story-h1-green {
-  background: linear-gradient(100deg, #00E876 10%, #7CFFC2 55%, var(--green) 90%);
+  background: linear-gradient(100deg, #F04E23 10%, #FFB800 55%, var(--green) 90%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -223,7 +223,7 @@ html:has(.mkt-wrap) body { background: #06091B; }
   aspect-ratio: 16 / 9;
   border-radius: var(--r);
   background:
-    linear-gradient(120deg, rgba(0, 210, 106, 0.14), transparent 55%),
+    linear-gradient(120deg, rgba(240, 78, 35, 0.14), transparent 55%),
     var(--ink-3);
   display: grid;
   place-items: center;
@@ -279,7 +279,7 @@ html:has(.mkt-wrap) body { background: #06091B; }
   width: 56px;
   aspect-ratio: 9 / 16;
   border-radius: 10px;
-  background: linear-gradient(160deg, rgba(0, 210, 106, 0.2), var(--ink-3) 70%);
+  background: linear-gradient(160deg, rgba(240, 78, 35, 0.2), var(--ink-3) 70%);
   display: grid;
   place-items: center;
   flex-shrink: 0;
@@ -303,7 +303,7 @@ html:has(.mkt-wrap) body { background: #06091B; }
   border-radius: 14px;
   border: 1px solid var(--hairline);
   background:
-    linear-gradient(165deg, rgba(0, 210, 106, 0.12), transparent 45%),
+    linear-gradient(165deg, rgba(240, 78, 35, 0.12), transparent 45%),
     var(--ink-2);
   display: flex;
   flex-direction: column;
@@ -360,9 +360,9 @@ html:has(.mkt-wrap) body { background: #06091B; }
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1;
-  color: #7CFFC2;
+  color: #FFB800;
   font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 28px rgba(0, 210, 106, 0.4);
+  text-shadow: 0 0 28px rgba(240, 78, 35, 0.4);
 }
 .v-counter small {
   display: block;

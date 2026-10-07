@@ -10,47 +10,51 @@
 html, body { overflow-x: clip; }
 
 /* ========== Wondeed Design System ========== */
-/* Unified with the marketing identity: ink navy + emerald green */
+/* Paper & Signal identity: warm paper + persimmon + plum */
 :root {
-  --bg: #FAFAF7;
-  --surface: #ffffff;
-  --sidebar: #0A0E27;
-  --sidebar-2: #11163A;
-  --sidebar-fg: #C9CDE0;
-  --sidebar-fg-muted: #8087A6;
-  --border: #ECECE6;
-  --border-strong: #DDDDD4;
-  --fg: #0A0E27;
-  --fg-muted: #5A607A;
-  --fg-faint: #8F95AB;
+  --bg: #FAF6EE;
+  --surface: #FFFDF8;
+  --sidebar: #1C1530;
+  --sidebar-2: #2A2044;
+  --sidebar-fg: #EDE8F7;
+  --sidebar-fg-muted: #9A8FB8;
+  --border: #E9E0D0;
+  --border-strong: #D9CCB2;
+  --fg: #1C1530;
+  --fg-muted: #5F5570;
+  --fg-faint: #A79CB8;
 
-  --primary: #00D26A;
-  --primary-600: #00B85C;
-  --primary-700: #00904A;
-  --primary-50: #E9FBF2;
-  --primary-100: #CFF6E2;
-  --primary-900: #052E1C;
+  --primary: #F04E23;
+  --primary-600: #D9431B;
+  --primary-700: #B23515;
+  --primary-50: #FFF3EC;
+  --primary-100: #FFE4D3;
+  --primary-900: #5C1E0E;
 
-  --success: #16a34a;
-  --success-bg: #dcfce7;
-  --warn: #d97706;
-  --warn-bg: #fef3c7;
-  --danger: #dc2626;
-  --danger-bg: #fee2e2;
-  --info: #2563eb;
-  --info-bg: #dbeafe;
+  --iris: #6D4AFF;
+  --iris-soft: rgba(109,74,255,0.10);
+  --gold: #FFB800;
 
-  --radius: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 18px;
-  --radius-sm: 6px;
+  --success: #1E9E6A;
+  --success-bg: #DFF7EA;
+  --warn: #C77B0A;
+  --warn-bg: #FDF0D5;
+  --danger: #D92D20;
+  --danger-bg: #FDE4E1;
+  --info: #3B5BFD;
+  --info-bg: #E2E9FF;
 
-  --shadow-sm: 0 1px 2px rgba(10,14,39,0.04), 0 1px 1px rgba(10,14,39,0.03);
-  --shadow: 0 1px 3px rgba(10,14,39,0.06), 0 4px 12px rgba(10,14,39,0.04);
-  --shadow-lg: 0 10px 30px rgba(10,14,39,0.08), 0 2px 6px rgba(10,14,39,0.04);
+  --radius: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 26px;
+  --radius-sm: 8px;
+
+  --shadow-sm: 0 1px 2px rgba(28,21,48,0.05), 0 1px 1px rgba(28,21,48,0.04);
+  --shadow: 0 1px 3px rgba(28,21,48,0.07), 0 6px 16px rgba(28,21,48,0.05);
+  --shadow-lg: 0 16px 40px rgba(28,21,48,0.10), 0 2px 6px rgba(28,21,48,0.05);
 
   --font: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  --display: var(--font-manrope), 'Manrope', 'Inter', system-ui, sans-serif;
+  --display: var(--font-fraunces), 'Fraunces', 'Georgia', serif;
   --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
@@ -96,11 +100,11 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
 .sidebar-brand .brand-mark {
   width: 32px; height: 32px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #00E876, #00B85C);
+  background: linear-gradient(135deg, #F04E23, #FFB800);
   display: grid; place-items: center;
-  color: #0A0E27; font-weight: 700; font-size: 14px;
+  color: #FFFDF8; font-weight: 700; font-size: 14px;
   font-family: var(--display);
-  box-shadow: 0 4px 12px rgba(0,210,106,0.35);
+  box-shadow: 0 4px 12px rgba(240,78,35,0.35);
   flex-shrink: 0;
 }
 .brand-name {
@@ -136,9 +140,9 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
   font-size: 13px;
   flex-shrink: 0;
 }
-.avatar-rs { background: linear-gradient(135deg, #00D26A, #00904A); color: #0A0E27; }
-.avatar-pn { background: linear-gradient(135deg, #00E876, #00B85C); color: #0A0E27; }
-.avatar-ad { background: linear-gradient(135deg, #00B85C, #052E1C); }
+.avatar-rs { background: linear-gradient(135deg, #F04E23, #D9431B); color: #FFFDF8; }
+.avatar-pn { background: linear-gradient(135deg, #6D4AFF, #5836E0); color: #FFFDF8; }
+.avatar-ad { background: linear-gradient(135deg, #FFB800, #F04E23); }
 .avatar-sm { width: 28px; height: 28px; font-size: 11px; }
 
 .user-name { color: white; font-weight: 500; font-size: 13px; line-height: 1.2; }
@@ -177,15 +181,15 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
 }
 .nav-item:hover { background: rgba(255,255,255,0.05); color: white; }
 .nav-item.active {
-  background: rgba(0,210,106,0.14);
-  color: #CFF6E2;
+  background: rgba(240,78,35,0.16);
+  color: #FFE4D3;
 }
 .nav-item.active .nav-ico { color: var(--primary); }
 .nav-ico { width: 16px; height: 16px; color: var(--fg-faint); flex-shrink: 0; }
 .nav-badge {
   margin-left: auto;
   background: var(--primary);
-  color: #0A0E27;
+  color: #FFFDF8;
   font-size: 10px;
   font-weight: 700;
   padding: 1px 7px;
@@ -381,11 +385,11 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
 }
 .btn svg { width: 14px; height: 14px; flex-shrink: 0; }
 .btn-primary {
-  background: #0A0E27;
-  color: var(--primary);
-  border-color: #0A0E27;
+  background: var(--primary);
+  color: #FFFDF8;
+  border-color: var(--primary-700);
 }
-.btn-primary:hover { background: #11163A; color: #00E876; }
+.btn-primary:hover { background: var(--primary-600); color: #FFFDF8; }
 .btn-secondary {
   background: white;
   color: var(--fg);
@@ -559,7 +563,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
 }
 .progress > div {
   height: 100%;
-  background: linear-gradient(90deg, #00B85C, #00E876);
+  background: linear-gradient(90deg, #F04E23, #FFB800);
   border-radius: 999px;
   transition: width 0.4s ease;
 }
@@ -583,7 +587,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
 .tier-ribbon {
   position: absolute;
   top: 12px; right: 12px;
-  background: linear-gradient(135deg, #0A0E27, #052E1C);
+  background: linear-gradient(135deg, #1C1530, #2A2044);
   color: var(--primary);
   font-size: 10px;
   font-weight: 600;
@@ -596,7 +600,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
 
 /* ========== Wallet hero ========== */
 .wallet-hero {
-  background: linear-gradient(135deg, #0A0E27 0%, #11163A 50%, #052E1C 100%);
+  background: linear-gradient(135deg, #1C1530 0%, #2A2044 50%, #3A2D5C 100%);
   border-radius: var(--radius-xl);
   padding: 28px;
   color: white;
@@ -616,7 +620,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
   position: absolute;
   bottom: -60px; left: -20px;
   width: 220px; height: 220px;
-  background: radial-gradient(circle, rgba(0,210,106,0.18), transparent 70%);
+  background: radial-gradient(circle, rgba(240,78,35,0.20), transparent 70%);
   border-radius: 50%;
 }
 .wallet-hero > * { position: relative; z-index: 1; }
@@ -635,8 +639,8 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
   color: var(--fg-muted);
   flex-shrink: 0;
 }
-.step.active .step-dot { background: #0A0E27; border-color: #0A0E27; color: var(--primary); }
-.step.done .step-dot { background: var(--primary-50); border-color: #0A0E27; color: #0A0E27; }
+.step.active .step-dot { background: var(--primary); border-color: var(--primary-700); color: #FFFDF8; }
+.step.done .step-dot { background: var(--primary-50); border-color: var(--primary-600); color: var(--primary-700); }
 .step-label .lab { font-size: 10px; color: var(--fg-faint); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
 .step-label .nm { font-size: 13px; color: var(--fg-muted); font-weight: 500; }
 .step.active .step-label .nm { color: var(--fg); font-weight: 600; }
@@ -651,7 +655,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
 
 /* ========== Embed / video preview ========== */
 .embed-preview {
-  background: linear-gradient(135deg, #0A0E27, #11163A);
+  background: linear-gradient(135deg, #1C1530, #2A2044);
   border-radius: 12px;
   aspect-ratio: 9/16;
   max-width: 220px;
@@ -769,9 +773,9 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
 }
 .auth-brand-panel {
   background:
-    radial-gradient(110% 80% at 85% -10%, rgba(0,210,106,0.16), transparent 55%),
-    radial-gradient(90% 70% at -10% 110%, rgba(0,210,106,0.10), transparent 55%),
-    linear-gradient(160deg, #0A0E27 0%, #11163A 60%, #0A0E27 100%);
+    radial-gradient(110% 80% at 85% -10%, rgba(240,78,35,0.22), transparent 55%),
+    radial-gradient(90% 70% at -10% 110%, rgba(255,184,0,0.14), transparent 55%),
+    linear-gradient(160deg, #1C1530 0%, #2A2044 60%, #1C1530 100%);
   color: white;
   padding: 40px 48px;
   display: flex;
@@ -800,7 +804,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
   width: 30px; height: 30px;
   border-radius: 8px;
   background: var(--primary);
-  color: #0A0E27;
+  color: #FFFDF8;
   display: grid; place-items: center;
   font-weight: 800; font-size: 15px;
   position: relative;
@@ -809,7 +813,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
   content: '';
   position: absolute; top: 5px; right: 5px;
   width: 4px; height: 4px; border-radius: 50%;
-  background: #0A0E27;
+  background: #FFFDF8;
 }
 
 .auth-brand-body { margin: auto 0; padding: 48px 0; max-width: 420px; }
@@ -822,7 +826,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
 .auth-eyebrow .dot {
   width: 6px; height: 6px; border-radius: 50%;
   background: var(--primary);
-  box-shadow: 0 0 0 4px rgba(0,210,106,0.18);
+  box-shadow: 0 0 0 4px rgba(240,78,35,0.18);
 }
 .auth-headline {
   font-family: var(--display);
@@ -839,8 +843,8 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
 .auth-point { display: flex; align-items: flex-start; gap: 14px; }
 .auth-point .pt-ico {
   width: 36px; height: 36px; border-radius: 10px;
-  background: rgba(0,210,106,0.12);
-  border: 1px solid rgba(0,210,106,0.25);
+  background: rgba(240,78,35,0.12);
+  border: 1px solid rgba(240,78,35,0.25);
   display: grid; place-items: center;
   color: var(--primary);
   flex-shrink: 0;
@@ -891,7 +895,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
 .auth-form-panel .input:focus {
   border-color: var(--primary);
   background: rgba(255,255,255,0.07);
-  box-shadow: 0 0 0 3px rgba(0,210,106,0.15);
+  box-shadow: 0 0 0 3px rgba(240,78,35,0.15);
 }
 .auth-form-panel .btn-ghost { color: #99A0BC; }
 .auth-form-panel .btn-ghost:hover { background: rgba(255,255,255,0.06); color: white; }
@@ -918,7 +922,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
   border-radius: 10px;
   background: white;
   border: 1px solid transparent;
-  color: #0A0E27;
+  color: #1C1530;
   font-size: 14px; font-weight: 600;
   transition: all 0.15s;
   cursor: pointer;
@@ -974,8 +978,8 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
 .role-pick:hover { border-color: rgba(255,255,255,0.24); }
 .role-pick.selected {
   border-color: var(--primary);
-  background: rgba(0,210,106,0.08);
-  box-shadow: 0 0 0 3px rgba(0,210,106,0.12);
+  background: rgba(240,78,35,0.08);
+  box-shadow: 0 0 0 3px rgba(240,78,35,0.12);
 }
 .role-pick .rp-ico {
   width: 36px; height: 36px; border-radius: 9px;
@@ -986,8 +990,8 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
   flex-shrink: 0;
 }
 .role-pick.selected .rp-ico {
-  background: #0A0E27;
-  border-color: rgba(0,210,106,0.5);
+  background: var(--primary);
+  border-color: rgba(240,78,35,0.5);
   color: var(--primary);
 }
 .role-pick .rp-ico svg { width: 17px; height: 17px; }
@@ -1003,7 +1007,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
   background: var(--primary);
   border-color: var(--primary);
 }
-.role-pick .rp-check svg { width: 10px; height: 10px; color: #0A0E27; opacity: 0; }
+.role-pick .rp-check svg { width: 10px; height: 10px; color: #FFFDF8; opacity: 0; }
 .role-pick.selected .rp-check svg { opacity: 1; }
 
 .auth-error {
@@ -1021,14 +1025,14 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
   padding: 12px 20px;
   border-radius: 10px;
   background: var(--primary);
-  color: #0A0E27;
+  color: #FFFDF8;
   font-size: 14px; font-weight: 700;
   border: none;
   transition: all 0.15s;
   cursor: pointer;
-  box-shadow: 0 8px 28px rgba(0,210,106,0.25);
+  box-shadow: 0 8px 28px rgba(240,78,35,0.25);
 }
-.btn-auth-submit:hover:not(:disabled) { background: #00E876; transform: translateY(-1px); }
+.btn-auth-submit:hover:not(:disabled) { background: var(--primary-600); transform: translateY(-1px); }
 .btn-auth-submit:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
 
 @media (max-width: 920px) {
