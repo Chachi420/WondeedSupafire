@@ -56,6 +56,7 @@ export default async function ClipperHomePage() {
     totalViewsResult,
     activeCampaignsResult,
     recentSubmissionsResult,
+    seasonResult,
   ] = await Promise.all([
     db.from('profiles').select('full_name, subscription_tier').eq('id', user!.id).single(),
     db.from('wallets').select('balance_inr, total_credited_inr').eq('user_id', user!.id).maybeSingle(),
@@ -67,6 +68,7 @@ export default async function ClipperHomePage() {
       .eq('clipper_id', user!.id)
       .order('created_at', { ascending: false })
       .limit(6),
+    db.rpc('get_clipper_season', { p_clipper_id: user!.id }),
   ])
 
   const profile = profileResult.data as any
@@ -79,6 +81,14 @@ export default async function ClipperHomePage() {
   const activeCampaigns   = new Set((activeCampaignsResult.data ?? []).map((s: any) => s.campaign_id)).size
   const walletBalance     = Number(wallet?.balance_inr ?? 0)
   const recentSubs        = (recentSubmissionsResult.data ?? []) as any[]
+
+  const season = (seasonResult.data ?? null) as {
+    rank: number | null; weekly_earned: number; weekly_views: number;
+    streak_weeks: number; tier: string; next_tier: string | null;
+    progress: number; lifetime_earned: number;
+  } | null
+  const hasSeason = !!season && Number(season.lifetime_earned) > 0
+  const tierLabel = (t: string) => t === 'legend' ? 'LEGEND' : t === 'pro' ? 'PRO' : 'ROOKIE'
 
   const stats = [
     { label: 'Wallet Balance',   value: fmtRupee(walletBalance),      delta: 'Available for payout', ico: 'wallet',  cls: 'ico-indigo' },
@@ -131,6 +141,40 @@ export default async function ClipperHomePage() {
             </div>
           ))}
         </div>
+
+        {/* Your Season */}
+        {hasSeason && season ? (
+          <div className="season-card" style={{ marginBottom: 20 }}>
+            <div className="season-top">
+              <div>
+                <div className="s-kicker">YOUR SEASON · WEEKLY LEAGUE</div>
+                <div className="season-rank">#{season.rank ?? '—'} <small>THIS WEEK</small></div>
+              </div>
+              <span className={`tier-chip t-${season.tier}`}>{tierLabel(season.tier)}</span>
+            </div>
+            <div className="season-meta">
+              <div className="sm"><div className="sm-num">{fmtRupee(Number(season.weekly_earned))}</div><div className="sm-lab">EARNED THIS WEEK</div></div>
+              <div className="sm"><div className="sm-num">{fmtViews(Number(season.weekly_views))}</div><div className="sm-lab">VIEWS THIS WEEK</div></div>
+              <div className="sm"><div className="sm-num">{season.streak_weeks} wk</div><div className="sm-lab">STREAK</div></div>
+            </div>
+            {season.next_tier && (
+              <div className="tier-progress">
+                <div className="tp-top"><span>{tierLabel(season.tier)} → {tierLabel(season.next_tier)}</span><span>{Math.round(Number(season.progress) * 100)}%</span></div>
+                <div className="tier-bar"><div style={{ width: `${Math.round(Number(season.progress) * 100)}%` }} /></div>
+              </div>
+            )}
+            <div style={{ marginTop: 18 }}>
+              <Link href="/leaderboard" className="btn btn-secondary btn-sm">Full standings</Link>
+            </div>
+          </div>
+        ) : (
+          <div className="season-card" style={{ marginBottom: 20 }}>
+            <div className="s-kicker">YOUR SEASON</div>
+            <div style={{ fontFamily: 'var(--display)', fontSize: 24, fontWeight: 700, margin: '12px 0 8px', color: 'var(--paper)' }}>Pre-season — the table is waiting.</div>
+            <p style={{ color: 'rgba(255,249,240,0.7)', fontSize: 14, margin: '0 0 16px', lineHeight: 1.6 }}>Submit your first clip to enter the weekly league. Early clippers earn a permanent Founder badge.</p>
+            <Link href="/dashboard/clipper/feed" className="btn btn-primary btn-sm">Browse campaigns</Link>
+          </div>
+        )}
 
         {/* Recent submissions */}
         <div className="card mb-20">

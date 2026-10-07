@@ -409,6 +409,14 @@ export type Database = {
         Args: { p_user_id: string; p_amount: number }
         Returns: Json
       }
+      get_leaderboard: {
+        Args: { p_period: string }
+        Returns: Json
+      }
+      get_clipper_season: {
+        Args: { p_clipper_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       user_role:           'client' | 'clipper' | 'admin'

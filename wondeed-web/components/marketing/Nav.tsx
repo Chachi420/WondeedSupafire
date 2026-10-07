@@ -8,6 +8,7 @@ import BrandMark from '@/components/BrandMark'
 const LINKS = [
   { href: '/brands',   label: 'For Brands' },
   { href: '/clippers', label: 'For Clippers' },
+  { href: '/leaderboard', label: 'Leaderboard' },
   { href: '/pricing',  label: 'Pricing' },
   { href: '/trust',    label: 'Trust' },
   { href: '/faq',      label: 'FAQ' },
