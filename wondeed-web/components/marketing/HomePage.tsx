@@ -1,126 +1,214 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Icon from './Icon'
 import { FAQItem, fmtINR, FinalSplitCTA } from './shared'
+import { rpcCall } from '@/lib/supabase/rpc'
+
+/* ---------- helpers ---------- */
+
+type BoardRow = {
+  rank: number
+  clipper_id: string
+  display_name: string | null
+  total_earned: number
+  total_views: number
+  submissions: number
+  movement: number | null
+  tier: 'rookie' | 'pro' | 'legend'
+}
+
+function fmtViews(v: number): string {
+  if (!v) return '0'
+  if (v >= 1e7) return `${(v / 1e7).toFixed(1)} Cr`
+  if (v >= 1e5) return `${(v / 1e5).toFixed(1)} L`
+  if (v >= 1e3) return `${(v / 1e3).toFixed(1)}K`
+  return String(Math.round(v))
+}
+
+function shortName(row: BoardRow): string {
+  if (row.display_name && row.display_name.trim()) {
+    const parts = row.display_name.trim().split(/\s+/)
+    return parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1][0]}.` : parts[0]
+  }
+  return `Clipper ${row.clipper_id.slice(0, 4).toUpperCase()}`
+}
+
+function Move({ m }: { m: number | null }) {
+  if (m === null || m === undefined) return <span className="move-new">NEW</span>
+  if (m > 0) return <span className="move move-up">▲{m}</span>
+  if (m < 0) return <span className="move move-down">▼{-m}</span>
+  return <span className="move move-same">•</span>
+}
+
+function TierChip({ tier }: { tier: string }) {
+  const label = tier === 'legend' ? 'LEGEND' : tier === 'pro' ? 'PRO' : 'ROOKIE'
+  return <span className={`tier-chip t-${tier}`}>{label}</span>
+}
+
+/* ---------- hero visual: floating league cards ---------- */
 
 function HeroVisual() {
   return (
     <div className="hero-visual" aria-hidden="true">
       <svg viewBox="0 0 560 560" width="100%" height="100%">
         <defs>
-          <linearGradient id="hg-grad-1" x1="0" x2="1" y1="0" y2="1">
-            <stop offset="0" stopColor="#2A2044" />
-            <stop offset="1" stopColor="#1C1530" />
-          </linearGradient>
-          <linearGradient id="hg-grad-2" x1="0" x2="0" y1="0" y2="1">
+          <linearGradient id="ah-grad-1" x1="0" x2="1" y1="0" y2="1">
             <stop offset="0" stopColor="#FFFDF8" />
             <stop offset="1" stopColor="#F3ECDC" />
           </linearGradient>
-          <linearGradient id="hg-grad-3" x1="0" x2="1" y1="0" y2="1">
-            <stop offset="0" stopColor="#F04E23" />
-            <stop offset="1" stopColor="#FFB800" />
+          <linearGradient id="ah-grad-2" x1="0" x2="1" y1="0" y2="1">
+            <stop offset="0" stopColor="#FFB800" />
+            <stop offset="1" stopColor="#FF8A00" />
           </linearGradient>
-          <pattern id="hg-dots" width="22" height="22" patternUnits="userSpaceOnUse">
+          <pattern id="ah-dots" width="22" height="22" patternUnits="userSpaceOnUse">
             <circle cx="3" cy="3" r="1.6" fill="rgba(28,21,48,0.08)" />
           </pattern>
         </defs>
         <circle cx="290" cy="280" r="250" fill="rgba(240,78,35,0.07)" />
-        <circle cx="290" cy="280" r="185" fill="rgba(109,74,255,0.06)" />
-        {/* Campaign card */}
-        <g transform="translate(36, 70)"><g className="float-a" style={({ '--rot': '-4deg' } as React.CSSProperties)}>
-          <rect width="330" height="226" rx="20" fill="#FFFDF8" stroke="#1C1530" strokeWidth="2.5" />
-          <rect x="20" y="20" width="290" height="118" rx="12" fill="url(#hg-grad-2)" stroke="#1C1530" strokeWidth="1.5" />
-          <rect x="20" y="20" width="290" height="118" rx="12" fill="url(#hg-dots)" />
-          <rect x="32" y="32" width="96" height="24" rx="12" fill="#1C1530" />
-          <circle cx="44" cy="44" r="3.5" fill="#FFB800" />
-          <text x="54" y="48" fontFamily="JetBrains Mono, monospace" fontSize="10" fontWeight="700" fill="#FFF9F0" letterSpacing="0.8">LIVE · D2C</text>
-          <text x="20" y="168" fontFamily="Fraunces, serif" fontSize="21" fontWeight="600" fill="#1C1530">Glow Beauty Launch</text>
-          <rect x="20" y="182" width="290" height="8" rx="4" fill="#F3ECDC" />
-          <rect x="20" y="182" width="190" height="8" rx="4" fill="url(#hg-grad-3)" />
-          <text x="20" y="210" fontFamily="Inter, sans-serif" fontSize="11.5" fill="#6E6484" fontWeight="500">₹1.2L of ₹2L · 38 clippers · 6d left</text>
+        <circle cx="290" cy="280" r="185" fill="rgba(255,184,0,0.08)" />
+        {/* League table card */}
+        <g transform="translate(36, 60)"><g className="float-a" style={{ '--rot': '-4deg' } as React.CSSProperties}>
+          <rect width="330" height="262" rx="20" fill="#FFFDF8" stroke="#1C1530" strokeWidth="2.5" />
+          <rect width="330" height="52" rx="20" fill="#1C1530" />
+          <rect y="32" width="330" height="20" fill="#1C1530" />
+          <circle cx="30" cy="26" r="4" fill="#FFB800" />
+          <text x="44" y="30" fontFamily="JetBrains Mono, monospace" fontSize="11" fontWeight="700" fill="#FFF9F0" letterSpacing="1.5">LEAGUE · WEEK 41</text>
+          <text x="292" y="30" fontFamily="JetBrains Mono, monospace" fontSize="11" fontWeight="700" fill="#FFB800" letterSpacing="1">LIVE</text>
+          {[
+            { r: '1', n: 'Aarav M.', e: '₹12,400', bg: '#FFB800', mv: '▲2' },
+            { r: '2', n: 'Sneha K.', e: '₹9,850', bg: '#C9CDD6', mv: '▼1' },
+            { r: '3', n: 'Rohan D.', e: '₹8,120', bg: '#D08A4E', mv: '▲5' },
+          ].map((p, i) => (
+            <g key={i} transform={`translate(0, ${64 + i * 62})`}>
+              <rect x="16" y="0" width="298" height="52" rx="12" fill={i === 0 ? 'rgba(255,184,0,0.14)' : 'url(#ah-grad-1)'} stroke="#1C1530" strokeWidth="1.5" />
+              <rect x="28" y="10" width="32" height="32" rx="9" fill={p.bg} stroke="#1C1530" strokeWidth="1.5" />
+              <text x="44" y="32" textAnchor="middle" fontFamily="Fraunces, serif" fontSize="16" fontWeight="700" fill="#1C1530">{p.r}</text>
+              <text x="72" y="32" fontFamily="Inter, sans-serif" fontSize="14" fontWeight="700" fill="#1C1530">{p.n}</text>
+              <text x="236" y="32" fontFamily="JetBrains Mono, monospace" fontSize="12.5" fontWeight="700" fill="#1C1530">{p.e}</text>
+              <text x="292" y="32" textAnchor="end" fontFamily="JetBrains Mono, monospace" fontSize="11" fontWeight="700" fill={p.mv[0] === '▲' ? '#1E9E6A' : '#D64545'}>{p.mv}</text>
+            </g>
+          ))}
         </g></g>
-        {/* Phone */}
-        <g transform="translate(292, 120)"><g className="float-b" style={({ '--rot': '5deg' } as React.CSSProperties)}>
-          <rect width="196" height="360" rx="36" fill="#1C1530" stroke="#1C1530" strokeWidth="2" />
-          <rect x="10" y="10" width="176" height="340" rx="28" fill="url(#hg-grad-1)" />
-          <rect x="80" y="18" width="36" height="7" rx="3.5" fill="#0F0A1E" />
-          <circle cx="98" cy="168" r="34" fill="#FFFDF8" stroke="#1C1530" strokeWidth="2.5" />
-          <path d="M91 154 v28 l23 -14 z" fill="#F04E23" />
-          <rect x="22" y="286" width="152" height="52" rx="12" fill="rgba(0,0,0,0.45)" stroke="rgba(255,249,240,0.2)" />
-          <text x="34" y="308" fontFamily="JetBrains Mono, monospace" fontSize="9" fill="#FFB800" letterSpacing="0.8" fontWeight="700">VERIFIED VIEWS</text>
-          <text x="34" y="328" fontFamily="Fraunces, serif" fontSize="20" fontWeight="600" fill="#FFF9F0">1,24,560</text>
-        </g></g>
-        {/* Payout ticket */}
-        <g transform="translate(70, 392)"><g className="float-a" style={({ '--rot': '-2deg' } as React.CSSProperties)}>
-          <rect width="210" height="80" rx="16" fill="#FFFDF8" stroke="#1C1530" strokeWidth="2.5" />
-          <line x1="150" y1="10" x2="150" y2="70" stroke="#1C1530" strokeWidth="1.5" strokeDasharray="5 5" opacity="0.4" />
-          <rect x="14" y="20" width="38" height="38" rx="11" fill="#F04E23" stroke="#1C1530" strokeWidth="1.5" />
-          <text x="26" y="45" fontFamily="Fraunces, serif" fontSize="20" fontWeight="700" fill="#FFFDF8">₹</text>
-          <text x="62" y="36" fontFamily="JetBrains Mono, monospace" fontSize="9.5" fill="#6E6484" letterSpacing="0.8" fontWeight="700">UPI PAYOUT</text>
-          <text x="62" y="60" fontFamily="Fraunces, serif" fontSize="22" fontWeight="600" fill="#1C1530">₹4,820</text>
-          <text x="162" y="60" fontFamily="Inter, sans-serif" fontSize="11" fill="#1E9E6A" fontWeight="700">+18%</text>
+        {/* Golden Boot ticket */}
+        <g transform="translate(300, 330)"><g className="float-b" style={{ transform: 'rotate(5deg)' }}>
+          <rect width="220" height="150" rx="18" fill="#1C1530" stroke="#1C1530" strokeWidth="2" />
+          <rect x="14" y="14" width="192" height="122" rx="12" fill="url(#ah-grad-2)" />
+          <text x="32" y="48" fontFamily="JetBrains Mono, monospace" fontSize="10" fontWeight="700" fill="#1C1530" letterSpacing="1.6">GOLDEN BOOT</text>
+          <text x="30" y="88" fontFamily="Fraunces, serif" fontSize="30" fontWeight="700" fill="#1C1530">₹25,000</text>
+          <text x="32" y="112" fontFamily="Inter, sans-serif" fontSize="11.5" fontWeight="600" fill="#1C1530" opacity="0.75">season bonus · most views</text>
+          <text x="180" y="80" fontFamily="Fraunces, serif" fontSize="44" fill="#1C1530" opacity="0.85">◈</text>
         </g></g>
         {/* Sticker */}
-        <g transform="translate(430, 60) rotate(8)">
-          <rect width="104" height="36" rx="18" fill="#FFB800" stroke="#1C1530" strokeWidth="2" />
-          <text x="52" y="23" textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="11" fontWeight="700" fill="#1C1530" letterSpacing="1">100% REAL</text>
+        <g transform="translate(66, 380) rotate(-6)">
+          <rect width="132" height="38" rx="19" fill="#F04E23" stroke="#1C1530" strokeWidth="2" />
+          <text x="66" y="24" textAnchor="middle" fontFamily="JetBrains Mono, monospace" fontSize="11.5" fontWeight="700" fill="#FFFDF8" letterSpacing="1.2">SEASON 1</text>
         </g>
       </svg>
     </div>
   )
 }
 
-function MarketplaceLoop() {
+/* ---------- ticker ---------- */
+
+function SeasonTicker() {
+  const items = [
+    'SEASON 1 REGISTRATIONS OPEN', 'WEEKLY DROPS EVERY MONDAY', '100% OF BUDGETS REACH CLIPPERS',
+    'UPI PAYOUTS · MIN ₹500', 'GOLDEN BOOT · ₹25,000 SEASON BONUS', 'ROOKIE → PRO → LEGEND',
+  ]
+  const row = [...items, ...items]
+  return (
+    <div className="ticker" aria-hidden="true">
+      <div className="ticker-track">
+        {row.map((t, i) => (
+          <span key={i}>{t} <span className="t-sep">◆</span></span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/* ---------- league preview ---------- */
+
+function LeaguePreview() {
+  const router = useRouter()
+  const [rows, setRows] = useState<BoardRow[]>([])
+  const [loaded, setLoaded] = useState(false)
+
+  useEffect(() => {
+    rpcCall<BoardRow[]>('get_leaderboard', { p_period: 'weekly' }).then(({ data, error }) => {
+      if (!error && Array.isArray(data)) setRows(data.slice(0, 5))
+      setLoaded(true)
+    }).catch(() => setLoaded(true))
+  }, [])
+
   return (
     <section className="section paper">
       <div className="container">
         <div className="section-head">
-          <span className="eyebrow"><span className="dot" /> The marketplace</span>
-          <h2 className="display-2">Two sides. <em>One loop.</em></h2>
-          <p className="lead">Brands fund campaigns. Clippers turn that content into Reels and Shorts. Brands pay only for verified views — 100% of the budget reaches the clippers.</p>
+          <span className="eyebrow"><span className="dot" /> The standings</span>
+          <h2 className="display-2">This week&apos;s <em>league table.</em></h2>
+          <p className="lead">Ranked by verified-view earnings. Resets every Monday, 00:00 IST. Legends are made weekly.</p>
         </div>
-        <div className="two-sides">
-          <div className="side-panel side-brand">
-            <span className="side-tag">Brand side</span>
-            <h3 className="display-3" style={{ marginTop: 16, marginBottom: 12 }}>Fund a budget.<br />Set the brief.</h3>
-            <p style={{ color: 'var(--fg-mute)', fontSize: 15, marginTop: 0, maxWidth: '40ch' }}>
-              Deposit ₹20K or ₹2L into your campaign wallet. Approve the source clips and rules. Sit back.
-            </p>
-            <div style={{ marginTop: 28, display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {[
-                { l: 'Campaign brief', r: 'Approved' },
-                { l: 'Wallet balance', r: '₹1,80,500' },
-                { l: 'Clippers joined', r: '38' },
-              ].map((row, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: i < 2 ? '1.5px dashed var(--hairline-strong)' : 'none', fontSize: 14 }}>
-                  <span style={{ color: 'var(--fg-mute)' }}>{row.l}</span>
-                  <span style={{ fontWeight: 700 }}>{row.r}</span>
+        {!loaded ? (
+          <div className="league-table"><div className="empty-pitch" style={{ border: 'none' }}><p>Loading the table…</p></div></div>
+        ) : rows.length === 0 ? (
+          <div className="empty-pitch">
+            <div className="ep-whistle">◷</div>
+            <h3>Pre-season</h3>
+            <p>Season 1 hasn&apos;t kicked off yet — the table is empty and the Golden Boot is up for grabs. Early clippers earn a permanent Founder badge.</p>
+            <button className="btn btn-primary" onClick={() => router.push('/signup')}>Claim your spot <Icon name="arrow-right" /></button>
+          </div>
+        ) : (
+          <>
+            <div className="league-table">
+              <div className="lrow head"><span>RANK</span><span>CLIPPER</span><span className="lviews" style={{ textAlign: 'right' }}>VIEWS</span><span className="learned" style={{ textAlign: 'right' }}>EARNED</span><span style={{ textAlign: 'right' }}>MOVE</span></div>
+              {rows.map((r) => (
+                <div key={r.clipper_id} className={`lrow ${r.rank === 1 ? 'top1' : r.rank <= 3 ? 'top3' : ''}`}>
+                  <span><span className="rank-badge">{r.rank}</span></span>
+                  <span className="lplayer">
+                    <div className="lname">{shortName(r)}</div>
+                    <div className="lsub"><TierChip tier={r.tier} /></div>
+                  </span>
+                  <span className="lnum dim lviews">{fmtViews(r.total_views)}</span>
+                  <span className="lnum learned">{fmtINR(r.total_earned)}</span>
+                  <span style={{ textAlign: 'right' }}><Move m={r.movement} /></span>
                 </div>
               ))}
             </div>
-          </div>
-          <div className="side-divider">
-            <span className="puck"><Icon name="arrow-right" width={22} height={22} /></span>
-          </div>
-          <div className="side-panel side-clipper">
-            <span className="side-tag">Clipper side</span>
-            <h3 className="display-3" style={{ marginTop: 16, marginBottom: 12, color: 'white' }}>Edit. Post.<br />Get paid by UPI.</h3>
-            <p style={{ color: 'var(--on-dark-2)', fontSize: 15, marginTop: 0, maxWidth: '40ch' }}>
-              Pick any open campaign. Cut a Reel or Short. Post it on your handle. Earn for every verified view.
-            </p>
-            <div style={{ marginTop: 28, display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {[
-                { l: 'Clip posted', r: '@creator.cuts' },
-                { l: 'Verified views', r: '1,24,560' },
-                { l: 'Earned this month', r: '₹4,820' },
-              ].map((row, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: i < 2 ? '1.5px dashed rgba(255,249,240,0.2)' : 'none', fontSize: 14 }}>
-                  <span style={{ color: 'var(--on-dark-2)' }}>{row.l}</span>
-                  <span style={{ fontWeight: 700, color: i === 2 ? 'var(--gold)' : 'white' }}>{row.r}</span>
-                </div>
-              ))}
+            <div style={{ marginTop: 24, display: 'flex', justifyContent: 'center' }}>
+              <button className="btn btn-ghost" onClick={() => router.push('/leaderboard')}>
+                Full standings <Icon name="arrow-right" />
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </section>
+  )
+}
+
+/* ---------- golden boot ---------- */
+
+function GoldenBoot() {
+  const router = useRouter()
+  return (
+    <section className="section white">
+      <div className="container">
+        <div className="golden-boot">
+          <div className="boot-trophy" aria-hidden="true">◈</div>
+          <div>
+            <span className="eyebrow" style={{ color: 'var(--gold)' }}><span className="dot" style={{ background: 'var(--gold)' }} /> The prize</span>
+            <h3>The <em>Golden Boot.</em></h3>
+            <p>Most verified views in a season takes the Boot — plus a <strong style={{ color: 'var(--gold)' }}>₹25,000 bonus</strong> on top of per-view earnings. No judges, no favourites. The numbers decide.</p>
+            <div className="boot-stats">
+              <div className="boot-stat"><div className="bs-num">₹25K</div><div className="bs-lab">SEASON BONUS</div></div>
+              <div className="boot-stat"><div className="bs-num">12 wks</div><div className="bs-lab">PER SEASON</div></div>
+              <div className="boot-stat"><div className="bs-num">Top 3</div><div className="bs-lab">PAID OUT</div></div>
+            </div>
+            <div style={{ marginTop: 22 }}>
+              <button className="btn btn-primary" onClick={() => router.push('/clippers')}>Chase the Boot <Icon name="arrow-right" /></button>
             </div>
           </div>
         </div>
@@ -129,165 +217,85 @@ function MarketplaceLoop() {
   )
 }
 
-function NicheShowcase() {
+/* ---------- matchday ---------- */
+
+function useCountdown() {
+  const [left, setLeft] = useState({ d: 0, h: 0, m: 0, s: 0 })
+  useEffect(() => {
+    const tick = () => {
+      const now = new Date()
+      const istNow = new Date(now.getTime() + (330 + now.getTimezoneOffset()) * 60000)
+      const next = new Date(istNow)
+      next.setDate(next.getDate() + ((8 - next.getDay()) % 7 || 7))
+      next.setHours(0, 0, 0, 0)
+      const diff = Math.max(0, next.getTime() - istNow.getTime())
+      setLeft({
+        d: Math.floor(diff / 86400000),
+        h: Math.floor(diff / 3600000) % 24,
+        m: Math.floor(diff / 60000) % 60,
+        s: Math.floor(diff / 1000) % 60,
+      })
+    }
+    tick()
+    const id = setInterval(tick, 1000)
+    return () => clearInterval(id)
+  }, [])
+  return left
+}
+
+function Matchday() {
   const router = useRouter()
-  const niches = [
-    { name: 'Fintech & Stock',    desc: 'UPI apps, neo-banking, investment, credit cards' },
-    { name: 'D2C Beauty',         desc: 'Skincare, haircare, cosmetics, wellness products' },
-    { name: 'EdTech',             desc: 'JEE, NEET, UPSC, coding bootcamps, skill courses' },
-    { name: 'Gaming & Esports',   desc: 'Mobile titles, fantasy sports, PC, casual gaming' },
-    { name: 'Quick Commerce',     desc: 'Grocery delivery, food apps, hyper-local brands' },
-    { name: 'Lifestyle & Apparel',desc: 'Fashion, homewear, travel, health & fitness' },
+  const { d, h, m, s } = useCountdown()
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return (
+    <section className="section paper">
+      <div className="container">
+        <div className="matchday">
+          <div>
+            <h3>Matchday drops every Monday.</h3>
+            <p>Fresh brand campaigns land at 00:00 IST. Claim your match, cut your clip, post it — the fastest clippers get first pick of the highest-paying briefs.</p>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              <button className="btn btn-lg" style={{ background: 'var(--ink)', color: 'var(--paper)' }} onClick={() => router.push('/signup')}>
+                Get drop alerts <Icon name="arrow-right" />
+              </button>
+              <button className="btn btn-ghost btn-lg" style={{ borderColor: 'rgba(255,253,248,0.5)', color: '#FFFDF8' }} onClick={() => router.push('/brands')}>
+                Drop a campaign
+              </button>
+            </div>
+          </div>
+          <div className="countdown" aria-label="Countdown to next drop">
+            {[{ n: pad(d), l: 'DAYS' }, { n: pad(h), l: 'HRS' }, { n: pad(m), l: 'MIN' }, { n: pad(s), l: 'SEC' }].map((c) => (
+              <div className="cd-cell" key={c.l}><div className="cd-num">{c.n}</div><div className="cd-lab">{c.l}</div></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ---------- season rules ---------- */
+
+function SeasonRules() {
+  const rules = [
+    { kicker: 'RULE 01', title: 'Pick your match', body: 'Browse the weekly drop. Claim a campaign brief that fits your style — beauty, fintech, D2C, gaming. First come, first served.' },
+    { kicker: 'RULE 02', title: 'Post your clip', body: 'Cut it your way and post on your own Instagram or YouTube. No follower minimum — volume across handles beats any single account.' },
+    { kicker: 'RULE 03', title: 'Get paid per view', body: 'Views are verified through platform APIs. Earnings land in your wallet, then UPI — minimum ₹500. The table updates weekly.' },
   ]
   return (
     <section className="section white">
       <div className="container">
-        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 24, marginBottom: 48 }}>
-          <div>
-            <span className="eyebrow"><span className="dot" /> Open for campaigns</span>
-            <h2 className="display-2" style={{ marginTop: 14 }}>One brief.<br />30+ angles. <em>Every niche.</em></h2>
-          </div>
-          <button className="btn btn-ghost" onClick={() => router.push('/signup')}>
-            Start a campaign <Icon name="arrow-right" />
-          </button>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 14 }}>
-          {niches.map((n, i) => (
-            <div key={i} className="card card-hover" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ fontFamily: 'var(--display)', fontWeight: 600, fontSize: 19, letterSpacing: '-0.01em' }}>{n.name}</div>
-              <p style={{ color: 'var(--fg-mute)', fontSize: 14, margin: 0, lineHeight: 1.55 }}>{n.desc}</p>
-            </div>
-          ))}
-        </div>
-        <p style={{ marginTop: 22, fontSize: 13, color: 'var(--fg-faint)', fontFamily: 'var(--mono)', letterSpacing: '0.04em' }}>ALL NICHES ACCEPTED · BRIEF TO LIVE IN 48 HOURS · CLIPPER DEPTH GROWS WITH CPM TIER</p>
-      </div>
-    </section>
-  )
-}
-
-function StepArt({ kind, idx }: { kind: string; idx: number }) {
-  const ink = '#1C1530'
-  const accent = '#F04E23'
-  const gold = '#FFB800'
-  const paper = '#FFFDF8'
-  const soft = '#FFE4D3'
-  if (kind === 'brand') {
-    if (idx === 0) return (
-      <svg viewBox="0 0 200 160" width="100%" height="100%">
-        <rect x="30" y="40" width="140" height="80" rx="14" fill={paper} stroke={ink} strokeWidth="2.5" />
-        <rect x="44" y="56" width="60" height="10" rx="5" fill={soft} />
-        <rect x="44" y="74" width="100" height="24" rx="7" fill={accent} stroke={ink} strokeWidth="1.5" />
-        <text x="94" y="90" textAnchor="middle" fontFamily="Fraunces, serif" fontSize="12" fontWeight="700" fill="#FFFDF8">₹2,00,000</text>
-        <circle cx="160" cy="58" r="14" fill={gold} stroke={ink} strokeWidth="2" />
-      </svg>
-    )
-    if (idx === 1) return (
-      <svg viewBox="0 0 200 160" width="100%" height="100%">
-        <rect x="40" y="38" width="56" height="84" rx="10" fill={paper} stroke={ink} strokeWidth="2.5" />
-        <rect x="50" y="50" width="36" height="48" rx="4" fill={soft} />
-        <path d="M62 68 v16 l14 -8 z" fill={accent} />
-        <rect x="104" y="38" width="56" height="84" rx="10" fill={paper} stroke={ink} strokeWidth="2.5" />
-        <rect x="114" y="50" width="36" height="48" rx="4" fill="#F3ECDC" />
-        <line x1="120" y1="74" x2="142" y2="74" stroke={ink} strokeWidth="2" opacity="0.4" />
-      </svg>
-    )
-    if (idx === 2) return (
-      <svg viewBox="0 0 200 160" width="100%" height="100%">
-        {[0, 1, 2].map(i => (
-          <g key={i} transform={`translate(${30 + i * 50}, 40)`}>
-            <rect width="40" height="80" rx="8" fill={paper} stroke={ink} strokeWidth="2.5" />
-            {i === 0 && <circle cx="20" cy="68" r="10" fill={accent} stroke={ink} strokeWidth="1.5" />}
-            {i === 0 && <path d="M16 68 l3 4 6 -8" stroke="#FFFDF8" strokeWidth="2" fill="none" strokeLinecap="round" />}
-            {i !== 0 && <rect x="10" y="58" width="20" height="20" rx="10" fill="#F3ECDC" stroke={ink} strokeWidth="1.5" />}
-          </g>
-        ))}
-      </svg>
-    )
-    return (
-      <svg viewBox="0 0 200 160" width="100%" height="100%">
-        <polyline points="20,120 50,90 80,100 110,60 140,72 180,30" fill="none" stroke={accent} strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
-        <circle cx="180" cy="30" r="7" fill={gold} stroke={ink} strokeWidth="2" />
-        <text x="20" y="142" fontFamily="JetBrains Mono" fontSize="9" fill={ink} opacity="0.55" letterSpacing="0.5">VERIFIED VIEWS · 30D</text>
-      </svg>
-    )
-  }
-  if (idx === 0) return (
-    <svg viewBox="0 0 200 160" width="100%" height="100%">
-      <rect x="62" y="24" width="76" height="120" rx="16" fill={paper} stroke={ink} strokeWidth="2.5" />
-      <rect x="70" y="46" width="60" height="22" rx="7" fill="#F3ECDC" stroke={ink} strokeWidth="1.5" />
-      <text x="100" y="60" textAnchor="middle" fontFamily="JetBrains Mono" fontSize="9" fill={ink} opacity="0.6">+91 ___ ___ ___</text>
-      <rect x="70" y="76" width="60" height="24" rx="7" fill={accent} stroke={ink} strokeWidth="1.5" />
-      <text x="100" y="91" textAnchor="middle" fontFamily="Inter" fontSize="10" fontWeight="700" fill="#FFFDF8">SEND OTP</text>
-    </svg>
-  )
-  if (idx === 1) return (
-    <svg viewBox="0 0 200 160" width="100%" height="100%">
-      {[0, 1].map(i => (
-        <g key={i} transform={`translate(${30 + i * 70}, 30)`}>
-          <rect width="68" height="100" rx="10" fill={paper} stroke={ink} strokeWidth="2.5" />
-          <rect x="10" y="10" width="48" height="50" rx="5" fill={soft} stroke={ink} strokeWidth="1.5" />
-          <path d="M30 30 v12 l10 -6 z" fill={accent} />
-          <rect x="10" y="68" width="40" height="6" rx="3" fill={ink} opacity="0.25" />
-          <rect x="10" y="80" width="28" height="5" rx="2.5" fill={ink} opacity="0.15" />
-        </g>
-      ))}
-    </svg>
-  )
-  if (idx === 2) return (
-    <svg viewBox="0 0 200 160" width="100%" height="100%">
-      <rect x="36" y="24" width="128" height="112" rx="12" fill={paper} stroke={ink} strokeWidth="2.5" />
-      <rect x="46" y="34" width="108" height="64" rx="7" fill={soft} stroke={ink} strokeWidth="1.5" />
-      <path d="M86 56 v20 l24 -10 z" fill={accent} />
-      <line x1="46" y1="110" x2="154" y2="110" stroke={ink} opacity="0.2" />
-      <line x1="80" y1="110" x2="80" y2="100" stroke={accent} strokeWidth="3.5" />
-    </svg>
-  )
-  return (
-    <svg viewBox="0 0 200 160" width="100%" height="100%">
-      <rect x="40" y="40" width="120" height="80" rx="14" fill={paper} stroke={ink} strokeWidth="2.5" />
-      <rect x="54" y="56" width="42" height="14" rx="4" fill={ink} opacity="0.25" />
-      <text x="54" y="96" fontFamily="Fraunces, serif" fontSize="24" fontWeight="600" fill={accent}>₹4,820</text>
-      <circle cx="138" cy="60" r="14" fill={gold} stroke={ink} strokeWidth="2" />
-      <path d="M134 60 l3 3 6 -7" stroke={ink} strokeWidth="2.4" fill="none" strokeLinecap="round" />
-    </svg>
-  )
-}
-
-function HowItWorksTabs() {
-  const [tab, setTab] = useState<'brand' | 'clipper'>('brand')
-  const brandSteps = [
-    { num: '01', t: 'Deposit a budget', d: 'Add ₹20K or more to your campaign wallet via UPI, NEFT or card. Funds stay in escrow until views are verified.' },
-    { num: '02', t: 'Upload source content', d: 'Drop in long-form videos, raw footage, ad scripts or product B-rolls. We package it for clippers.' },
-    { num: '03', t: 'Approve the brief', d: 'Set niche, do/don\'t rules, daily view caps. Approve or reject any clip within a 72-hour window.' },
-    { num: '04', t: 'Pay only for views', d: 'Verified Reels and Shorts views via the official Instagram and YouTube APIs. No views, no charge.' },
-  ]
-  const clipperSteps = [
-    { num: '01', t: 'Sign up with phone', d: 'Phone OTP only — no email, no password, no follower minimum. Add your UPI ID once.' },
-    { num: '02', t: 'Pick a campaign', d: 'Browse open briefs by niche and earning tier. Download the source pack with one tap.' },
-    { num: '03', t: 'Edit and post', d: 'Cut a 15–60s Reel or Short on any editor. Post it on your own Instagram or YouTube account.' },
-    { num: '04', t: 'Get paid via UPI', d: 'Every verified view becomes earnings. Payouts hit your UPI within 7 days. Minimum ₹500.' },
-  ]
-  const steps = tab === 'brand' ? brandSteps : clipperSteps
-  return (
-    <section className="section dark">
-      <div className="container">
         <div className="section-head">
-          <span className="eyebrow"><span className="dot" /> How it works</span>
-          <h2 className="display-2" style={{ color: 'white' }}>Four steps. <em>No surprises.</em></h2>
+          <span className="eyebrow"><span className="dot" /> Season rules</span>
+          <h2 className="display-2">Three rules. <em>Zero fine print.</em></h2>
         </div>
-        <div className="tabs" role="tablist">
-          <button className={`tab ${tab === 'brand' ? 'active' : ''}`} onClick={() => setTab('brand')}>For Brands</button>
-          <button className={`tab ${tab === 'clipper' ? 'active' : ''}`} onClick={() => setTab('clipper')}>For Clippers</button>
-        </div>
-        <div className="steps-grid">
-          {steps.map((s, i) => (
-            <div className="step" key={i}>
-              <div className="step-illus">
-                <StepArt kind={tab} idx={i} />
-              </div>
-              <div className="step-num">{s.num}</div>
-              <div className="step-title" style={{ color: 'white' }}>{s.t}</div>
-              <p className="step-desc">{s.d}</p>
+        <div className="season-rules">
+          {rules.map((r, i) => (
+            <div className="rule-card" key={i}>
+              <div className="rule-num">{i + 1}</div>
+              <div className="rule-kicker">{r.kicker}</div>
+              <h4>{r.title}</h4>
+              <p>{r.body}</p>
             </div>
           ))}
         </div>
@@ -296,46 +304,14 @@ function HowItWorksTabs() {
   )
 }
 
-function WhyWondeed() {
-  const cards = [
-    { icon: 'rupee', t: 'Pay only for views', d: 'No retainer, no flat fee, no "we tried our best". You pay per verified view via the platform APIs — never for a post that flopped.' },
-    { icon: 'users', t: 'Distributed reach', d: 'One brief becomes 30, 50, 200 different cuts on real creator handles. Your message lands across niches you couldn\'t buy your way into.' },
-    { icon: 'shield-check', t: 'Verified, not estimated', d: 'Direct pulls from Instagram Graph and YouTube Data APIs. Anomaly detection on engagement. Holding period before payout.' },
-  ]
-  return (
-    <section className="section paper">
-      <div className="container">
-        <div className="section-head">
-          <span className="eyebrow"><span className="dot" /> Why Wondeed</span>
-          <h2 className="display-2">A model that lines up <em>everyone&apos;s</em> incentives.</h2>
-        </div>
-        <div className="why-grid">
-          {cards.map((c, i) => (
-            <div key={i} className="why-card">
-              <div className="why-icon"><Icon name={c.icon} width={22} height={22} /></div>
-              <div>
-                <h3 className="display-4">{c.t}</h3>
-                <p style={{ marginTop: 12, color: 'var(--fg-mute)', fontSize: 15, lineHeight: 1.6 }}>{c.d}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
+/* ---------- kept trust sections ---------- */
 
 function BrandPromises() {
   const promises = [
     {
-      num: '₹0',
-      title: 'If a clip gets zero views',
-      body: 'You pay nothing for a clip that doesn\'t land. The clipper took the swing. Your budget stays intact.',
-    },
-    {
       num: '100%',
-      title: 'Of your budget goes to clippers',
-      body: 'Wondeed earns from your subscription, never from your campaign spend. Every rupee you deposit reaches a clipper.',
+      title: 'Of campaign budgets reach clippers',
+      body: 'Wondeed earns from brand subscriptions — never from your budget. Every rupee you put in is payable to creators.',
     },
     {
       num: '72h',
@@ -345,16 +321,16 @@ function BrandPromises() {
     {
       num: '7d',
       title: 'UPI payout after views clear',
-      body: 'Verified views → 72-hour hold → UPI settled. Tier 3 clippers get 3-day fast-track. No delays, no exceptions.',
+      body: 'Verified views → 72-hour hold → UPI settled. No delays, no exceptions.',
     },
   ]
   return (
     <section className="section dark">
       <div className="container">
         <div className="section-head">
-          <span className="eyebrow"><span className="dot" /> Four guarantees</span>
+          <span className="eyebrow"><span className="dot" /> The guarantees</span>
           <h2 className="display-2" style={{ color: 'white' }}>The numbers that <em>actually matter.</em></h2>
-          <p className="lead">No follower estimates. No deck metrics. Four product facts that define every campaign on Wondeed.</p>
+          <p className="lead">Three product facts that define every campaign on Wondeed.</p>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
           {promises.map((p, i) => (
@@ -377,7 +353,7 @@ function HomeFAQTeaser() {
     { q: 'What counts as a verified view?', a: 'A view counted by Instagram Graph API or YouTube Data API on a public Reel or Short, after our anomaly check. Watch-time floors apply on Shorts.' },
     { q: 'Do clippers need a minimum follower count?', a: 'No. Zero followers is fine. Distribution comes from clip volume across many handles, not from any one creator\'s reach.' },
     { q: 'How fast do clippers get paid?', a: 'Earnings are released after a 72-hour holding period. UPI payouts settle within 7 days of release. Minimum payout is ₹500.' },
-    { q: 'What\'s the minimum campaign budget?', a: '₹20,000. There is no upper limit. 100% of every rupee in your campaign goes to clippers — Wondeed earns from brand subscriptions, not from your budget.' },
+    { q: 'How does the league table work?', a: 'Clippers are ranked weekly by verified-view earnings. The table resets every Monday at 00:00 IST. All-time legends never reset — and the season Golden Boot pays ₹25,000.' },
     { q: 'What if a clipper misrepresents my brand?', a: 'You have a 72-hour content approval window. Reject any clip and the view payout is reversed. Repeated violations remove the clipper from the network.' },
   ]
   return (
@@ -408,10 +384,11 @@ function HomeFAQTeaser() {
 export function HomeSections() {
   return (
     <>
-      <MarketplaceLoop />
-      <NicheShowcase />
-      <HowItWorksTabs />
-      <WhyWondeed />
+      <SeasonTicker />
+      <LeaguePreview />
+      <GoldenBoot />
+      <Matchday />
+      <SeasonRules />
       <BrandPromises />
       <HomeFAQTeaser />
       <FinalSplitCTA />
@@ -427,26 +404,25 @@ export default function HomePage() {
         <div className="container">
           <div className="hero-grid">
             <div>
-              <span className="sticker">Performance clipping marketplace</span>
+              <span className="sticker">Season 1 · Registrations open</span>
               <h1 className="display-1" style={{ marginTop: 26 }}>
-                Pay only for<br />
-                <em>views</em>. Reach<br />
-                millions of <span className="hl">Indians.</span>
+                Clipping is a sport.<br />
+                Get paid <em>like an athlete.</em>
               </h1>
               <p className="lead" style={{ marginTop: 28 }}>
-                Wondeed is India&apos;s first performance-based clipping marketplace. Brands fund video campaigns. Clippers turn them into Reels and Shorts. You only pay when views are verified.
+                Wondeed turns brand campaigns into weekly drops. Clippers compete on the league table — every verified view earns real rupees, paid out over UPI.
               </p>
               <div className="hero-actions" style={{ marginTop: 36 }}>
                 <button className="btn btn-primary btn-lg" onClick={() => router.push('/signup')}>
-                  Start a campaign <Icon name="arrow-right" />
+                  Start clipping <Icon name="arrow-right" />
                 </button>
-                <button className="btn btn-ghost btn-lg" onClick={() => router.push('/clippers')}>
-                  I want to clip &amp; earn
+                <button className="btn btn-ghost btn-lg" onClick={() => router.push('/brands')}>
+                  Fund a campaign
                 </button>
               </div>
               <div className="live-ticker">
                 <span className="live-pulse" />
-                Campaigns open now · 100% of budgets reach clippers · UPI payouts in 7 days
+                Weekly drops every Monday · 100% of budgets reach clippers · UPI payouts
               </div>
             </div>
             <HeroVisual />
