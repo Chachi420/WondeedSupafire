@@ -1,13 +1,14 @@
 import type { Metadata, Viewport } from 'next'
-import { Manrope } from 'next/font/google'
+import { Fraunces } from 'next/font/google'
 import './globals.css'
 import './marketing.css'
 import './story.css'
 
-const manrope = Manrope({
+const fraunces = Fraunces({
   subsets: ['latin'],
-  variable: '--font-manrope',
+  variable: '--font-fraunces',
   display: 'swap',
+  axes: ['opsz', 'wght', 'SOFT', 'WONK'],
 })
 
 export const metadata: Metadata = {
@@ -41,7 +42,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#0A0E27',
+  themeColor: '#FAF6EE',
 }
 
 export default function RootLayout({
@@ -50,7 +51,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={manrope.variable}>
+    <html lang="en" className={fraunces.variable}>
       <body>{children}</body>
     </html>
   )
